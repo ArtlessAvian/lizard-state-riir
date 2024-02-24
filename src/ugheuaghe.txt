@@ -1,0 +1,42 @@
+struct OccupySystem {
+    occupiers: HashMap<AbsolutePosition, Weak<Entity>>
+
+    pub new() -> Self {
+        OccupySystem {
+            occupiers: empty hash map.
+        }
+    }
+
+    pub add_entity(&self, e: Weak<Entity>) -> Result<Self, MyErr> {
+        let mut clone = self.clone()
+        match clone.occupiers.entry(e.position) {
+            Occupied(_) => return Err(MyErr{})
+            Vacant(vacancy) => vacancy.insert(e) 
+        }
+        Ok(clone)
+    }
+}
+
+pub struct Floor {
+    entities: Vec<Rc<Entity>>,
+    occupiers: HashMap<AbsolutePosition, &Entity>,
+    
+    // Adds an entity, keeping the floor in a valid state.
+    pub add_entity(&self, e: Entity) -> Result<Self, Err> {
+        let whatever = Rc::new(e)
+        Floor {
+            entities.clone().add(whatever),
+            occupiers.add_entity(whatever.downgrade())?,
+        }
+    }
+
+    pub update_entity(&self, prev: Rc<Entity>, next: Rc<Entity>) -> Result<Self, Err> {
+
+    }
+
+    pub update_entities(&self, pairs: Vec<(Rc<Entity>, Entity)) -> Result<Self, Err> {
+
+    }
+
+    // 
+}

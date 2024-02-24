@@ -1,4 +1,6 @@
-use std::{process::Command, rc::Rc};
+use std::collections::HashMap;
+use std::process::Command;
+use std::rc::Rc;
 
 use crate::data::{ActionTrait, CommandTrait, Entity, Floor};
 
@@ -9,7 +11,9 @@ impl ActionTrait for DoNothingAction {
     }
 }
 impl CommandTrait for DoNothingAction {
-    fn do_action(self, _floor: &mut Floor) {}
+    fn do_action(self, floor: &Floor) -> Floor {
+        floor.clone()
+    }
 }
 
 pub struct GoRightAction;
@@ -32,16 +36,12 @@ pub struct GoRightCommand {
 }
 impl CommandTrait for GoRightCommand {
     // TODO: assumes entity is on floor
-    fn do_action(self, floor: &mut Floor) {
-        let mut subject = floor
-            .entities
-            .iter_mut()
-            .find(|e| Rc::ptr_eq(&e, &self.subject_ref))
-            .unwrap();
+    fn do_action(self, floor: &Floor) -> Floor {
+        let mut subject_clone: Entity = (*self.subject_ref).clone();
 
-        drop(self.subject_ref);
+        subject_clone.x += 1;
 
-        Rc::get_mut(&mut subject).unwrap().x += 1;
+        floor.update_entity(self.subject_ref, Rc::new(subject_clone))
     }
 }
 
@@ -55,9 +55,38 @@ impl ActionTrait for EveryoneGoRightAction {
 pub struct EveryoneGoRightCommand;
 impl CommandTrait for EveryoneGoRightCommand {
     // TODO: assumes entity is on floor
-    fn do_action(self, floor: &mut Floor) {
-        floor.entities.iter_mut().for_each(|mut x| {
-            Rc::get_mut(&mut x).unwrap().x += 1;
-        });
+    fn do_action(self, floor: &Floor) -> Floor {
+        let mut map = HashMap::new();
+        for entity in &floor.entities {
+            let mut clone = entity.as_ref().clone();
+            clone.x += 1;
+            map.insert(entity.clone(), Rc::new(clone));
+        }
+        floor.update_entities(map)
+    }
+}
+
+pub struct AttackRightAction;
+impl ActionTrait for AttackRightAction {
+    fn verify_action(&self, floor: &Floor, e: Rc<Entity>) -> Option<AttackRightCommand> {
+        let target = floor.entities.iter().find(|other| other.x == e.x + 1)?;
+        Some(AttackRightCommand {
+            subject_ref: e,
+            target_ref: target.clone(),
+        })
+    }
+}
+
+pub struct AttackRightCommand {
+    subject_ref: Rc<Entity>,
+    target_ref: Rc<Entity>,
+}
+impl CommandTrait for AttackRightCommand {
+    fn do_action(self, floor: &Floor) -> Floor {
+        println!(
+            "subject at {} hits target at {}",
+            self.subject_ref.x, self.target_ref.x
+        );
+        floor.clone()
     }
 }
