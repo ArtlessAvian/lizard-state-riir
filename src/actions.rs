@@ -6,7 +6,8 @@ use crate::data::{ActionTrait, CommandTrait, Entity, Floor};
 
 pub struct DoNothingAction;
 impl ActionTrait for DoNothingAction {
-    fn verify_action(&self, floor: &Floor, e: Rc<Entity>) -> Option<Self> {
+    fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<Self> {
+        assert!(floor.entities.contains(e));
         Some(DoNothingAction)
     }
 }
@@ -18,10 +19,11 @@ impl CommandTrait for DoNothingAction {
 
 pub struct GoRightAction;
 impl ActionTrait for GoRightAction {
-    fn verify_action(&self, floor: &Floor, subject_ref: Rc<Entity>) -> Option<GoRightCommand> {
+    fn verify_action(&self, floor: &Floor, subject_ref: &Rc<Entity>) -> Option<GoRightCommand> {
+        assert!(floor.entities.contains(subject_ref));
         if floor.entities.iter().all(|e| e.x != subject_ref.x + 1) {
             Some(GoRightCommand {
-                subject_ref,
+                subject_ref: subject_ref.clone(),
                 nobody_right_of_subject: (),
             })
         } else {
@@ -47,7 +49,8 @@ impl CommandTrait for GoRightCommand {
 
 pub struct EveryoneGoRightAction;
 impl ActionTrait for EveryoneGoRightAction {
-    fn verify_action(&self, floor: &Floor, e: Rc<Entity>) -> Option<EveryoneGoRightCommand> {
+    fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<EveryoneGoRightCommand> {
+        assert!(floor.entities.contains(e));
         Some(EveryoneGoRightCommand)
     }
 }
@@ -68,10 +71,11 @@ impl CommandTrait for EveryoneGoRightCommand {
 
 pub struct AttackRightAction;
 impl ActionTrait for AttackRightAction {
-    fn verify_action(&self, floor: &Floor, e: Rc<Entity>) -> Option<AttackRightCommand> {
+    fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<AttackRightCommand> {
+        assert!(floor.entities.contains(e));
         let target = floor.entities.iter().find(|other| other.x == e.x + 1)?;
         Some(AttackRightCommand {
-            subject_ref: e,
+            subject_ref: e.clone(),
             target_ref: target.clone(),
         })
     }
