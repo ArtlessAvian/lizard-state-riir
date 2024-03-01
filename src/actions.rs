@@ -1,8 +1,10 @@
 use std::collections::HashMap;
-use std::process::Command;
 use std::rc::Rc;
 
-use crate::data::{ActionTrait, CommandTrait, Entity, Floor};
+use crate::data::ActionTrait;
+use crate::data::CommandTrait;
+use crate::data::Entity;
+use crate::data::Floor;
 
 pub struct DoNothingAction;
 impl ActionTrait for DoNothingAction {
@@ -24,7 +26,6 @@ impl ActionTrait for GoRightAction {
         if floor.entities.iter().all(|e| e.x != subject_ref.x + 1) {
             Some(GoRightCommand {
                 subject_ref: subject_ref.clone(),
-                nobody_right_of_subject: (),
             })
         } else {
             None
@@ -34,7 +35,6 @@ impl ActionTrait for GoRightAction {
 
 pub struct GoRightCommand {
     subject_ref: Rc<Entity>,
-    nobody_right_of_subject: (),
 }
 impl CommandTrait for GoRightCommand {
     // TODO: assumes entity is on floor

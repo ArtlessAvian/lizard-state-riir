@@ -77,14 +77,14 @@ impl Floor {
             .collect::<Vec<Rc<Entity>>>();
 
         let mut new_occupiers = self.occupiers.clone();
-        for (old, _) in &map {
+        for old in map.keys() {
             new_occupiers.remove_entry(&old.x);
         }
-        for (_, new) in &map {
+        for new in map.values() {
             match new_occupiers.entry(new.x) {
                 std::collections::hash_map::Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
                 std::collections::hash_map::Entry::Vacant(vacancy) => {
-                    vacancy.insert(Rc::downgrade(&new));
+                    vacancy.insert(Rc::downgrade(new));
                 }
             };
         }
