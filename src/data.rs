@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::rc::Rc;
-use std::rc::Weak;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Entity {
@@ -10,7 +9,7 @@ pub struct Entity {
 #[derive(Clone)]
 pub struct Floor {
     pub entities: Vec<Rc<Entity>>,
-    pub occupiers: HashMap<i8, Weak<Entity>>,
+    pub occupiers: HashMap<i8, Rc<Entity>>,
 }
 
 impl Floor {
@@ -23,22 +22,22 @@ impl Floor {
 
     pub fn add_entity(&self, new: Rc<Entity>) -> Self {
         let mut clone = self.clone();
-        clone.entities.push(new.clone());
+        clone.entities.push(Rc::clone(&new));
         match clone.occupiers.entry(new.x) {
             std::collections::hash_map::Entry::Occupied(_) => panic!("AHHHHHHH"),
             std::collections::hash_map::Entry::Vacant(vacancy) => {
-                vacancy.insert(Rc::downgrade(&new));
+                vacancy.insert(Rc::clone(&new));
             }
         }
         clone
     }
 
     pub fn get_player(&self) -> Rc<Entity> {
-        self.entities[0].clone()
+        Rc::clone(self.entities.first().unwrap())
     }
 
     pub fn get_someone(&self) -> Rc<Entity> {
-        self.entities.last().unwrap().clone()
+        Rc::clone(self.entities.last().unwrap())
     }
 
     pub fn update_entity(&self, old: Rc<Entity>, new: Rc<Entity>) -> Floor {
@@ -59,7 +58,7 @@ impl Floor {
         match new_occupiers.entry(new.x) {
             std::collections::hash_map::Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
             std::collections::hash_map::Entry::Vacant(vacancy) => {
-                vacancy.insert(Rc::downgrade(&new));
+                vacancy.insert(Rc::clone(&new));
             }
         };
 
@@ -73,7 +72,7 @@ impl Floor {
         let new_entities = self
             .entities
             .iter()
-            .map(|x| map.get(x).unwrap_or(x).clone())
+            .map(|x| Rc::clone(map.get(x).unwrap_or(x)))
             .collect::<Vec<Rc<Entity>>>();
 
         let mut new_occupiers = self.occupiers.clone();
@@ -84,7 +83,7 @@ impl Floor {
             match new_occupiers.entry(new.x) {
                 std::collections::hash_map::Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
                 std::collections::hash_map::Entry::Vacant(vacancy) => {
-                    vacancy.insert(Rc::downgrade(new));
+                    vacancy.insert(Rc::clone(new));
                 }
             };
         }

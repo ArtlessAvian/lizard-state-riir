@@ -75,8 +75,8 @@ impl ActionTrait for AttackRightAction {
         assert!(floor.entities.contains(e));
         let target = floor.entities.iter().find(|other| other.x == e.x + 1)?;
         Some(AttackRightCommand {
-            subject_ref: e.clone(),
-            target_ref: target.clone(),
+            subject_ref: Rc::clone(&e),
+            target_ref: Rc::clone(&target),
         })
     }
 }
