@@ -8,7 +8,7 @@ use crate::data::Floor;
 
 pub struct DoNothingAction;
 impl ActionTrait for DoNothingAction {
-    fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<Self> {
+    fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<impl CommandTrait> {
         assert!(floor.entities.contains(e));
         Some(DoNothingAction)
     }
@@ -21,7 +21,7 @@ impl CommandTrait for DoNothingAction {
 
 pub struct GoRightAction;
 impl ActionTrait for GoRightAction {
-    fn verify_action(&self, floor: &Floor, subject_ref: &Rc<Entity>) -> Option<GoRightCommand> {
+    fn verify_action(&self, floor: &Floor, subject_ref: &Rc<Entity>) -> Option<impl CommandTrait> {
         assert!(floor.entities.contains(subject_ref));
         if floor.entities.iter().all(|e| e.x != subject_ref.x + 1) {
             Some(GoRightCommand {
@@ -49,7 +49,7 @@ impl CommandTrait for GoRightCommand {
 
 pub struct EveryoneGoRightAction;
 impl ActionTrait for EveryoneGoRightAction {
-    fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<EveryoneGoRightCommand> {
+    fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<impl CommandTrait> {
         assert!(floor.entities.contains(e));
         Some(EveryoneGoRightCommand)
     }
@@ -71,7 +71,7 @@ impl CommandTrait for EveryoneGoRightCommand {
 
 pub struct AttackRightAction;
 impl ActionTrait for AttackRightAction {
-    fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<AttackRightCommand> {
+    fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<impl CommandTrait> {
         assert!(floor.entities.contains(e));
         let target = floor.entities.iter().find(|other| other.x == e.x + 1)?;
         Some(AttackRightCommand {
