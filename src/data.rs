@@ -1,3 +1,4 @@
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -22,13 +23,16 @@ impl Floor {
 
     pub fn add_entity(&self, new: Rc<Entity>) -> Self {
         let mut clone = self.clone();
+
         clone.entities.push(Rc::clone(&new));
+
         match clone.occupiers.entry(new.x) {
-            std::collections::hash_map::Entry::Occupied(_) => panic!("AHHHHHHH"),
-            std::collections::hash_map::Entry::Vacant(vacancy) => {
+            Entry::Occupied(_) => panic!("AHHHHHHH"),
+            Entry::Vacant(vacancy) => {
                 vacancy.insert(Rc::clone(&new));
             }
         }
+
         clone
     }
 
@@ -56,8 +60,8 @@ impl Floor {
         let mut new_occupiers = self.occupiers.clone();
         new_occupiers.remove_entry(&old.x);
         match new_occupiers.entry(new.x) {
-            std::collections::hash_map::Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
-            std::collections::hash_map::Entry::Vacant(vacancy) => {
+            Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
+            Entry::Vacant(vacancy) => {
                 vacancy.insert(Rc::clone(&new));
             }
         };
@@ -81,8 +85,8 @@ impl Floor {
         }
         for new in map.values() {
             match new_occupiers.entry(new.x) {
-                std::collections::hash_map::Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
-                std::collections::hash_map::Entry::Vacant(vacancy) => {
+                Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
+                Entry::Vacant(vacancy) => {
                     vacancy.insert(Rc::clone(new));
                 }
             };
