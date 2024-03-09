@@ -16,22 +16,22 @@ fn main() {
     [Entity { x: 5 }, Entity { x: 4 }]
         .map(Rc::new)
         .iter()
-        .for_each(|e| floor = floor.add_entity(e.clone()));
+        .for_each(|e| _ = floor.add_entity(e.clone()));
 
     {
         let player_ref = floor.get_player();
         let go_right = GoRightAction {};
         let go_right_command = go_right.verify_action(&floor, &player_ref).unwrap();
-        floor = go_right_command.do_action(&floor);
+        let _ = go_right_command.do_action(&mut floor);
         assert_eq!(floor.get_player().x, 6);
     }
     {
         let other_ref = floor.get_someone();
         let go_right = GoRightAction {};
-        floor = go_right
+        let _ = go_right
             .verify_action(&floor, &other_ref)
             .unwrap()
-            .do_action(&floor);
+            .do_action(&mut floor);
     }
     {
         let other_ref = floor.get_someone();
@@ -43,15 +43,15 @@ fn main() {
         let attack_right_command = AttackRightAction {}
             .verify_action(&floor, &other_ref)
             .unwrap();
-        floor = attack_right_command.do_action(&floor);
+        let _ = attack_right_command.do_action(&mut floor);
     }
     {
         let player_ref = floor.get_player();
         let all_go_right = EveryoneGoRightAction;
-        floor = all_go_right
+        let _ = all_go_right
             .verify_action(&floor, &player_ref)
             .unwrap()
-            .do_action(&floor);
+            .do_action(&mut floor);
         assert_eq!(floor.get_player().x, 7);
     }
 }

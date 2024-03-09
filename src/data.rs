@@ -9,7 +9,14 @@ pub struct Entity {
 #[derive(Clone)]
 pub struct Floor {
     pub entities: Vec<Rc<Entity>>,
+    // Invariants
     pub occupiers: HashMap<i8, Rc<Entity>>,
+}
+
+#[non_exhaustive]
+pub struct FloorSnapshot {
+    pub entities: Vec<Rc<Entity>>,
+    // All invariants must be valid, so no need to save.
 }
 
 impl Floor {
@@ -20,16 +27,33 @@ impl Floor {
         }
     }
 
-    pub fn add_entity(&self, new: Rc<Entity>) -> Self {
-        let mut clone = self.clone();
-        clone.entities.push(Rc::clone(&new));
-        match clone.occupiers.entry(new.x) {
+    pub fn get_snapshot(&self) -> FloorSnapshot {
+        FloorSnapshot {
+            entities: self.entities.clone(),
+        }
+    }
+
+    // not necessarily the fastest but its safe.
+    pub fn from_snapshot(snapshot: FloorSnapshot) -> Self {
+        let mut out = Floor::new();
+        for entity in snapshot.entities {
+            out.add_entity(entity);
+        }
+        out
+    }
+
+    pub fn add_entity(&mut self, new: Rc<Entity>) -> FloorSnapshot {
+        let snapshot = self.get_snapshot();
+
+        self.entities.push(Rc::clone(&new));
+        match self.occupiers.entry(new.x) {
             std::collections::hash_map::Entry::Occupied(_) => panic!("AHHHHHHH"),
             std::collections::hash_map::Entry::Vacant(vacancy) => {
                 vacancy.insert(Rc::clone(&new));
             }
         }
-        clone
+
+        snapshot
     }
 
     pub fn get_player(&self) -> Rc<Entity> {
@@ -40,47 +64,41 @@ impl Floor {
         Rc::clone(self.entities.last().unwrap())
     }
 
-    pub fn update_entity(&self, old: Rc<Entity>, new: Rc<Entity>) -> Floor {
-        let new_entities = self
+    pub fn update_entity(&mut self, old: Rc<Entity>, new: Rc<Entity>) -> FloorSnapshot {
+        let snapshot = self.get_snapshot();
+
+        self.entities = self
             .entities
             .iter()
-            .map(|x| {
-                if Rc::ptr_eq(x, &old) {
-                    new.clone()
-                } else {
-                    x.clone()
-                }
-            })
+            .map(|x| Rc::clone(if Rc::ptr_eq(x, &old) { &new } else { x }))
             .collect::<Vec<Rc<Entity>>>();
 
-        let mut new_occupiers = self.occupiers.clone();
-        new_occupiers.remove_entry(&old.x);
-        match new_occupiers.entry(new.x) {
+        self.occupiers.remove_entry(&old.x);
+        match self.occupiers.entry(new.x) {
             std::collections::hash_map::Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
             std::collections::hash_map::Entry::Vacant(vacancy) => {
                 vacancy.insert(Rc::clone(&new));
             }
         };
 
-        Floor {
-            entities: new_entities,
-            occupiers: new_occupiers,
-        }
+        snapshot
     }
 
-    pub fn update_entities(&self, map: HashMap<Rc<Entity>, Rc<Entity>>) -> Floor {
-        let new_entities = self
+    // more permissive than updating one at a time.
+    pub fn update_entities(&mut self, map: HashMap<Rc<Entity>, Rc<Entity>>) -> FloorSnapshot {
+        let snapshot = self.get_snapshot();
+
+        self.entities = self
             .entities
             .iter()
             .map(|x| Rc::clone(map.get(x).unwrap_or(x)))
             .collect::<Vec<Rc<Entity>>>();
 
-        let mut new_occupiers = self.occupiers.clone();
         for old in map.keys() {
-            new_occupiers.remove_entry(&old.x);
+            self.occupiers.remove_entry(&old.x);
         }
         for new in map.values() {
-            match new_occupiers.entry(new.x) {
+            match self.occupiers.entry(new.x) {
                 std::collections::hash_map::Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
                 std::collections::hash_map::Entry::Vacant(vacancy) => {
                     vacancy.insert(Rc::clone(new));
@@ -88,10 +106,7 @@ impl Floor {
             };
         }
 
-        Floor {
-            entities: new_entities,
-            occupiers: new_occupiers,
-        }
+        snapshot
     }
 }
 
@@ -100,5 +115,5 @@ pub trait ActionTrait {
 }
 
 pub trait CommandTrait {
-    fn do_action(self, floor: &Floor) -> Floor;
+    fn do_action(self, floor: &mut Floor) -> FloorSnapshot;
 }
