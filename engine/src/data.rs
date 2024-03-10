@@ -2,13 +2,22 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use crate::actions::GoRightAction;
+
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Entity {
     pub x: i8,
 }
 
+impl Entity {
+    pub fn get_actions() -> Box<dyn ActionTrait> {
+        Box::new(GoRightAction)
+    }
+}
+
 #[derive(Clone)]
 pub struct Floor {
+    // Rc is shared between Floor generations.
     pub entities: Vec<Rc<Entity>>,
     pub occupiers: HashMap<i8, Rc<Entity>>,
 }
@@ -100,9 +109,16 @@ impl Floor {
 }
 
 pub trait ActionTrait {
-    fn verify_action(&self, floor: &Floor, subject_ref: &Rc<Entity>) -> Option<impl CommandTrait>;
+    // not object safe
+    // fn verify_action(&self, floor: &Floor, subject_ref: &Rc<Entity>) -> Option<impl CommandTrait>;
+
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_ref: &Rc<Entity>,
+    ) -> Option<Box<dyn CommandTrait>>;
 }
 
 pub trait CommandTrait {
-    fn do_action(self, floor: &Floor) -> Floor;
+    fn do_action(&self, floor: &Floor) -> Floor;
 }

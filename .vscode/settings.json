@@ -1,5 +1,11 @@
 {
     "rust-analyzer.linkedProjects": [
         ".\\engine\\Cargo.toml"
-    ]
+    ],
+    "rust-analyzer.files.excludeDirs": [
+        "godot/"
+    ],
+    "files.watcherExclude": {
+        "**/target/**": true
+    }
 }
