@@ -54,4 +54,6 @@ fn main() {
             .do_action(&floor);
         assert_eq!(floor.get_player().x, 7);
     }
+
+    println!("{}", serde_yaml::to_string(&floor).ok().unwrap());
 }

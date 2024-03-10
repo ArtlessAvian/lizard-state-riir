@@ -1,10 +1,13 @@
+use serde::Deserialize;
+use serde::Serialize;
+
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::actions::GoRightAction;
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Entity {
     pub x: i8,
 }
@@ -15,9 +18,10 @@ impl Entity {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Floor {
     // Rc is shared between Floor generations.
+    // Prefer to use indices since serializing Rcs does not preserve identity.
     pub entities: Vec<Rc<Entity>>,
     pub occupiers: HashMap<i8, Rc<Entity>>,
 }
