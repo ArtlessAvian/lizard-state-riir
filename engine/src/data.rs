@@ -23,7 +23,7 @@ pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.
     pub entities: Vec<Rc<Entity>>,
-    pub occupiers: HashMap<i8, Rc<Entity>>,
+    pub occupiers: HashMap<i8, usize>,
 }
 
 impl Floor {
@@ -37,12 +37,13 @@ impl Floor {
     pub fn add_entity(&self, new: Rc<Entity>) -> Self {
         let mut clone = self.clone();
 
+        let index = clone.entities.len();
         clone.entities.push(Rc::clone(&new));
 
         match clone.occupiers.entry(new.x) {
             Entry::Occupied(_) => panic!("AHHHHHHH"),
             Entry::Vacant(vacancy) => {
-                vacancy.insert(Rc::clone(&new));
+                vacancy.insert(index);
             }
         }
 
@@ -58,24 +59,22 @@ impl Floor {
     }
 
     pub fn update_entity(&self, old: Rc<Entity>, new: Rc<Entity>) -> Floor {
-        let new_entities = self
-            .entities
-            .iter()
-            .map(|x| {
-                if Rc::ptr_eq(x, &old) {
-                    new.clone()
-                } else {
-                    x.clone()
-                }
-            })
-            .collect::<Vec<Rc<Entity>>>();
+        let mut new_entities = self.entities.clone();
+
+        let (index, thing) = new_entities
+            .iter_mut()
+            .enumerate()
+            .find(|(_i, x)| Rc::ptr_eq(x, &old))
+            .unwrap();
+
+        *thing = new.clone();
 
         let mut new_occupiers = self.occupiers.clone();
         new_occupiers.remove_entry(&old.x);
         match new_occupiers.entry(new.x) {
             Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
             Entry::Vacant(vacancy) => {
-                vacancy.insert(Rc::clone(&new));
+                vacancy.insert(index);
             }
         };
 
@@ -86,23 +85,31 @@ impl Floor {
     }
 
     pub fn update_entities(&self, map: HashMap<Rc<Entity>, Rc<Entity>>) -> Floor {
+        let index_map = self
+            .entities
+            .iter()
+            .enumerate()
+            .filter(|(_i, x)| map.contains_key(*x))
+            .map(|(i, x)| (x.clone(), i))
+            .collect::<HashMap<Rc<Entity>, usize>>();
+
         let new_entities = self
             .entities
             .iter()
             .map(|x| Rc::clone(map.get(x).unwrap_or(x)))
-            .collect::<Vec<Rc<Entity>>>();
+            .collect();
 
         let mut new_occupiers = self.occupiers.clone();
         for old in map.keys() {
-            new_occupiers.remove_entry(&old.x);
+            new_occupiers.remove(&old.x);
         }
-        for new in map.values() {
-            match new_occupiers.entry(new.x) {
+        for old in map.keys() {
+            match new_occupiers.entry(map[old].x) {
                 Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
                 Entry::Vacant(vacancy) => {
-                    vacancy.insert(Rc::clone(new));
+                    vacancy.insert(index_map[old]);
                 }
-            };
+            }
         }
 
         Floor {
