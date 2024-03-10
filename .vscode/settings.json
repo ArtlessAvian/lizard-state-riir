@@ -3,7 +3,7 @@
         ".\\engine\\Cargo.toml"
     ],
     "rust-analyzer.files.excludeDirs": [
-        "godot/"
+        "godot"
     ],
     "files.watcherExclude": {
         "**/target/**": true
