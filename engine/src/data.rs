@@ -119,3 +119,9 @@ impl Floor {
         }
     }
 }
+
+impl Default for Floor {
+    fn default() -> Self {
+        Floor::new()
+    }
+}

@@ -13,17 +13,9 @@ struct MyExtension;
 unsafe impl ExtensionLibrary for MyExtension {}
 
 #[derive(GodotClass)]
+#[class(init)]
 struct Floor {
     floor: FloorInternal,
-}
-
-#[godot_api]
-impl IRefCounted for Floor {
-    fn init(_base: Base<RefCounted>) -> Self {
-        Self {
-            floor: FloorInternal::new(),
-        }
-    }
 }
 
 #[godot_api]
@@ -129,11 +121,9 @@ impl Command {
     }
 
     #[func]
-    fn do_action(&self, mut floor_mut: Gd<Floor>) {
-        let bind = Gd::bind(&floor_mut);
-        let next = self.command.as_ref().unwrap().do_action(&bind.floor);
-        drop(bind);
-        let mut bind_mut = Gd::bind_mut(&mut floor_mut);
-        bind_mut.floor = next;
+    fn do_action(&self, floor: Gd<Floor>) -> Gd<Floor> {
+        let bind = Gd::bind(&floor);
+        let next: FloorInternal = self.command.as_ref().unwrap().do_action(&bind.floor);
+        Gd::from_object(Floor { floor: next })
     }
 }

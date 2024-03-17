@@ -17,4 +17,4 @@ func _process(delta):
 	var action = floor.get_action();
 	
 	var command = action.to_command(floor, player)
-	command.do_action(floor)
+	floor = command.do_action(floor)
