@@ -5,7 +5,8 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::actions::GoRightAction;
+use crate::actions::example::GoRightAction;
+use crate::actions::ActionTrait;
 
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Entity {
@@ -117,19 +118,4 @@ impl Floor {
             occupiers: new_occupiers,
         }
     }
-}
-
-pub trait ActionTrait {
-    // not object safe
-    // fn verify_action(&self, floor: &Floor, subject_ref: &Rc<Entity>) -> Option<impl CommandTrait>;
-
-    fn verify_action(
-        &self,
-        floor: &Floor,
-        subject_ref: &Rc<Entity>,
-    ) -> Option<Box<dyn CommandTrait>>;
-}
-
-pub trait CommandTrait {
-    fn do_action(&self, floor: &Floor) -> Floor;
 }

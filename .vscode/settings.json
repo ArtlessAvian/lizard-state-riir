@@ -1,7 +1,4 @@
 {
-    "rust-analyzer.linkedProjects": [
-        ".\\engine\\Cargo.toml"
-    ],
     "rust-analyzer.files.excludeDirs": [
         "godot"
     ],

@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
-use engine::actions::GoRightAction;
-use engine::data::ActionTrait;
-use engine::data::CommandTrait;
+use engine::actions::example::GoRightAction;
+use engine::actions::ActionTrait;
+use engine::actions::CommandTrait;
 use engine::data::Entity as EntityInternal;
 use engine::data::Floor as FloorInternal;
 use godot::prelude::*;

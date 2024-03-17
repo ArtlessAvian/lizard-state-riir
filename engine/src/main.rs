@@ -3,11 +3,10 @@ mod data;
 
 use std::rc::Rc;
 
-use crate::actions::AttackRightAction;
-use crate::actions::EveryoneGoRightAction;
-use crate::actions::GoRightAction;
-use crate::data::ActionTrait;
-use crate::data::CommandTrait;
+use crate::actions::example::AttackRightAction;
+use crate::actions::example::EveryoneGoRightAction;
+use crate::actions::example::GoRightAction;
+use crate::actions::ActionTrait;
 use crate::data::Entity;
 use crate::data::Floor;
 
