@@ -17,6 +17,10 @@ Learning Rust with this project, so the code may not be ideal/idiomatic.
 * Action verification
     * Actions are parsed into Commands. In the C# version, actions had a verification function that was called in UI and right before any mutation. There's a branch to approximate this behavior but its not sound.
     * In C#, actions were allowed to break "invariants," and systems were made to forcibly resolve them between turns.
+* Looser coupling to Godot
+    * Had trouble moving to 4.
+    * Godot needed to initialize Resources to serialize them
+    * Everything was a Godot Resource.
 
 ## Current plans
 * Turntaking
