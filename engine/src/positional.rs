@@ -37,6 +37,17 @@ impl AbsolutePosition {
     }
 }
 
+impl Add<RelativePosition> for AbsolutePosition {
+    type Output = AbsolutePosition;
+
+    fn add(self, rhs: RelativePosition) -> Self::Output {
+        AbsolutePosition {
+            x: self.x + rhs.dx,
+            y: self.y + rhs.dy,
+        }
+    }
+}
+
 impl Sub for AbsolutePosition {
     type Output = RelativePosition;
 

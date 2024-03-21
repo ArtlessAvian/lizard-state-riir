@@ -1,11 +1,13 @@
 use std::rc::Rc;
 
+use engine::actions::public::StepAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::NullAction;
 use engine::data::Entity as EntityInternal;
 use engine::data::Floor as FloorInternal;
 use engine::positional::AbsolutePosition;
+use engine::positional::RelativePosition;
 use godot::prelude::*;
 
 struct MyExtension;
@@ -31,6 +33,17 @@ impl Floor {
     #[func]
     fn get_player(&self) -> Gd<Entity> {
         Entity::new(self.floor.get_player())
+    }
+
+    // engine::actions::public::* goes here.
+    #[func]
+    fn get_step_action(&self, direction: Vector2i) -> Gd<Action> {
+        Action::new(Box::new(StepAction {
+            dir: RelativePosition {
+                dx: direction.x,
+                dy: direction.y,
+            },
+        }))
     }
 }
 

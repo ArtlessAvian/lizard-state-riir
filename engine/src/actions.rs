@@ -1,4 +1,5 @@
 mod example;
+pub mod public;
 
 use std::rc::Rc;
 
