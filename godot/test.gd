@@ -14,7 +14,4 @@ func _process(delta):
 	i += 1
 	
 	var player = floor.get_player()
-	var action = floor.get_action();
-	
-	var command = action.to_command(floor, player)
-	floor = command.do_action(floor)
+	print(player.get_pos())

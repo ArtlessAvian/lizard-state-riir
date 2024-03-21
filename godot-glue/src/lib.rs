@@ -1,10 +1,11 @@
 use std::rc::Rc;
 
-use engine::actions::example::GoRightAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
+use engine::actions::NullAction;
 use engine::data::Entity as EntityInternal;
 use engine::data::Floor as FloorInternal;
+use engine::positional::AbsolutePosition;
 use godot::prelude::*;
 
 struct MyExtension;
@@ -22,25 +23,14 @@ struct Floor {
 impl Floor {
     #[func]
     fn add_entity(&mut self) {
-        self.floor = self.floor.add_entity(Rc::new(EntityInternal { x: 3 }));
-    }
-
-    #[func]
-    fn go_right(&mut self) {
-        self.floor = GoRightAction
-            .verify_action(&self.floor, &self.floor.get_player())
-            .unwrap()
-            .do_action(&self.floor);
+        self.floor = self.floor.add_entity(Rc::new(EntityInternal {
+            pos: AbsolutePosition { x: 0, y: 0 },
+        }));
     }
 
     #[func]
     fn get_player(&self) -> Gd<Entity> {
         Entity::new(self.floor.get_player())
-    }
-
-    #[func]
-    fn get_action(&self) -> Gd<Action> {
-        Action::new(Box::new(GoRightAction))
     }
 }
 
@@ -63,6 +53,14 @@ impl Entity {
             entity: Some(entity),
         })
     }
+
+    #[func]
+    fn get_pos(&self) -> Vector2i {
+        Vector2i {
+            x: self.entity.as_ref().unwrap().pos.x,
+            y: self.entity.as_ref().unwrap().pos.y,
+        }
+    }
 }
 
 #[derive(GodotClass)]
@@ -76,7 +74,7 @@ impl IRefCounted for Action {
     // Return a null action.
     fn init(_base: Base<RefCounted>) -> Self {
         Self {
-            action: Box::new(GoRightAction),
+            action: Box::new(NullAction {}),
         }
     }
 }

@@ -5,17 +5,18 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::actions::example::GoRightAction;
 use crate::actions::ActionTrait;
+use crate::actions::NullAction;
+use crate::positional::AbsolutePosition;
 
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Entity {
-    pub x: i8,
+    pub pos: AbsolutePosition,
 }
 
 impl Entity {
     pub fn get_actions() -> Box<dyn ActionTrait> {
-        Box::new(GoRightAction)
+        Box::new(NullAction {})
     }
 }
 
@@ -24,7 +25,7 @@ pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.
     pub entities: Vec<Rc<Entity>>,
-    pub occupiers: HashMap<i8, usize>,
+    pub occupiers: HashMap<AbsolutePosition, usize>,
 }
 
 impl Floor {
@@ -41,7 +42,7 @@ impl Floor {
         let index = clone.entities.len();
         clone.entities.push(Rc::clone(&new));
 
-        match clone.occupiers.entry(new.x) {
+        match clone.occupiers.entry(new.pos) {
             Entry::Occupied(_) => panic!("AHHHHHHH"),
             Entry::Vacant(vacancy) => {
                 vacancy.insert(index);
@@ -71,8 +72,8 @@ impl Floor {
         *thing = new.clone();
 
         let mut new_occupiers = self.occupiers.clone();
-        new_occupiers.remove_entry(&old.x);
-        match new_occupiers.entry(new.x) {
+        new_occupiers.remove_entry(&old.pos);
+        match new_occupiers.entry(new.pos) {
             Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
             Entry::Vacant(vacancy) => {
                 vacancy.insert(index);
@@ -102,10 +103,10 @@ impl Floor {
 
         let mut new_occupiers = self.occupiers.clone();
         for old in map.keys() {
-            new_occupiers.remove(&old.x);
+            new_occupiers.remove(&old.pos);
         }
         for old in map.keys() {
-            match new_occupiers.entry(map[old].x) {
+            match new_occupiers.entry(map[old].pos) {
                 Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
                 Entry::Vacant(vacancy) => {
                     vacancy.insert(index_map[old]);

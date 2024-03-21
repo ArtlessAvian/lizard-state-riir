@@ -1,4 +1,4 @@
-pub mod example;
+mod example;
 
 use std::rc::Rc;
 
@@ -18,4 +18,11 @@ pub trait ActionTrait {
 
 pub trait CommandTrait {
     fn do_action(&self, floor: &Floor) -> Floor;
+}
+
+pub struct NullAction {}
+impl ActionTrait for NullAction {
+    fn verify_action(&self, _: &Floor, _: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
+        None
+    }
 }
