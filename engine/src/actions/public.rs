@@ -20,6 +20,8 @@ impl ActionTrait for StepAction {
         floor: &Floor,
         subject_ref: &Rc<Entity>,
     ) -> Option<Box<dyn CommandTrait>> {
+        assert!(floor.entities.contains(subject_ref));
+
         if self.dir.length() > 1 {
             return None;
         }
