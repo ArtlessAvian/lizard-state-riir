@@ -1,4 +1,4 @@
-extends Node2D
+extends Node
 
 var floor: Floor;
 
@@ -10,13 +10,15 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 var i = 0
 func _process(delta):
-	print(i)
 	i += 1
+	if i % 100 != 0:
+		return
 	
-	var dir = Vector2i.RIGHT if randf() < 0.5 else Vector2i.LEFT
+	var dir = Vector2i(randi_range(-1, 1), randi_range(-1, 1))
 	var action = floor.get_step_action(dir)
 	var player = floor.get_player()
 	print(player.get_pos())
+	$WorldRotate/InternalRotation/Entity.position = Vector3(player.get_pos().x, 0, player.get_pos().y)
 	
 	var command = action.to_command(floor, player)
 	floor = command.do_action(floor)
