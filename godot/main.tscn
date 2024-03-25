@@ -46,16 +46,19 @@ transform = Transform3D(1, 0, 0, 0, 0.66649, 0.745514, 0, -0.745514, 0.66649, 0,
 editor_description = "Camera should not rotate, the world should rotate around the camera.
 (Figuring out if there's a way to skew the projection matrix instead? Frustrum projection might be a lead but idk.)"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
+keep_aspect = 0
 projection = 1
+current = true
 size = 20.0
 script = ExtResource("2_0g4sw")
+do_skew_world = true
 metadata/_edit_lock_ = true
 
 [node name="WorldSkew" type="Node3D" parent="."]
 editor_description = "Skews the world to show things in Z axis from head on. Keeps \"up\" as Y+, so billboard sprites don't clip into walls, but axes are no longer orthogonal.
 The yz skew is chosen to keep the floor tiles pixel perfect, tho it doesn't matter too much.
 (Actually rotates the z axis. yz is 2/3 and zz is sqrt(5)/3.)"
-transform = Transform3D(1, 0, 0, 0, 1, -0.667, 0, 0, 0.745, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.745356, -0.666667, 0, 1e-09, 0.745356, 0, 0, 0)
 rotation_edit_mode = 2
 metadata/_edit_lock_ = true
 
@@ -86,15 +89,16 @@ texture_filter = 0
 texture = SubResource("AtlasTexture_31piw")
 
 [node name="Entity2" type="Node3D" parent="WorldSkew/Map"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
 
 [node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity2"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.001, -2.235)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.33333, -1.49071)
 top_level = true
 script = ExtResource("4_mi30g")
 
 [node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity2/DiscardBasis"]
 offset = Vector2(0, 15)
+modulate = Color(0.666667, 0.666667, 0.666667, 1)
 pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
@@ -104,12 +108,29 @@ texture = SubResource("AtlasTexture_31piw")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -3)
 
 [node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity3"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2.001, -2.235)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2, -2.23607)
 top_level = true
 script = ExtResource("4_mi30g")
 
 [node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity3/DiscardBasis"]
 offset = Vector2(0, 15)
+modulate = Color(0.666667, 0.666667, 0.666667, 1)
+pixel_size = 0.0417
+billboard = 1
+texture_filter = 0
+texture = SubResource("AtlasTexture_31piw")
+
+[node name="Entity6" type="Node3D" parent="WorldSkew/Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -4)
+
+[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity6"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2.66667, -2.98142)
+top_level = true
+script = ExtResource("4_mi30g")
+
+[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity6/DiscardBasis"]
+offset = Vector2(0, 15)
+modulate = Color(0.666667, 0.666667, 0.666667, 1)
 pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
@@ -125,6 +146,23 @@ script = ExtResource("4_mi30g")
 
 [node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity4/DiscardBasis"]
 offset = Vector2(0, 15)
+modulate = Color(0.666667, 1, 0.666667, 1)
+pixel_size = 0.0417
+billboard = 1
+texture_filter = 0
+texture = SubResource("AtlasTexture_31piw")
+
+[node name="Entity5" type="Node3D" parent="WorldSkew/Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1, 0)
+
+[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity5"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.745356, 1e-09)
+top_level = true
+script = ExtResource("4_mi30g")
+
+[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity5/DiscardBasis"]
+offset = Vector2(0, 15)
+modulate = Color(1, 0.6, 0.6, 1)
 pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
@@ -132,8 +170,11 @@ texture = SubResource("AtlasTexture_31piw")
 
 [node name="MapHistory" type="GridMap" parent="WorldSkew"]
 editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
-Match rotation with ../Map."
+Match rotation with ../Map.
+
+TODO: Figure out how to draw in same position pass?"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -20, -30)
+visible = false
 mesh_library = SubResource("MeshLibrary_1b75v")
 cell_size = Vector3(1, 9999, 1)
 cell_center_x = false
