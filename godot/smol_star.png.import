@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dront5dt74xm8"
-path="res://.godot/imported/tegu.png-0cf57d5f3322f3d0cd304482c5333229.ctex"
+uid="uid://c4xd5itrnko1v"
+path="res://.godot/imported/smol_star.png-136363b2037d67672a3c9a5479aefa35.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://tegu.png"
-dest_files=["res://.godot/imported/tegu.png-0cf57d5f3322f3d0cd304482c5333229.ctex"]
+source_file="res://smol_star.png"
+dest_files=["res://.godot/imported/smol_star.png-136363b2037d67672a3c9a5479aefa35.ctex"]
 
 [params]
 

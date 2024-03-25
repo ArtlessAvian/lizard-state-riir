@@ -1,9 +1,10 @@
-[gd_scene load_steps=10 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=11 format=3 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_7s6h2"]
 [ext_resource type="Script" path="res://FloorCamera.gd" id="2_0g4sw"]
-[ext_resource type="Texture2D" path="res://tegu.png" id="2_sn4vf"]
+[ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://tegu.png" id="2_sn4vf"]
 [ext_resource type="Shader" path="res://grid.gdshader" id="3_ebqio"]
+[ext_resource type="Script" path="res://DiscardBasis.gd" id="4_mi30g"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0i8tf"]
 render_priority = 0
@@ -36,6 +37,10 @@ region = Rect2(0, 0, 40, 40)
 
 [node name="Floor" type="Node3D"]
 script = ExtResource("1_7s6h2")
+metadata/_edit_lock_ = true
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.66649, 0.745514, 0, -0.745514, 0.66649, 0, 5, 0)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 editor_description = "Camera should not rotate, the world should rotate around the camera.
@@ -46,15 +51,13 @@ size = 20.0
 script = ExtResource("2_0g4sw")
 metadata/_edit_lock_ = true
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.66649, 0.745514, 0, -0.745514, 0.66649, 0, 5, 0)
-
 [node name="WorldSkew" type="Node3D" parent="."]
 editor_description = "Skews the world to show things in Z axis from head on. Keeps \"up\" as Y+, so billboard sprites don't clip into walls, but axes are no longer orthogonal.
 The yz skew is chosen to keep the floor tiles pixel perfect, tho it doesn't matter too much.
 (Actually rotates the z axis. yz is 2/3 and zz is sqrt(5)/3.)"
 transform = Transform3D(1, 0, 0, 0, 1, -0.667, 0, 0, 0.745, 0, 0, 0)
 rotation_edit_mode = 2
+metadata/_edit_lock_ = true
 
 [node name="Map" type="GridMap" parent="WorldSkew"]
 mesh_library = SubResource("MeshLibrary_1b75v")
@@ -67,6 +70,65 @@ data = {
 }
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="Entity" type="Node3D" parent="WorldSkew/Map"]
+unique_name_in_owner = true
+
+[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity"]
+top_level = true
+script = ExtResource("4_mi30g")
+
+[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity/DiscardBasis"]
+offset = Vector2(0, 15)
+pixel_size = 0.0417
+billboard = 1
+texture_filter = 0
+texture = SubResource("AtlasTexture_31piw")
+
+[node name="Entity2" type="Node3D" parent="WorldSkew/Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+
+[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.001, -2.235)
+top_level = true
+script = ExtResource("4_mi30g")
+
+[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity2/DiscardBasis"]
+offset = Vector2(0, 15)
+pixel_size = 0.0417
+billboard = 1
+texture_filter = 0
+texture = SubResource("AtlasTexture_31piw")
+
+[node name="Entity3" type="Node3D" parent="WorldSkew/Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -3)
+
+[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2.001, -2.235)
+top_level = true
+script = ExtResource("4_mi30g")
+
+[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity3/DiscardBasis"]
+offset = Vector2(0, 15)
+pixel_size = 0.0417
+billboard = 1
+texture_filter = 0
+texture = SubResource("AtlasTexture_31piw")
+
+[node name="Entity4" type="Node3D" parent="WorldSkew/Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
+
+[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
+top_level = true
+script = ExtResource("4_mi30g")
+
+[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity4/DiscardBasis"]
+offset = Vector2(0, 15)
+pixel_size = 0.0417
+billboard = 1
+texture_filter = 0
+texture = SubResource("AtlasTexture_31piw")
 
 [node name="MapHistory" type="GridMap" parent="WorldSkew"]
 editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
@@ -82,50 +144,3 @@ data = {
 }
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
-
-[node name="WorldRotate" type="Node3D" parent="."]
-editor_description = "Unlike WorldSkew, this actually does rotate the world, which plays nicely with billboarded sprites. Probably because the axes are still orthogonal.
-(The magic x rotation is acos(2/3).)"
-transform = Transform3D(1, 0, 0, 0, 0.745476, -0.666532, 0, 0.666532, 0.745476, 0, 0, 0)
-
-[node name="InternalRotation" type="Node3D" parent="WorldRotate"]
-editor_description = "Matches local rotation of ../../WorldSkew/Map."
-
-[node name="Entity" type="Node3D" parent="WorldRotate/InternalRotation"]
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldRotate/InternalRotation/Entity"]
-offset = Vector2(0, 15)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")
-
-[node name="Entity2" type="Node3D" parent="WorldRotate/InternalRotation"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldRotate/InternalRotation/Entity2"]
-offset = Vector2(0, 15)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")
-
-[node name="Entity3" type="Node3D" parent="WorldRotate/InternalRotation"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -3)
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldRotate/InternalRotation/Entity3"]
-offset = Vector2(0, 15)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")
-
-[node name="Entity4" type="Node3D" parent="WorldRotate/InternalRotation"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldRotate/InternalRotation/Entity4"]
-offset = Vector2(0, 15)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")

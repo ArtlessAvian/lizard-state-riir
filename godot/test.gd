@@ -10,7 +10,7 @@ func _process(delta):
 	poll_input()
 	
 	var player = floor.get_player()
-	$WorldRotate/InternalRotation/Entity.position = Vector3(player.get_pos().x, 0, player.get_pos().y)
+	%Entity.position = Vector3(player.get_pos().x, 0, player.get_pos().y)
 
 func poll_input():
 	if Input.is_action_just_pressed("move_left"):
