@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://test.gd" id="1_7s6h2"]
 [ext_resource type="Script" path="res://FloorCamera.gd" id="2_0g4sw"]
-[ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://tegu.png" id="2_sn4vf"]
+[ext_resource type="Texture2D" path="res://tegu.png" id="2_sn4vf"]
 [ext_resource type="Shader" path="res://grid.gdshader" id="3_ebqio"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0i8tf"]
@@ -38,17 +38,21 @@ region = Rect2(0, 0, 40, 40)
 script = ExtResource("1_7s6h2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
+editor_description = "Camera should not rotate, the world should rotate around the camera.
+(Figuring out if there's a way to skew the projection matrix instead? Frustrum projection might be a lead but idk.)"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
 projection = 1
 size = 20.0
 script = ExtResource("2_0g4sw")
+metadata/_edit_lock_ = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.66649, 0.745514, 0, -0.745514, 0.66649, 0, 5, 0)
 
 [node name="WorldSkew" type="Node3D" parent="."]
-editor_description = "Skews the world to make the floor tiles pixel perfect, tho it doesn't matter too much.
-(Actually rotates the z axis, so axes are no longer orthogonal.)"
+editor_description = "Skews the world to show things in Z axis from head on. Keeps \"up\" as Y+, so billboard sprites don't clip into walls, but axes are no longer orthogonal.
+The yz skew is chosen to keep the floor tiles pixel perfect, tho it doesn't matter too much.
+(Actually rotates the z axis. yz is 2/3 and zz is sqrt(5)/3.)"
 transform = Transform3D(1, 0, 0, 0, 1, -0.667, 0, 0, 0.745, 0, 0, 0)
 rotation_edit_mode = 2
 
