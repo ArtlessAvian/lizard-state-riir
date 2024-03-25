@@ -46,7 +46,7 @@ func get_skew() -> Transform3D:
 	var rotate_yz_but_maintain_up = Basis(
 			Vector3.RIGHT,
 			# Points (almost) up. Small z component to suggest drawing order.
-			Vector3(0, max(sqrt(1 - ratio * ratio), 1e-9), 1e-9),
+			Vector3(0, max(sqrt(1 - ratio * ratio), 1e-9), 1e-6),
 			Vector3(0, -ratio, max(sqrt(1 - ratio * ratio), 1e-9)),
 		)
 	

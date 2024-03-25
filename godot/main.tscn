@@ -43,8 +43,9 @@ metadata/_edit_lock_ = true
 transform = Transform3D(1, 0, 0, 0, 0.66649, 0.745514, 0, -0.745514, 0.66649, 0, 5, 0)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-editor_description = "Camera should not rotate, the world should rotate around the camera.
-(Figuring out if there's a way to skew the projection matrix instead? Frustrum projection might be a lead but idk.)"
+editor_description = "Writes to WorldSkew to simulate moving the Camera around (with a more domain appropriate interface).
+
+This can be disabled, and the output is indistinguishable (aside from lighting changes and billboard sprites clipping)."
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
 keep_aspect = 0
 projection = 1
@@ -55,14 +56,13 @@ do_skew_world = true
 metadata/_edit_lock_ = true
 
 [node name="WorldSkew" type="Node3D" parent="."]
-editor_description = "Skews the world to show things in Z axis from head on. Keeps \"up\" as Y+, so billboard sprites don't clip into walls, but axes are no longer orthogonal.
-The yz skew is chosen to keep the floor tiles pixel perfect, tho it doesn't matter too much.
-(Actually rotates the z axis. yz is 2/3 and zz is sqrt(5)/3.)"
-transform = Transform3D(1, 0, 0, 0, 0.745356, -0.666667, 0, 1e-09, 0.745356, 0, 0, 0)
+editor_description = "Funky transformation that appears to rotate, but actually keeps \"up\" as Y+, so billboard sprites don't clip into vertical walls behind them. Set directly by ../Camera3D."
+transform = Transform3D(1, 0, 0, 0, 0.745356, -0.666667, 0, 1e-06, 0.745356, 0, 0, 0)
 rotation_edit_mode = 2
 metadata/_edit_lock_ = true
 
 [node name="Map" type="GridMap" parent="WorldSkew"]
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
 mesh_library = SubResource("MeshLibrary_1b75v")
 cell_size = Vector3(1, 9999, 1)
 cell_center_x = false
@@ -156,7 +156,7 @@ texture = SubResource("AtlasTexture_31piw")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1, 0)
 
 [node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity5"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.745356, 1e-09)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.745356, 1e-06)
 top_level = true
 script = ExtResource("4_mi30g")
 
