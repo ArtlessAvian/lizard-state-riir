@@ -56,7 +56,7 @@ The yz skew is chosen to keep the floor tiles pixel perfect, tho it doesn't matt
 transform = Transform3D(1, 0, 0, 0, 1, -0.667, 0, 0, 0.745, 0, 0, 0)
 rotation_edit_mode = 2
 
-[node name="GridMap" type="GridMap" parent="WorldSkew"]
+[node name="Map" type="GridMap" parent="WorldSkew"]
 mesh_library = SubResource("MeshLibrary_1b75v")
 cell_size = Vector3(1, 9999, 1)
 cell_center_x = false
@@ -66,7 +66,22 @@ data = {
 "cells": PackedInt32Array(0, 0, 0, 65535, 0, 0, 65535, 65535, 0, 0, 65535, 0, 1, 65535, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 65535, 1, 0, 65534, 1, 0, 65533, 1, 0, 65533, 0, 0, 65533, 65535, 0, 65533, 65534, 0, 65534, 65534, 0, 65535, 65534, 0, 0, 65534, 0, 1, 65534, 0, 2, 65534, 0, 2, 65535, 0, 2, 0, 0, 2, 1, 0, 65534, 65535, 0, 65534, 0, 0, 3, 65534, 0, 3, 65535, 0, 3, 0, 0, 3, 1, 0, 4, 65535, 1, 5, 65535, 1, 6, 65535, 1, 4, 65534, 1, 5, 65534, 1, 6, 65534, 1, 6, 65533, 1, 5, 65533, 1, 4, 65533, 1, 3, 65533, 1, 2, 65533, 1, 1, 65533, 1, 0, 65533, 1, 65535, 65533, 1, 65534, 65533, 1, 65533, 65533, 1)
 }
 metadata/_edit_lock_ = true
-metadata/_editor_floor_ = Vector3(0, -1, 0)
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="MapHistory" type="GridMap" parent="WorldSkew"]
+editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
+Match rotation with ../Map."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -20, -30)
+mesh_library = SubResource("MeshLibrary_1b75v")
+cell_size = Vector3(1, 9999, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(0, 0, 0, 65535, 0, 0, 65535, 65535, 0, 0, 65535, 0, 1, 65535, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 65535, 1, 0, 65534, 1, 0, 65533, 1, 0, 65533, 0, 0, 65533, 65535, 0, 65533, 65534, 0, 65534, 65534, 0, 65535, 65534, 0, 0, 65534, 0, 1, 65534, 0, 2, 65534, 0, 2, 65535, 0, 2, 0, 0, 2, 1, 0, 65534, 65535, 0, 65534, 0, 0, 3, 65534, 0, 3, 65535, 0, 3, 0, 0, 3, 1, 0, 4, 65535, 1, 5, 65535, 1, 6, 65535, 1, 4, 65534, 1, 5, 65534, 1, 6, 65534, 1, 6, 65533, 1, 5, 65533, 1, 4, 65533, 1, 3, 65533, 1, 2, 65533, 1, 1, 65533, 1, 0, 65533, 1, 65535, 65533, 1, 65534, 65533, 1, 65533, 65533, 1)
+}
+metadata/_edit_lock_ = true
+metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="WorldRotate" type="Node3D" parent="."]
 editor_description = "Unlike WorldSkew, this actually does rotate the world, which plays nicely with billboarded sprites. Probably because the axes are still orthogonal.
@@ -74,7 +89,7 @@ editor_description = "Unlike WorldSkew, this actually does rotate the world, whi
 transform = Transform3D(1, 0, 0, 0, 0.745476, -0.666532, 0, 0.666532, 0.745476, 0, 0, 0)
 
 [node name="InternalRotation" type="Node3D" parent="WorldRotate"]
-editor_description = "Matches local rotation of ../../WorldSkew/Gridmap."
+editor_description = "Matches local rotation of ../../WorldSkew/Map."
 
 [node name="Entity" type="Node3D" parent="WorldRotate/InternalRotation"]
 
