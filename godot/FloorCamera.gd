@@ -16,9 +16,15 @@ var y_rotation_degrees: float = 0
 @export var look_at_target: Vector3 = Vector3.ZERO
 @export var camera_distance = 20
 
+@export var demo_mode = false
+
 func _process(delta):
 	if not Engine.is_editor_hint():
 		adjust_size()
+		
+		if demo_mode:
+			self.y_rotation_degrees += delta * 360.0/20.0
+			self.do_skew_world = int(self.y_rotation_degrees) % 720 < 360
 	
 	if $"../WorldSkew" is Node3D:
 		var skew_node: Node3D = $"../WorldSkew";
@@ -45,8 +51,9 @@ func get_skew() -> Transform3D:
 	var rotate_around_y = Basis(Vector3.UP, -y_rotation_degrees * PI/180.0)
 	var rotate_yz_but_maintain_up = Basis(
 			Vector3.RIGHT,
-			# Points (almost) up. Small z component to suggest drawing order.
-			Vector3(0, max(sqrt(1 - ratio * ratio), 1e-9), 1e-6),
+			# Points (almost) up.
+			# Small z component to suggest drawing order. Increase if you see z-fighting.
+			Vector3(0, max(sqrt(1 - ratio * ratio), 1e-9), 1e-5),
 			Vector3(0, -ratio, max(sqrt(1 - ratio * ratio), 1e-9)),
 		)
 	

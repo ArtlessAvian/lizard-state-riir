@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=14 format=3 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_7s6h2"]
 [ext_resource type="Script" path="res://FloorCamera.gd" id="2_0g4sw"]
 [ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://tegu.png" id="2_sn4vf"]
 [ext_resource type="Shader" path="res://grid.gdshader" id="3_ebqio"]
 [ext_resource type="Script" path="res://DiscardBasis.gd" id="4_mi30g"]
+[ext_resource type="Script" path="res://EntitySprite.gd" id="6_7r5ow"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0i8tf"]
 render_priority = 0
@@ -35,6 +36,14 @@ item/1/navigation_layers = 1
 atlas = ExtResource("2_sn4vf")
 region = Rect2(0, 0, 40, 40)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_pip4u"]
+atlas = ExtResource("2_sn4vf")
+region = Rect2(0, 40, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_er8p6"]
+atlas = ExtResource("2_sn4vf")
+region = Rect2(0, 80, 40, 40)
+
 [node name="Floor" type="Node3D"]
 script = ExtResource("1_7s6h2")
 metadata/_edit_lock_ = true
@@ -53,11 +62,12 @@ current = true
 size = 20.0
 script = ExtResource("2_0g4sw")
 do_skew_world = true
+demo_mode = true
 metadata/_edit_lock_ = true
 
 [node name="WorldSkew" type="Node3D" parent="."]
 editor_description = "Funky transformation that appears to rotate, but actually keeps \"up\" as Y+, so billboard sprites don't clip into vertical walls behind them. Set directly by ../Camera3D."
-transform = Transform3D(1, 0, 0, 0, 0.745356, -0.666667, 0, 1e-06, 0.745356, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.745356, -0.666667, 0, 1e-05, 0.745356, 0, 0, 0)
 rotation_edit_mode = 2
 metadata/_edit_lock_ = true
 
@@ -87,6 +97,11 @@ pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
 texture = SubResource("AtlasTexture_31piw")
+script = ExtResource("6_7r5ow")
+towards = SubResource("AtlasTexture_31piw")
+right = SubResource("AtlasTexture_pip4u")
+away = SubResource("AtlasTexture_er8p6")
+look_at = Vector3(0, 0, -1)
 
 [node name="Entity2" type="Node3D" parent="WorldSkew/Map"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
@@ -103,6 +118,10 @@ pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
 texture = SubResource("AtlasTexture_31piw")
+script = ExtResource("6_7r5ow")
+towards = SubResource("AtlasTexture_31piw")
+right = SubResource("AtlasTexture_pip4u")
+away = SubResource("AtlasTexture_er8p6")
 
 [node name="Entity3" type="Node3D" parent="WorldSkew/Map"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -3)
@@ -119,6 +138,10 @@ pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
 texture = SubResource("AtlasTexture_31piw")
+script = ExtResource("6_7r5ow")
+towards = SubResource("AtlasTexture_31piw")
+right = SubResource("AtlasTexture_pip4u")
+away = SubResource("AtlasTexture_er8p6")
 
 [node name="Entity6" type="Node3D" parent="WorldSkew/Map"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -4)
@@ -135,6 +158,10 @@ pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
 texture = SubResource("AtlasTexture_31piw")
+script = ExtResource("6_7r5ow")
+towards = SubResource("AtlasTexture_31piw")
+right = SubResource("AtlasTexture_pip4u")
+away = SubResource("AtlasTexture_er8p6")
 
 [node name="Entity4" type="Node3D" parent="WorldSkew/Map"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
@@ -151,12 +178,16 @@ pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
 texture = SubResource("AtlasTexture_31piw")
+script = ExtResource("6_7r5ow")
+towards = SubResource("AtlasTexture_31piw")
+right = SubResource("AtlasTexture_pip4u")
+away = SubResource("AtlasTexture_er8p6")
 
 [node name="Entity5" type="Node3D" parent="WorldSkew/Map"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1, 0)
 
 [node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity5"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.745356, 1e-06)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.745356, 1e-05)
 top_level = true
 script = ExtResource("4_mi30g")
 
@@ -167,6 +198,10 @@ pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
 texture = SubResource("AtlasTexture_31piw")
+script = ExtResource("6_7r5ow")
+towards = SubResource("AtlasTexture_31piw")
+right = SubResource("AtlasTexture_pip4u")
+away = SubResource("AtlasTexture_er8p6")
 
 [node name="MapHistory" type="GridMap" parent="WorldSkew"]
 editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
