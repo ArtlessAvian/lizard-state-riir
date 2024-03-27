@@ -62,7 +62,6 @@ current = true
 size = 20.0
 script = ExtResource("2_0g4sw")
 do_skew_world = true
-demo_mode = true
 metadata/_edit_lock_ = true
 
 [node name="WorldSkew" type="Node3D" parent="."]
@@ -101,19 +100,19 @@ script = ExtResource("6_7r5ow")
 towards = SubResource("AtlasTexture_31piw")
 right = SubResource("AtlasTexture_pip4u")
 away = SubResource("AtlasTexture_er8p6")
-look_at = Vector3(0, 0, -1)
+look_at = Vector3(1, 0, 0)
 
 [node name="Entity2" type="Node3D" parent="WorldSkew/Map"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
 
 [node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity2"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.33333, -1.49071)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
 top_level = true
 script = ExtResource("4_mi30g")
 
 [node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity2/DiscardBasis"]
 offset = Vector2(0, 15)
-modulate = Color(0.666667, 0.666667, 0.666667, 1)
 pixel_size = 0.0417
 billboard = 1
 texture_filter = 0
@@ -122,86 +121,7 @@ script = ExtResource("6_7r5ow")
 towards = SubResource("AtlasTexture_31piw")
 right = SubResource("AtlasTexture_pip4u")
 away = SubResource("AtlasTexture_er8p6")
-
-[node name="Entity3" type="Node3D" parent="WorldSkew/Map"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -3)
-
-[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity3"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2, -2.23607)
-top_level = true
-script = ExtResource("4_mi30g")
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity3/DiscardBasis"]
-offset = Vector2(0, 15)
-modulate = Color(0.666667, 0.666667, 0.666667, 1)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")
-script = ExtResource("6_7r5ow")
-towards = SubResource("AtlasTexture_31piw")
-right = SubResource("AtlasTexture_pip4u")
-away = SubResource("AtlasTexture_er8p6")
-
-[node name="Entity6" type="Node3D" parent="WorldSkew/Map"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -4)
-
-[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity6"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2.66667, -2.98142)
-top_level = true
-script = ExtResource("4_mi30g")
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity6/DiscardBasis"]
-offset = Vector2(0, 15)
-modulate = Color(0.666667, 0.666667, 0.666667, 1)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")
-script = ExtResource("6_7r5ow")
-towards = SubResource("AtlasTexture_31piw")
-right = SubResource("AtlasTexture_pip4u")
-away = SubResource("AtlasTexture_er8p6")
-
-[node name="Entity4" type="Node3D" parent="WorldSkew/Map"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
-
-[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity4"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
-top_level = true
-script = ExtResource("4_mi30g")
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity4/DiscardBasis"]
-offset = Vector2(0, 15)
-modulate = Color(0.666667, 1, 0.666667, 1)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")
-script = ExtResource("6_7r5ow")
-towards = SubResource("AtlasTexture_31piw")
-right = SubResource("AtlasTexture_pip4u")
-away = SubResource("AtlasTexture_er8p6")
-
-[node name="Entity5" type="Node3D" parent="WorldSkew/Map"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1, 0)
-
-[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity5"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.745356, 1e-05)
-top_level = true
-script = ExtResource("4_mi30g")
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity5/DiscardBasis"]
-offset = Vector2(0, 15)
-modulate = Color(1, 0.6, 0.6, 1)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")
-script = ExtResource("6_7r5ow")
-towards = SubResource("AtlasTexture_31piw")
-right = SubResource("AtlasTexture_pip4u")
-away = SubResource("AtlasTexture_er8p6")
+look_at = Vector3(1, 0, 0)
 
 [node name="MapHistory" type="GridMap" parent="WorldSkew"]
 editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.

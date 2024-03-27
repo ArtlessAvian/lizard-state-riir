@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use engine::actions::public::BumpAction;
 use engine::actions::public::StepAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
@@ -27,6 +28,15 @@ impl Floor {
     fn add_entity(&mut self) {
         self.floor = self.floor.add_entity(Rc::new(EntityInternal {
             pos: AbsolutePosition { x: 0, y: 0 },
+            health: 10,
+        }));
+    }
+
+    #[func]
+    fn add_entity_at(&mut self, pos: Vector2i) {
+        self.floor = self.floor.add_entity(Rc::new(EntityInternal {
+            pos: AbsolutePosition { x: pos.x, y: pos.y },
+            health: 10,
         }));
     }
 
@@ -36,9 +46,20 @@ impl Floor {
     }
 
     // engine::actions::public::* goes here.
+
     #[func]
     fn get_step_action(&self, direction: Vector2i) -> Gd<Action> {
         Action::new(Box::new(StepAction {
+            dir: RelativePosition {
+                dx: direction.x,
+                dy: direction.y,
+            },
+        }))
+    }
+
+    #[func]
+    fn get_bump_action(&self, direction: Vector2i) -> Gd<Action> {
+        Action::new(Box::new(BumpAction {
             dir: RelativePosition {
                 dx: direction.x,
                 dy: direction.y,

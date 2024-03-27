@@ -1,10 +1,12 @@
 extends Node
 
 var floor: Floor;
+var id_to_node: Dictionary;
 
 func _ready():
 	floor = Floor.new();
 	floor.add_entity();
+	floor.add_entity_at(Vector2i(-1, 0));
 
 func _process(delta):
 	poll_input()

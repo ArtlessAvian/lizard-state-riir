@@ -12,6 +12,7 @@ use crate::positional::AbsolutePosition;
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Entity {
     pub pos: AbsolutePosition,
+    pub health: i8,
 }
 
 impl Entity {
