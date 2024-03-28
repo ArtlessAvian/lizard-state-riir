@@ -5,14 +5,17 @@ var id_to_node: Dictionary;
 
 func _ready():
 	floor = Floor.new();
-	floor.add_entity();
-	floor.add_entity_at(Vector2i(-1, 0));
+	var a = floor.add_entity();
+	var b = floor.add_entity_at(Vector2i(-1, 0));
+	id_to_node[a] = %Entity
+	id_to_node[b] = %Entity2
 
 func _process(delta):
 	poll_input()
 	
-	var player = floor.get_player()
-	%Entity.position = Vector3(player.get_pos().x, 0, player.get_pos().y)
+	for id in id_to_node.keys():
+		var entity = floor.get_entity_by_id(id)
+		id_to_node[id].position = Vector3(entity.get_pos().x, 0, entity.get_pos().y)
 
 func poll_input():
 	if Input.is_action_just_pressed("move_left"):

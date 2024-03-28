@@ -25,24 +25,34 @@ struct Floor {
 #[godot_api]
 impl Floor {
     #[func]
-    fn add_entity(&mut self) {
+    fn add_entity(&mut self) -> i32 {
         self.floor = self.floor.add_entity(Rc::new(EntityInternal {
             pos: AbsolutePosition { x: 0, y: 0 },
             health: 10,
         }));
+
+        (self.floor.entities.len() - 1).try_into().unwrap()
     }
 
     #[func]
-    fn add_entity_at(&mut self, pos: Vector2i) {
+    fn add_entity_at(&mut self, pos: Vector2i) -> i32 {
         self.floor = self.floor.add_entity(Rc::new(EntityInternal {
             pos: AbsolutePosition { x: pos.x, y: pos.y },
             health: 10,
         }));
+
+        (self.floor.entities.len() - 1).try_into().unwrap()
     }
 
     #[func]
     fn get_player(&self) -> Gd<Entity> {
         Entity::new(self.floor.get_player())
+    }
+
+    #[func]
+    fn get_entity_by_id(&self, id: i32) -> Gd<Entity> {
+        let thing: usize = id.try_into().unwrap();
+        Entity::new(Rc::clone(self.floor.entities.get(thing).unwrap()))
     }
 
     // engine::actions::public::* goes here.

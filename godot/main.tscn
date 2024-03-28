@@ -104,10 +104,8 @@ look_at = Vector3(1, 0, 0)
 
 [node name="Entity2" type="Node3D" parent="WorldSkew/Map"]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
 
 [node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity2"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
 top_level = true
 script = ExtResource("4_mi30g")
 
