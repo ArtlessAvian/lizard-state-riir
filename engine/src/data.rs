@@ -3,6 +3,7 @@ use serde::Serialize;
 
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::rc::Rc;
 
 use crate::actions::ActionTrait;
@@ -11,6 +12,8 @@ use crate::positional::AbsolutePosition;
 
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Entity {
+    pub id: usize,
+
     pub pos: AbsolutePosition,
     pub health: i8,
 }
@@ -37,20 +40,25 @@ impl Floor {
         }
     }
 
-    pub fn add_entity(&self, new: Rc<Entity>) -> Self {
-        let mut clone = self.clone();
+    pub fn add_entity(&self, mut new: Entity) -> Self {
+        new.id = self.entities.len();
+        let id = new.id;
 
-        let index = clone.entities.len();
-        clone.entities.push(Rc::clone(&new));
+        let mut next_entities = self.entities.clone();
+        next_entities.push(Rc::new(new));
 
-        match clone.occupiers.entry(new.pos) {
+        let mut next_occupiers = self.occupiers.clone();
+        match next_occupiers.entry(next_entities[id].pos) {
             Entry::Occupied(_) => panic!("AHHHHHHH"),
             Entry::Vacant(vacancy) => {
-                vacancy.insert(index);
+                vacancy.insert(id);
             }
         }
 
-        clone
+        Floor {
+            entities: next_entities,
+            occupiers: next_occupiers,
+        }
     }
 
     pub fn get_player(&self) -> Rc<Entity> {
@@ -61,63 +69,54 @@ impl Floor {
         Rc::clone(self.entities.last().unwrap())
     }
 
-    pub fn update_entity(&self, old: Rc<Entity>, new: Rc<Entity>) -> Floor {
-        let mut new_entities = self.entities.clone();
+    pub fn update_entity(&self, new: Rc<Entity>) -> Floor {
+        let old = &self.entities[new.id];
 
-        let (index, thing) = new_entities
-            .iter_mut()
-            .enumerate()
-            .find(|(_i, x)| Rc::ptr_eq(x, &old))
-            .unwrap();
+        let mut next_entities = self.entities.clone();
+        next_entities[new.id] = Rc::clone(&new);
 
-        *thing = new.clone();
-
-        let mut new_occupiers = self.occupiers.clone();
-        new_occupiers.remove_entry(&old.pos);
-        match new_occupiers.entry(new.pos) {
+        let mut next_occupiers = self.occupiers.clone();
+        next_occupiers.remove_entry(&old.pos);
+        match next_occupiers.entry(new.pos) {
             Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
             Entry::Vacant(vacancy) => {
-                vacancy.insert(index);
+                vacancy.insert(new.id);
             }
         };
 
         Floor {
-            entities: new_entities,
-            occupiers: new_occupiers,
+            entities: next_entities,
+            occupiers: next_occupiers,
         }
     }
 
-    pub fn update_entities(&self, map: HashMap<Rc<Entity>, Rc<Entity>>) -> Floor {
-        let index_map = self
-            .entities
+    pub fn update_entities(&self, new_set: HashSet<Rc<Entity>>) -> Floor {
+        let old_set = new_set
             .iter()
-            .enumerate()
-            .filter(|(_i, x)| map.contains_key(*x))
-            .map(|(i, x)| (x.clone(), i))
-            .collect::<HashMap<Rc<Entity>, usize>>();
+            .map(|x| &self.entities[x.id])
+            .collect::<HashSet<&Rc<Entity>>>();
 
-        let new_entities = self
-            .entities
-            .iter()
-            .map(|x| Rc::clone(map.get(x).unwrap_or(x)))
-            .collect();
-
-        let mut new_occupiers = self.occupiers.clone();
-        for old in map.keys() {
-            new_occupiers.remove(&old.pos);
+        let mut next_entities = self.entities.clone();
+        for new in &new_set {
+            next_entities[new.id] = Rc::clone(new);
         }
-        for old in map.keys() {
-            match new_occupiers.entry(map[old].pos) {
+
+        let mut next_occupiers = self.occupiers.clone();
+        for old in &old_set {
+            next_occupiers.remove(&old.pos);
+        }
+        for new in &new_set {
+            match next_occupiers.entry(new.pos) {
                 Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
                 Entry::Vacant(vacancy) => {
-                    vacancy.insert(index_map[old]);
+                    vacancy.insert(new.id);
                 }
             }
         }
 
         Floor {
-            entities: new_entities,
-            occupiers: new_occupiers,
+            entities: next_entities,
+            occupiers: next_occupiers,
         }
     }
 }

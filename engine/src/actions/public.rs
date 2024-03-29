@@ -39,7 +39,7 @@ impl CommandTrait for StepCommand {
     fn do_action(&self, floor: &Floor) -> Floor {
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
-        floor.update_entity(Rc::clone(&self.subject_ref), Rc::new(subject_clone))
+        floor.update_entity(Rc::new(subject_clone))
     }
 }
 
@@ -82,7 +82,7 @@ impl CommandTrait for BumpCommand {
         let object_ref = floor.entities[object_index].clone();
         let mut object_clone: Entity = (*object_ref).clone();
         object_clone.health -= 1;
-        floor.update_entity(object_ref, Rc::new(object_clone))
+        floor.update_entity(Rc::new(object_clone))
     }
 }
 

@@ -27,20 +27,22 @@ struct Floor {
 impl Floor {
     #[func]
     fn add_entity(&mut self) -> i32 {
-        self.floor = self.floor.add_entity(Rc::new(EntityInternal {
+        self.floor = self.floor.add_entity(EntityInternal {
+            id: 0,
             pos: AbsolutePosition { x: 0, y: 0 },
             health: 10,
-        }));
+        });
 
         (self.floor.entities.len() - 1).try_into().unwrap()
     }
 
     #[func]
     fn add_entity_at(&mut self, pos: Vector2i) -> i32 {
-        self.floor = self.floor.add_entity(Rc::new(EntityInternal {
+        self.floor = self.floor.add_entity(EntityInternal {
+            id: 0,
             pos: AbsolutePosition { x: pos.x, y: pos.y },
             health: 10,
-        }));
+        });
 
         (self.floor.entities.len() - 1).try_into().unwrap()
     }
