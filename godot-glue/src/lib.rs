@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use engine::actions::public::BumpAction;
 use engine::actions::public::StepAction;
+use engine::actions::public::StepMacroAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::NullAction;
@@ -70,6 +71,16 @@ impl Floor {
     #[func]
     fn get_bump_action(&self, direction: Vector2i) -> Gd<Action> {
         Action::new(Box::new(BumpAction {
+            dir: RelativePosition {
+                dx: direction.x,
+                dy: direction.y,
+            },
+        }))
+    }
+
+    #[func]
+    fn get_step_macro_action(&self, direction: Vector2i) -> Gd<Action> {
+        Action::new(Box::new(StepMacroAction {
             dir: RelativePosition {
                 dx: direction.x,
                 dy: direction.y,

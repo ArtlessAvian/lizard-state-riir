@@ -85,3 +85,27 @@ impl CommandTrait for BumpCommand {
         floor.update_entity(object_ref, Rc::new(object_clone))
     }
 }
+
+pub struct StepMacroAction {
+    pub dir: RelativePosition,
+}
+
+impl ActionTrait for StepMacroAction {
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_ref: &Rc<Entity>,
+    ) -> Option<Box<dyn CommandTrait>> {
+        let bump = BumpAction { dir: self.dir };
+        if let Some(command) = bump.verify_action(floor, subject_ref) {
+            return Some(command);
+        }
+
+        let step = StepAction { dir: self.dir };
+        if let Some(command) = step.verify_action(floor, subject_ref) {
+            return Some(command);
+        }
+
+        None
+    }
+}
