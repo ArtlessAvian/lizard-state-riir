@@ -13,8 +13,14 @@ const tile_apparent_width: float = 24
 @export_range(-360, 360)
 var y_rotation_degrees: float = 0
 
+# TODO: Decide if this is a good idea:
+# look_at_target can be replaced with a RemoteTransform3D pushing a global position to this camera.
+# The RemoteTransform can be moved in local coordinates. This moves the responsibility to the
+# RemoteTransform to move the camera, and multiple may *try* to assert their position which
+# won't work.
+
+# Target in WorldSkew's local coordinates.
 @export var look_at_target: Vector3 = Vector3.ZERO
-@export var camera_distance = 20
 
 @export var demo_mode = false
 
