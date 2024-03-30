@@ -79,8 +79,8 @@ impl CommandTrait for BumpCommand {
     fn do_action(&self, floor: &Floor) -> Floor {
         let object_index = floor.occupiers[&(self.subject_ref.pos + self.dir)];
 
-        let object_ref = floor.entities[object_index].clone();
-        let mut object_clone: Entity = (*object_ref).clone();
+        let object_ref = &floor.entities[object_index];
+        let mut object_clone: Entity = (**object_ref).clone();
         object_clone.health -= 1;
         floor.update_entity(Rc::new(object_clone))
     }
