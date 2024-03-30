@@ -39,7 +39,8 @@ func move_player(dir: Vector2i):
 	var player = floor.get_player()
 	var action : Action = floor.get_step_macro_action(dir)
 	var command = action.to_command(floor, player)
-	floor = command.do_action(floor)
+	if command:
+		floor = command.do_action(floor)
 	
 	# just for fun
 	%Entity/DiscardBasis/Sprite3D.look_at = Vector3(dir.x, 0, dir.y)

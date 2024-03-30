@@ -24,12 +24,51 @@ impl Entity {
     }
 }
 
+// TODO: Decide whether to use non_exhaustive.
+#[derive(Clone, Serialize, Deserialize)]
+#[non_exhaustive]
+pub enum FloorTile {
+    FLOOR,
+    WALL,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct FloorMap {
+    pub tiles: Rc<HashMap<AbsolutePosition, FloorTile>>,
+    pub default: FloorTile,
+}
+
+impl FloorMap {
+    pub fn new() -> Self {
+        FloorMap {
+            tiles: Rc::new(HashMap::new()),
+            default: FloorTile::FLOOR, // "outdoors" map.
+        }
+    }
+
+    pub fn get_tile(&self, pos: &AbsolutePosition) -> &FloorTile {
+        self.tiles.get(pos).unwrap_or(&self.default)
+    }
+
+    pub fn is_tile_floor(&self, pos: &AbsolutePosition) -> bool {
+        // clean (and obvious) but more floors will be added ig.
+        matches!(self.get_tile(pos), FloorTile::FLOOR)
+    }
+}
+
+impl Default for FloorMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.
     pub entities: Vec<Rc<Entity>>,
     pub occupiers: HashMap<AbsolutePosition, usize>,
+    pub map: FloorMap,
 }
 
 impl Floor {
@@ -37,6 +76,7 @@ impl Floor {
         Floor {
             entities: Vec::new(),
             occupiers: HashMap::new(),
+            map: FloorMap::new(),
         }
     }
 
@@ -49,15 +89,36 @@ impl Floor {
 
         let mut next_occupiers = self.occupiers.clone();
         match next_occupiers.entry(next_entities[id].pos) {
-            Entry::Occupied(_) => panic!("AHHHHHHH"),
+            Entry::Occupied(_) => panic!("New entity occupies same position as existing entity."),
             Entry::Vacant(vacancy) => {
                 vacancy.insert(id);
             }
         }
 
+        assert!(
+            self.map.is_tile_floor(&next_entities[id].pos),
+            "New entity occupies wall position."
+        );
+
         Floor {
             entities: next_entities,
             occupiers: next_occupiers,
+            map: self.map.clone(),
+        }
+    }
+
+    pub fn set_map(&self, map: FloorMap) -> Self {
+        for entity in &self.entities {
+            assert!(
+                map.is_tile_floor(&entity.pos),
+                "Updated map has wall over existing entity."
+            )
+        }
+
+        Floor {
+            entities: self.entities.clone(),
+            occupiers: self.occupiers.clone(),
+            map,
         }
     }
 
@@ -78,15 +139,21 @@ impl Floor {
         let mut next_occupiers = self.occupiers.clone();
         next_occupiers.remove_entry(&old.pos);
         match next_occupiers.entry(new.pos) {
-            Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
+            Entry::Occupied(_) => panic!("Updated entity occupy same position as existing entity."),
             Entry::Vacant(vacancy) => {
                 vacancy.insert(new.id);
             }
         };
 
+        assert!(
+            self.map.is_tile_floor(&new.pos),
+            "Updated entity occupies wall position."
+        );
+
         Floor {
             entities: next_entities,
             occupiers: next_occupiers,
+            map: self.map.clone(),
         }
     }
 
@@ -107,16 +174,24 @@ impl Floor {
         }
         for new in &new_set {
             match next_occupiers.entry(new.pos) {
-                Entry::Occupied(_) => panic!("AAAAAAAAAAAAA"),
+                Entry::Occupied(_) => {
+                    panic!("Updated entities occupy same position as another entity.")
+                }
                 Entry::Vacant(vacancy) => {
                     vacancy.insert(new.id);
                 }
             }
+
+            assert!(
+                self.map.is_tile_floor(&new.pos),
+                "Updated entity occupies wall position."
+            );
         }
 
         Floor {
             entities: next_entities,
             occupiers: next_occupiers,
+            map: self.map.clone(),
         }
     }
 }

@@ -23,6 +23,10 @@ impl ActionTrait for StepAction {
             return None;
         }
 
+        if !floor.map.is_tile_floor(&(subject_ref.pos + self.dir)) {
+            return None;
+        }
+
         Some(Box::new(StepCommand {
             dir: self.dir,
             subject_ref: Rc::clone(subject_ref),
