@@ -1,8 +1,0 @@
-{
-    "rust-analyzer.files.excludeDirs": [
-        "godot"
-    ],
-    "files.watcherExclude": {
-        "**/target/**": true
-    }
-}
