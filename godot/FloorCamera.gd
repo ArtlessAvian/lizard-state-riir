@@ -1,8 +1,8 @@
 @tool
 extends Camera3D
 
-# if false, moves the camera. if true, moves the world s.t. up is Y+
-@export var do_skew_world = false
+enum CameraSkew {PRESERVE_ALL, PRESERVE_Y, PRESERVE_XZ}
+@export var do_skew_world: CameraSkew = CameraSkew.PRESERVE_ALL
 
 # apparent/screenspace height vs width.
 @export_range(0, 24)
@@ -23,15 +23,32 @@ func _process(delta):
 		adjust_size()
 		
 		if demo_mode:
-			self.y_rotation_degrees += delta * 360.0/20.0
-			self.do_skew_world = int(self.y_rotation_degrees) % 720 < 360
+			self.y_rotation_degrees += delta * 360.0/10.0
+			if int(self.y_rotation_degrees) % (360 * 3) < 360:
+				self.do_skew_world = CameraSkew.PRESERVE_ALL
+			elif int(self.y_rotation_degrees) % (360 * 3) < 360 * 2:
+				self.do_skew_world = CameraSkew.PRESERVE_Y
+			else:
+				self.do_skew_world = CameraSkew.PRESERVE_XZ
 	
 	if $"../WorldSkew" is Node3D:
 		var skew_node: Node3D = $"../WorldSkew";
 
-		if do_skew_world:
+		if do_skew_world == CameraSkew.PRESERVE_Y:
 			skew_node.transform = get_skew()
 			self.transform = Transform3D(Basis.IDENTITY, Vector3.BACK * 20)
+		elif do_skew_world == CameraSkew.PRESERVE_XZ:
+			var ratio = min(tile_apparent_height/tile_apparent_width, 1-1e-15)
+			
+			self.transform.basis = Basis(Vector3.UP, y_rotation_degrees * PI / 180.0)
+			self.transform.basis *= Basis(Vector3.RIGHT, -asin(ratio))
+			self.transform.origin = look_at_target + (self.transform.basis * (Vector3.BACK * 20))
+			
+			# alternatively, cos(asin(ratio))
+			var projection_scaling = max(1e-9, sqrt(1 - ratio * ratio))
+			var y_axis = self.transform.basis.y * projection_scaling
+			skew_node.transform.basis = Basis(Vector3.RIGHT, y_axis, Vector3.BACK)
+			skew_node.transform.origin = Vector3.ZERO
 		else:
 			skew_node.transform = Transform3D.IDENTITY
 			self.transform.basis = Basis(Vector3.UP, y_rotation_degrees * PI / 180.0)

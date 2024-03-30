@@ -49,7 +49,7 @@ script = ExtResource("1_7s6h2")
 metadata/_edit_lock_ = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.66649, 0.745514, 0, -0.745514, 0.66649, 0, 5, 0)
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 5, 0)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 editor_description = "Writes to WorldSkew to simulate moving the Camera around (with a more domain appropriate interface).
@@ -61,7 +61,7 @@ projection = 1
 current = true
 size = 20.0
 script = ExtResource("2_0g4sw")
-do_skew_world = true
+do_skew_world = 1
 metadata/_edit_lock_ = true
 
 [node name="WorldSkew" type="Node3D" parent="."]
