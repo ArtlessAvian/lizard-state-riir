@@ -40,7 +40,12 @@ func _process(delta):
 	if $"../WorldSkew" is Node3D:
 		var skew_node: Node3D = $"../WorldSkew";
 
-		if do_skew_world == CameraSkew.PRESERVE_Y:
+		if !self.current or do_skew_world == CameraSkew.PRESERVE_ALL:
+			skew_node.transform = Transform3D.IDENTITY
+			self.transform.basis = Basis(Vector3.UP, y_rotation_degrees * PI / 180.0)
+			self.transform.basis *= Basis(Vector3.RIGHT, -asin(tile_apparent_height/tile_apparent_width))
+			self.transform.origin = look_at_target + (self.transform.basis * (Vector3.BACK * 20))
+		elif do_skew_world == CameraSkew.PRESERVE_Y:
 			skew_node.transform = get_skew()
 			self.transform = Transform3D(Basis.IDENTITY, Vector3.BACK * 20)
 		elif do_skew_world == CameraSkew.PRESERVE_XZ:
@@ -56,10 +61,7 @@ func _process(delta):
 			skew_node.transform.basis = Basis(Vector3.RIGHT, y_axis, Vector3.BACK)
 			skew_node.transform.origin = Vector3.ZERO
 		else:
-			skew_node.transform = Transform3D.IDENTITY
-			self.transform.basis = Basis(Vector3.UP, y_rotation_degrees * PI / 180.0)
-			self.transform.basis *= Basis(Vector3.RIGHT, -asin(tile_apparent_height/tile_apparent_width))
-			self.transform.origin = look_at_target + (self.transform.basis * (Vector3.BACK * 20))
+			print("fallthrough")
 
 func adjust_size():
 	keep_aspect = Camera3D.KEEP_WIDTH

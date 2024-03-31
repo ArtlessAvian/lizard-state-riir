@@ -1,3 +1,4 @@
+@tool
 extends Sprite3D
 
 @export var towards: Texture
@@ -14,12 +15,13 @@ extends Sprite3D
 const SCOOT_AMOUNT: float = 5.0 / 24.0 * sqrt(5) / 2.0
 
 func _process(delta):
-	var camera_direction = get_viewport().get_camera_3d().basis.z
-	spin_around(camera_direction)
-	
-	# Secretly scoot a little towards the camera to unclip some pixels.
-	# Not visible orthographically / doesn't affect apparent size.
-	self.transform.origin = camera_direction.normalized() * SCOOT_AMOUNT
+	if get_viewport().get_camera_3d() is Camera3D:
+		var camera_direction = get_viewport().get_camera_3d().basis.z
+		spin_around(camera_direction)
+		
+		# Secretly scoot a little towards the camera to unclip some pixels.
+		# Not visible orthographically / doesn't affect apparent size.
+		# self.transform.origin = camera_direction.normalized() * SCOOT_AMOUNT
 
 func spin_around(camera_direction):
 	if not self.get_parent() or not self.get_parent().get_parent():

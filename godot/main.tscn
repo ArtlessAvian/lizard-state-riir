@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=15 format=3 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_7s6h2"]
 [ext_resource type="Script" path="res://FloorCamera.gd" id="2_0g4sw"]
@@ -6,6 +6,7 @@
 [ext_resource type="Shader" path="res://grid.gdshader" id="3_ebqio"]
 [ext_resource type="Script" path="res://DiscardBasis.gd" id="4_mi30g"]
 [ext_resource type="Script" path="res://EntitySprite.gd" id="6_7r5ow"]
+[ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0i8tf"]
 render_priority = 0
@@ -90,6 +91,9 @@ unique_name_in_owner = true
 top_level = true
 script = ExtResource("4_mi30g")
 
+[node name="Perspective" type="Camera3D" parent="WorldSkew/Map/Entity/DiscardBasis"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
 [node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity/DiscardBasis"]
 offset = Vector2(0, 15)
 pixel_size = 0.0417
@@ -100,7 +104,6 @@ script = ExtResource("6_7r5ow")
 towards = SubResource("AtlasTexture_31piw")
 right = SubResource("AtlasTexture_pip4u")
 away = SubResource("AtlasTexture_er8p6")
-look_at = Vector3(1, 0, 0)
 
 [node name="Entity2" type="Node3D" parent="WorldSkew/Map"]
 unique_name_in_owner = true
@@ -119,7 +122,6 @@ script = ExtResource("6_7r5ow")
 towards = SubResource("AtlasTexture_31piw")
 right = SubResource("AtlasTexture_pip4u")
 away = SubResource("AtlasTexture_er8p6")
-look_at = Vector3(1, 0, 0)
 
 [node name="MapHistory" type="GridMap" parent="WorldSkew"]
 editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
@@ -138,3 +140,5 @@ data = {
 }
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="CPUParticles3D" parent="WorldSkew" instance=ExtResource("7_sflsj")]
