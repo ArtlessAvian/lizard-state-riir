@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::rc::Rc;
 
 use crate::data::Entity;
@@ -43,6 +44,7 @@ impl CommandTrait for StepCommand {
     fn do_action(&self, floor: &Floor) -> Floor {
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
+        *subject_clone.next_turn.as_mut().unwrap() += 1;
         floor.update_entity(Rc::new(subject_clone))
     }
 }
@@ -81,12 +83,19 @@ struct BumpCommand {
 
 impl CommandTrait for BumpCommand {
     fn do_action(&self, floor: &Floor) -> Floor {
+        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        *subject_clone.next_turn.as_mut().unwrap() += 1;
+
         let object_index = floor.occupiers[&(self.subject_ref.pos + self.dir)];
 
         let object_ref = &floor.entities[object_index];
         let mut object_clone: Entity = (**object_ref).clone();
         object_clone.health -= 1;
-        floor.update_entity(Rc::new(object_clone))
+
+        floor.update_entities(HashSet::from([
+            Rc::new(subject_clone),
+            Rc::new(object_clone),
+        ]))
     }
 }
 
@@ -112,4 +121,31 @@ impl ActionTrait for StepMacroAction {
 
         None
     }
+}
+
+#[cfg(test)]
+#[test]
+fn bump_test() {
+    use crate::positional::AbsolutePosition;
+
+    let mut floor = Floor::new();
+    floor = floor.add_entity(Entity {
+        id: 0,
+        next_turn: Some(0),
+        pos: AbsolutePosition { x: 0, y: 0 },
+        health: 0,
+    });
+    floor = floor.add_entity(Entity {
+        id: 1,
+        next_turn: Some(0),
+        pos: AbsolutePosition { x: 1, y: 0 },
+        health: 0,
+    });
+    floor = BumpAction {
+        dir: RelativePosition { dx: 1, dy: 0 },
+    }
+    .verify_action(&floor, &floor.get_player())
+    .unwrap()
+    .do_action(&floor);
+    dbg!(floor);
 }

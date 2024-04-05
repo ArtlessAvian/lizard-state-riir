@@ -6,13 +6,16 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use crate::actions::public::StepAction;
 use crate::actions::ActionTrait;
 use crate::actions::NullAction;
 use crate::positional::AbsolutePosition;
+use crate::positional::RelativePosition;
 
-#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Entity {
     pub id: usize,
+    pub next_turn: Option<u8>,
 
     pub pos: AbsolutePosition,
     pub health: i8,
@@ -25,14 +28,14 @@ impl Entity {
 }
 
 // TODO: Decide whether to use non_exhaustive.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum FloorTile {
     FLOOR,
     WALL,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FloorMap {
     pub tiles: Rc<HashMap<AbsolutePosition, FloorTile>>,
     pub default: FloorTile,
@@ -62,7 +65,7 @@ impl Default for FloorMap {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.
@@ -170,7 +173,8 @@ impl Floor {
 
         let mut next_occupiers = self.occupiers.clone();
         for old in &old_set {
-            next_occupiers.remove(&old.pos);
+            let remove = next_occupiers.remove(&old.pos);
+            assert!(remove.is_some());
         }
         for new in &new_set {
             match next_occupiers.entry(new.pos) {
@@ -193,6 +197,39 @@ impl Floor {
             occupiers: next_occupiers,
             map: self.map.clone(),
         }
+    }
+
+    pub fn get_next_entity(&self) -> Option<usize> {
+        return self
+            .entities
+            .iter()
+            .filter(|e| e.next_turn.is_some())
+            .min_by_key(|e| e.next_turn)
+            .map(|e| e.id);
+    }
+
+    pub fn take_npc_turn(&self) -> Result<Floor, ()> {
+        let next_id = self.get_next_entity();
+        if next_id.is_none() {
+            return Result::Err(());
+        }
+        let next_id = next_id.unwrap();
+
+        // hardcoded player.
+        // TODO: unhardcode.
+        if next_id == 0 {
+            return Result::Err(());
+        }
+
+        // TODO: do something interesting
+        let next_floor = StepAction {
+            dir: RelativePosition { dx: 0, dy: 1 },
+        }
+        .verify_action(self, &self.entities[next_id])
+        .expect("testing code")
+        .do_action(self);
+
+        Result::Ok(next_floor)
     }
 }
 

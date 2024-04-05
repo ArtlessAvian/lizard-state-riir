@@ -29,6 +29,7 @@ impl Floor {
     fn add_entity(&mut self) -> i32 {
         self.floor = self.floor.add_entity(EntityInternal {
             id: 0,
+            next_turn: Some(0),
             pos: AbsolutePosition { x: 0, y: 0 },
             health: 10,
         });
@@ -40,6 +41,7 @@ impl Floor {
     fn add_entity_at(&mut self, pos: Vector2i) -> i32 {
         self.floor = self.floor.add_entity(EntityInternal {
             id: 0,
+            next_turn: Some(0),
             pos: AbsolutePosition { x: pos.x, y: pos.y },
             health: 10,
         });
@@ -56,6 +58,15 @@ impl Floor {
     fn get_entity_by_id(&self, id: i32) -> Gd<Entity> {
         let thing: usize = id.try_into().unwrap();
         Entity::new(Rc::clone(self.floor.entities.get(thing).unwrap()))
+    }
+
+    #[func]
+    fn take_npc_turn(&mut self) {
+        // TODO: handle err.
+        let result = self.floor.take_npc_turn();
+        if let Ok(next) = result {
+            self.floor = next;
+        }
     }
 
     // engine::actions::public::* goes here.

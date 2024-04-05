@@ -2,7 +2,7 @@ use std::ops::{Add, Sub};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct RelativePosition {
     pub dx: i32,
     pub dy: i32,
@@ -25,7 +25,7 @@ impl RelativePosition {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct AbsolutePosition {
     pub x: i32,
     pub y: i32,

@@ -13,6 +13,8 @@ func _ready():
 func _process(delta):
 	poll_input()
 	
+	floor.take_npc_turn()
+	
 	for id in id_to_node.keys():
 		var entity = floor.get_entity_by_id(id)
 		id_to_node[id].position = Vector3(entity.get_pos().x, 0, entity.get_pos().y)
