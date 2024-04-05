@@ -92,30 +92,22 @@ impl Floor {
 }
 
 #[derive(GodotClass)]
+#[class(no_init)]
 struct Entity {
-    entity: Option<Rc<EntityInternal>>,
-}
-
-#[godot_api]
-impl IRefCounted for Entity {
-    fn init(_base: Base<RefCounted>) -> Self {
-        Self { entity: None }
-    }
+    entity: Rc<EntityInternal>,
 }
 
 #[godot_api]
 impl Entity {
     fn new(entity: Rc<EntityInternal>) -> Gd<Self> {
-        Gd::from_init_fn(|_base| Self {
-            entity: Some(entity),
-        })
+        Gd::from_object(Self { entity })
     }
 
     #[func]
     fn get_pos(&self) -> Vector2i {
         Vector2i {
-            x: self.entity.as_ref().unwrap().pos.x,
-            y: self.entity.as_ref().unwrap().pos.y,
+            x: self.entity.pos.x,
+            y: self.entity.pos.y,
         }
     }
 }
@@ -145,7 +137,7 @@ impl Action {
     #[func]
     fn to_command(&self, floor: Gd<Floor>, subject: Gd<Entity>) -> Option<Gd<Command>> {
         let binding = subject.bind();
-        let subject_ref = binding.entity.as_ref()?;
+        let subject_ref = &binding.entity;
         let verify_action = self
             .action
             .verify_action(&floor.bind().floor, subject_ref)?;
@@ -154,31 +146,22 @@ impl Action {
 }
 
 #[derive(GodotClass)]
+#[class(no_init)]
 struct Command {
     // Godot doesn't see this anyways.
-    command: Option<Box<dyn CommandTrait>>,
-}
-
-#[godot_api]
-impl IRefCounted for Command {
-    // Return an invalid command. Don't call this.
-    fn init(_base: Base<RefCounted>) -> Self {
-        Self { command: None }
-    }
+    command: Box<dyn CommandTrait>,
 }
 
 #[godot_api]
 impl Command {
     fn new(command: Box<dyn CommandTrait>) -> Gd<Self> {
-        Gd::from_init_fn(|_base| Self {
-            command: Some(command),
-        })
+        Gd::from_object(Self { command })
     }
 
     #[func]
     fn do_action(&self, floor: Gd<Floor>) -> Gd<Floor> {
         let bind = Gd::bind(&floor);
-        let next: FloorInternal = self.command.as_ref().unwrap().do_action(&bind.floor);
+        let next: FloorInternal = self.command.do_action(&bind.floor);
         Gd::from_object(Floor { floor: next })
     }
 }
