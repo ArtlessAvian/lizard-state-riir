@@ -52,7 +52,7 @@ impl Floor {
     fn take_npc_turn(&mut self) {
         // TODO: handle err.
         let result = self.floor.take_npc_turn();
-        if let Ok(next) = result {
+        if let Ok((next, log)) = result {
             self.floor = next;
         }
     }
@@ -148,7 +148,8 @@ impl Command {
     #[func]
     fn do_action(&self, floor: Gd<Floor>) -> Gd<Floor> {
         let bind = Gd::bind(&floor);
-        let next: FloorInternal = self.command.do_action(&bind.floor);
+        let (next, log) = self.command.do_action(&bind.floor);
         Gd::from_object(Floor { floor: next })
+        // TODO: Concat log or something.
     }
 }

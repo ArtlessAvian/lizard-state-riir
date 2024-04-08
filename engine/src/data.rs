@@ -8,6 +8,7 @@ use std::rc::Rc;
 
 use crate::actions::public::StepAction;
 use crate::actions::ActionTrait;
+use crate::actions::FloorEvent;
 use crate::actions::NullAction;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
@@ -208,7 +209,7 @@ impl Floor {
             .map(|e| e.id);
     }
 
-    pub fn take_npc_turn(&self) -> Result<Floor, ()> {
+    pub fn take_npc_turn(&self) -> Result<(Floor, Vec<FloorEvent>), ()> {
         let next_id = self.get_next_entity();
         if next_id.is_none() {
             return Result::Err(());

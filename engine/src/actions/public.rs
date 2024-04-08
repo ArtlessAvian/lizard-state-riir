@@ -7,6 +7,7 @@ use crate::positional::RelativePosition;
 
 use super::ActionTrait;
 use super::CommandTrait;
+use super::FloorEvent;
 
 pub struct StepAction {
     pub dir: RelativePosition,
@@ -41,11 +42,14 @@ struct StepCommand {
 }
 
 impl CommandTrait for StepCommand {
-    fn do_action(&self, floor: &Floor) -> Floor {
+    fn do_action(&self, floor: &Floor) -> (Floor, Vec<FloorEvent>) {
+        let log = Vec::new();
+
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
         *subject_clone.next_turn.as_mut().unwrap() += 1;
-        floor.update_entity(Rc::new(subject_clone))
+
+        (floor.update_entity(Rc::new(subject_clone)), log)
     }
 }
 
@@ -82,7 +86,9 @@ struct BumpCommand {
 }
 
 impl CommandTrait for BumpCommand {
-    fn do_action(&self, floor: &Floor) -> Floor {
+    fn do_action(&self, floor: &Floor) -> (Floor, Vec<FloorEvent>) {
+        let log = Vec::new();
+
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         *subject_clone.next_turn.as_mut().unwrap() += 1;
 
@@ -92,10 +98,13 @@ impl CommandTrait for BumpCommand {
         let mut object_clone: Entity = (**object_ref).clone();
         object_clone.health -= 1;
 
-        floor.update_entities(HashSet::from([
-            Rc::new(subject_clone),
-            Rc::new(object_clone),
-        ]))
+        (
+            floor.update_entities(HashSet::from([
+                Rc::new(subject_clone),
+                Rc::new(object_clone),
+            ])),
+            log,
+        )
     }
 }
 
@@ -141,7 +150,8 @@ fn bump_test() {
         pos: AbsolutePosition::new(1, 0),
         health: 0,
     });
-    floor = BumpAction {
+    let _log;
+    (floor, _log) = BumpAction {
         dir: RelativePosition::new(1, 0),
     }
     .verify_action(&floor, &floor.get_player())

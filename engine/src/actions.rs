@@ -7,7 +7,6 @@ use std::rc::Rc;
 
 use crate::data::Entity;
 use crate::data::Floor;
-
 /// An action, without definining a user or a context.
 ///
 /// A generic flow.
@@ -15,7 +14,7 @@ use crate::data::Floor;
 /// ```rust
 /// use engine::actions::*;
 /// use engine::data::*;
-/// fn context(action: Box<dyn ActionTrait>, floor: &Floor) -> Floor {
+/// fn context(action: Box<dyn ActionTrait>, floor: &Floor) -> (Floor, Vec<FloorEvent>) {
 ///     let command = action.verify_action(floor, &floor.get_player()).unwrap();
 ///     command.do_action(floor)
 /// }
@@ -30,7 +29,7 @@ pub trait ActionTrait {
 
 /// A command, with user and context.
 pub trait CommandTrait {
-    fn do_action(&self, floor: &Floor) -> Floor;
+    fn do_action(&self, floor: &Floor) -> (Floor, Vec<FloorEvent>);
 }
 
 /// Never verifies.
@@ -40,3 +39,5 @@ impl ActionTrait for NullAction {
         None
     }
 }
+
+pub struct FloorEvent {}
