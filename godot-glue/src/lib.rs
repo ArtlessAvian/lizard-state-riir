@@ -26,23 +26,11 @@ struct Floor {
 #[godot_api]
 impl Floor {
     #[func]
-    fn add_entity(&mut self) -> i32 {
-        self.floor = self.floor.add_entity(EntityInternal {
-            id: 0,
-            next_turn: Some(0),
-            pos: AbsolutePosition { x: 0, y: 0 },
-            health: 10,
-        });
-
-        (self.floor.entities.len() - 1).try_into().unwrap()
-    }
-
-    #[func]
     fn add_entity_at(&mut self, pos: Vector2i) -> i32 {
         self.floor = self.floor.add_entity(EntityInternal {
             id: 0,
             next_turn: Some(0),
-            pos: AbsolutePosition { x: pos.x, y: pos.y },
+            pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,
         });
 
@@ -74,30 +62,21 @@ impl Floor {
     #[func]
     fn get_step_action(&self, direction: Vector2i) -> Gd<Action> {
         Action::new(Box::new(StepAction {
-            dir: RelativePosition {
-                dx: direction.x,
-                dy: direction.y,
-            },
+            dir: RelativePosition::new(direction.x, direction.y),
         }))
     }
 
     #[func]
     fn get_bump_action(&self, direction: Vector2i) -> Gd<Action> {
         Action::new(Box::new(BumpAction {
-            dir: RelativePosition {
-                dx: direction.x,
-                dy: direction.y,
-            },
+            dir: RelativePosition::new(direction.x, direction.y),
         }))
     }
 
     #[func]
     fn get_step_macro_action(&self, direction: Vector2i) -> Gd<Action> {
         Action::new(Box::new(StepMacroAction {
-            dir: RelativePosition {
-                dx: direction.x,
-                dy: direction.y,
-            },
+            dir: RelativePosition::new(direction.x, direction.y),
         }))
     }
 }
@@ -116,10 +95,7 @@ impl Entity {
 
     #[func]
     fn get_pos(&self) -> Vector2i {
-        Vector2i {
-            x: self.entity.pos.x,
-            y: self.entity.pos.y,
-        }
+        Vector2i::new(self.entity.pos.x, self.entity.pos.y)
     }
 }
 

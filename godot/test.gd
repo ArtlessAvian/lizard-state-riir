@@ -5,7 +5,7 @@ var id_to_node: Dictionary;
 
 func _ready():
 	floor = Floor.new();
-	var a = floor.add_entity();
+	var a = floor.add_entity_at(Vector2i.ZERO);
 	var b = floor.add_entity_at(Vector2i(-1, 0));
 	id_to_node[a] = %Entity
 	id_to_node[b] = %Entity2

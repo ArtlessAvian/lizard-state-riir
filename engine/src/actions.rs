@@ -11,6 +11,7 @@ use crate::data::Floor;
 /// An action, without definining a user or a context.
 ///
 /// A generic flow.
+/// TODO: Rethink this.
 /// ```rust
 /// use engine::actions::*;
 /// use engine::data::*;

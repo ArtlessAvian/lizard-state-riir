@@ -132,17 +132,17 @@ fn bump_test() {
     floor = floor.add_entity(Entity {
         id: 0,
         next_turn: Some(0),
-        pos: AbsolutePosition { x: 0, y: 0 },
+        pos: AbsolutePosition::new(0, 0),
         health: 0,
     });
     floor = floor.add_entity(Entity {
         id: 1,
         next_turn: Some(0),
-        pos: AbsolutePosition { x: 1, y: 0 },
+        pos: AbsolutePosition::new(1, 0),
         health: 0,
     });
     floor = BumpAction {
-        dir: RelativePosition { dx: 1, dy: 0 },
+        dir: RelativePosition::new(1, 0),
     }
     .verify_action(&floor, &floor.get_player())
     .unwrap()

@@ -2,7 +2,7 @@ use std::ops::{Add, Sub};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct RelativePosition {
     pub dx: i32,
     pub dy: i32,
@@ -20,6 +20,10 @@ impl Add for RelativePosition {
 }
 
 impl RelativePosition {
+    pub fn new(dx: i32, dy: i32) -> Self {
+        Self { dx, dy }
+    }
+
     pub fn length(self) -> u32 {
         u32::max(self.dx.unsigned_abs(), self.dy.unsigned_abs())
     }
@@ -32,6 +36,10 @@ pub struct AbsolutePosition {
 }
 
 impl AbsolutePosition {
+    pub fn new(x: i32, y: i32) -> Self {
+        Self { x, y }
+    }
+
     pub fn distance(self, other: AbsolutePosition) -> u32 {
         (self - other).length()
     }
