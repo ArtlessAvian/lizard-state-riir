@@ -21,10 +21,22 @@ unsafe impl ExtensionLibrary for MyExtension {}
 #[class(init)]
 struct Floor {
     floor: FloorInternal,
+    log: Array<i32>,
 }
 
+/// Container for the Floor and an accumulated log.
 #[godot_api]
 impl Floor {
+    /// Since Floor (in glue code) is not a pure class unlike the Floor (in engine),
+    /// this is here to explicitly copy.
+    #[func]
+    fn duplicate(&self) -> Gd<Floor> {
+        Gd::from_object(Floor {
+            floor: self.floor.clone(),
+            log: self.log.duplicate_shallow(),
+        })
+    }
+
     #[func]
     fn add_entity_at(&mut self, pos: Vector2i) -> i32 {
         self.floor = self.floor.add_entity(EntityInternal {
@@ -54,7 +66,15 @@ impl Floor {
         let result = self.floor.take_npc_turn();
         if let Ok((next, log)) = result {
             self.floor = next;
+            self.log.extend_array(Array::new());
         }
+    }
+
+    #[func]
+    fn do_action(&mut self, command: Gd<Command>) {
+        let (next, log) = command.bind().command.do_action(&self.floor);
+        self.floor = next;
+        self.log.extend_array(Array::new())
     }
 
     // engine::actions::public::* goes here.
@@ -143,13 +163,5 @@ struct Command {
 impl Command {
     fn new(command: Box<dyn CommandTrait>) -> Gd<Self> {
         Gd::from_object(Self { command })
-    }
-
-    #[func]
-    fn do_action(&self, floor: Gd<Floor>) -> Gd<Floor> {
-        let bind = Gd::bind(&floor);
-        let (next, log) = self.command.do_action(&bind.floor);
-        Gd::from_object(Floor { floor: next })
-        // TODO: Concat log or something.
     }
 }
