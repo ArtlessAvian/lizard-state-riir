@@ -9,9 +9,10 @@ var event_index = 0;
 func _ready():
 	floor = Floor.new();
 	player_id = floor.add_entity_at(Vector2i.ZERO);
-	var other = floor.add_entity_at(Vector2i(-1, 0));
 	id_to_node[player_id] = %Entity
-	id_to_node[other] = %Entity2
+
+	floor.add_entity_at(Vector2i(-5, 1));
+	floor.add_entity_at(Vector2i(-5, 0));
 
 func _process(delta):
 	poll_input()
@@ -22,7 +23,12 @@ func _process(delta):
 		print(floor.log[event_index])
 		event_index += 1
 	
-	for id in id_to_node.keys():
+	for id in floor.get_entity_ids():
+		if not id in id_to_node:
+			var dup = %Entity.duplicate()
+			id_to_node[id] = dup
+			%Entity.get_parent().add_child(dup)
+
 		var entity = floor.get_entity_by_id(id)
 		id_to_node[id].position = Vector3(entity.get_pos().x, 0, entity.get_pos().y)
 
@@ -46,7 +52,7 @@ func poll_input():
 
 func move_player(dir: Vector2i):
 	var player = floor.get_entity_by_id(player_id)
-	var action : Action = floor.get_step_macro_action(dir)
+	var action: Action = floor.get_step_macro_action(dir)
 	var command = action.to_command(floor, player)
 	if command:
 		floor.do_action(command)

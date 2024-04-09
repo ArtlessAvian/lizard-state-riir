@@ -13,6 +13,12 @@ use crate::positional::AbsolutePosition;
 // TODO: Remove Default.
 pub struct EntityId(usize);
 
+impl From<EntityId> for i32 {
+    fn from(value: EntityId) -> Self {
+        value.0.try_into().unwrap()
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Entity {
     pub id: EntityId,

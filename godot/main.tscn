@@ -103,24 +103,6 @@ towards = SubResource("AtlasTexture_31piw")
 right = SubResource("AtlasTexture_pip4u")
 away = SubResource("AtlasTexture_er8p6")
 
-[node name="Entity2" type="Node3D" parent="WorldSkew/Map"]
-unique_name_in_owner = true
-
-[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity2"]
-top_level = true
-script = ExtResource("4_mi30g")
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity2/DiscardBasis"]
-offset = Vector2(0, 15)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")
-script = ExtResource("6_7r5ow")
-towards = SubResource("AtlasTexture_31piw")
-right = SubResource("AtlasTexture_pip4u")
-away = SubResource("AtlasTexture_er8p6")
-
 [node name="MapHistory" type="GridMap" parent="WorldSkew"]
 editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
 Match rotation with ../Map.

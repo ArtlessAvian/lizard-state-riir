@@ -1,3 +1,5 @@
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 use engine::actions::public::BumpAction;
@@ -24,6 +26,7 @@ struct Floor {
     floor: FloorInternal,
     #[export]
     log: Array<i32>,
+    id_bijection: HashMap<EntityIdInternal, Gd<EntityId>>,
 }
 
 /// Container for the Floor and an accumulated log.
@@ -36,6 +39,7 @@ impl Floor {
         Gd::from_object(Floor {
             floor: self.floor.clone(),
             log: self.log.duplicate_shallow(),
+            id_bijection: self.id_bijection.clone(),
         })
     }
 
@@ -48,7 +52,17 @@ impl Floor {
             pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,
         });
-        Gd::from_object(EntityId { id })
+        EntityId::new(id, &mut self.id_bijection)
+    }
+
+    #[func]
+    fn get_entity_ids(&mut self) -> Array<Gd<EntityId>> {
+        self.floor
+            .entities
+            .iter()
+            .map(|e| e.id)
+            .map(|e| EntityId::new(e, &mut self.id_bijection))
+            .collect()
     }
 
     #[func]
@@ -104,6 +118,27 @@ impl Floor {
 #[class(no_init)]
 struct EntityId {
     id: EntityIdInternal,
+    _use_constructor: (),
+}
+
+impl EntityId {
+    // Every id has one internal by definition.
+    // The hashmap ensures every internal has one id.
+    // So its a bijection.
+    pub fn new(
+        id: EntityIdInternal,
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+    ) -> Gd<Self> {
+        match id_bijection.entry(id) {
+            Entry::Occupied(el) => el.get().clone(),
+            Entry::Vacant(slot) => slot
+                .insert(Gd::from_object(EntityId {
+                    id,
+                    _use_constructor: (),
+                }))
+                .clone(),
+        }
+    }
 }
 
 #[derive(GodotClass)]
