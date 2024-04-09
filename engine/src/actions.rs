@@ -7,6 +7,8 @@ use std::rc::Rc;
 
 use crate::data::Entity;
 use crate::data::Floor;
+use crate::positional::AbsolutePosition;
+use crate::positional::RelativePosition;
 /// An action, without definining a user or a context.
 ///
 /// A generic flow.
@@ -40,4 +42,9 @@ impl ActionTrait for NullAction {
     }
 }
 
-pub struct FloorEvent {}
+#[derive(Debug, PartialEq, Eq)]
+pub enum FloorEvent {
+    Move(usize, AbsolutePosition),
+    StartAttack(usize, RelativePosition),
+    AttackHit(usize, usize, i32),
+}

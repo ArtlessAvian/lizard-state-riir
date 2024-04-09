@@ -21,6 +21,7 @@ unsafe impl ExtensionLibrary for MyExtension {}
 #[class(init)]
 struct Floor {
     floor: FloorInternal,
+    #[export]
     log: Array<i32>,
 }
 
@@ -66,7 +67,8 @@ impl Floor {
         let result = self.floor.take_npc_turn();
         if let Ok((next, log)) = result {
             self.floor = next;
-            self.log.extend_array(Array::new());
+            let temp = log.iter().map(|_| 1).collect();
+            self.log.extend_array(temp);
         }
     }
 
@@ -74,7 +76,9 @@ impl Floor {
     fn do_action(&mut self, command: Gd<Command>) {
         let (next, log) = command.bind().command.do_action(&self.floor);
         self.floor = next;
-        self.log.extend_array(Array::new())
+
+        let temp = log.iter().map(|_| 1).collect();
+        self.log.extend_array(temp)
     }
 
     // engine::actions::public::* goes here.

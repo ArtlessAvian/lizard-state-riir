@@ -43,11 +43,13 @@ struct StepCommand {
 
 impl CommandTrait for StepCommand {
     fn do_action(&self, floor: &Floor) -> (Floor, Vec<FloorEvent>) {
-        let log = Vec::new();
+        let mut log = Vec::new();
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
         *subject_clone.next_turn.as_mut().unwrap() += 1;
+
+        log.push(FloorEvent::Move(subject_clone.id, subject_clone.pos));
 
         (floor.update_entity(Rc::new(subject_clone)), log)
     }
@@ -87,16 +89,20 @@ struct BumpCommand {
 
 impl CommandTrait for BumpCommand {
     fn do_action(&self, floor: &Floor) -> (Floor, Vec<FloorEvent>) {
-        let log = Vec::new();
+        let mut log = Vec::new();
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         *subject_clone.next_turn.as_mut().unwrap() += 1;
+
+        log.push(FloorEvent::StartAttack(subject_clone.id, self.dir));
 
         let object_index = floor.occupiers[&(self.subject_ref.pos + self.dir)];
 
         let object_ref = &floor.entities[object_index];
         let mut object_clone: Entity = (**object_ref).clone();
         object_clone.health -= 1;
+
+        log.push(FloorEvent::AttackHit(subject_clone.id, object_clone.id, 1));
 
         (
             floor.update_entities(HashSet::from([
@@ -150,12 +156,20 @@ fn bump_test() {
         pos: AbsolutePosition::new(1, 0),
         health: 0,
     });
-    let _log;
-    (floor, _log) = BumpAction {
+    let log;
+    (floor, log) = BumpAction {
         dir: RelativePosition::new(1, 0),
     }
     .verify_action(&floor, &floor.get_player())
     .unwrap()
     .do_action(&floor);
     dbg!(floor);
+
+    assert_eq!(
+        log,
+        vec![
+            FloorEvent::StartAttack(0, RelativePosition::new(1, 0)),
+            FloorEvent::AttackHit(0, 1, 1)
+        ]
+    );
 }

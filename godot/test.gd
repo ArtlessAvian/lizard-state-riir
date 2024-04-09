@@ -2,6 +2,7 @@ extends Node
 
 var floor: Floor;
 var id_to_node: Dictionary;
+var event_index = 0;
 
 func _ready():
 	floor = Floor.new();
@@ -14,6 +15,10 @@ func _process(delta):
 	poll_input()
 	
 	floor.take_npc_turn()
+	
+	while event_index < len(floor.log):
+		print(floor.log[event_index])
+		event_index += 1
 	
 	for id in id_to_node.keys():
 		var entity = floor.get_entity_by_id(id)
