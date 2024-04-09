@@ -6,8 +6,9 @@ use engine::actions::public::StepMacroAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::NullAction;
-use engine::data::Entity as EntityInternal;
 use engine::data::Floor as FloorInternal;
+use engine::entity::Entity as EntityInternal;
+use engine::entity::EntityId as EntityIdInternal;
 use engine::positional::AbsolutePosition;
 use engine::positional::RelativePosition;
 use godot::prelude::*;
@@ -39,26 +40,20 @@ impl Floor {
     }
 
     #[func]
-    fn add_entity_at(&mut self, pos: Vector2i) -> i32 {
-        self.floor = self.floor.add_entity(EntityInternal {
-            id: 0,
+    fn add_entity_at(&mut self, pos: Vector2i) -> Gd<EntityId> {
+        let id;
+        (self.floor, id) = self.floor.add_entity(EntityInternal {
+            id: Default::default(),
             next_turn: Some(0),
             pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,
         });
-
-        (self.floor.entities.len() - 1).try_into().unwrap()
+        Gd::from_object(EntityId { id })
     }
 
     #[func]
-    fn get_player(&self) -> Gd<Entity> {
-        Entity::new(self.floor.get_player())
-    }
-
-    #[func]
-    fn get_entity_by_id(&self, id: i32) -> Gd<Entity> {
-        let thing: usize = id.try_into().unwrap();
-        Entity::new(Rc::clone(self.floor.entities.get(thing).unwrap()))
+    fn get_entity_by_id(&self, id: Gd<EntityId>) -> Gd<Entity> {
+        Entity::new(Rc::clone(&self.floor.entities[id.bind().id]))
     }
 
     #[func]
@@ -103,6 +98,12 @@ impl Floor {
             dir: RelativePosition::new(direction.x, direction.y),
         }))
     }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+struct EntityId {
+    id: EntityIdInternal,
 }
 
 #[derive(GodotClass)]

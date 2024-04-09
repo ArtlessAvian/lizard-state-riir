@@ -5,8 +5,9 @@ pub mod public;
 
 use std::rc::Rc;
 
-use crate::data::Entity;
 use crate::data::Floor;
+use crate::entity::Entity;
+use crate::entity::EntityId;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 /// An action, without definining a user or a context.
@@ -44,7 +45,7 @@ impl ActionTrait for NullAction {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum FloorEvent {
-    Move(usize, AbsolutePosition),
-    StartAttack(usize, RelativePosition),
-    AttackHit(usize, usize, i32),
+    Move(EntityId, AbsolutePosition),
+    StartAttack(EntityId, RelativePosition),
+    AttackHit(EntityId, EntityId, i32),
 }

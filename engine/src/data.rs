@@ -9,24 +9,11 @@ use std::rc::Rc;
 use crate::actions::public::StepAction;
 use crate::actions::ActionTrait;
 use crate::actions::FloorEvent;
-use crate::actions::NullAction;
+use crate::entity::Entity;
+use crate::entity::EntityId;
+use crate::entity::EntitySet;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Entity {
-    pub id: usize,
-    pub next_turn: Option<u8>,
-
-    pub pos: AbsolutePosition,
-    pub health: i8,
-}
-
-impl Entity {
-    pub fn get_actions() -> Box<dyn ActionTrait> {
-        Box::new(NullAction {})
-    }
-}
 
 // TODO: Decide whether to use non_exhaustive.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -70,26 +57,23 @@ impl Default for FloorMap {
 pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.
-    pub entities: Vec<Rc<Entity>>,
-    pub occupiers: HashMap<AbsolutePosition, usize>,
+    pub entities: EntitySet,
+    pub occupiers: HashMap<AbsolutePosition, EntityId>,
     pub map: FloorMap,
 }
 
 impl Floor {
     pub fn new() -> Self {
         Floor {
-            entities: Vec::new(),
+            entities: EntitySet::new(),
             occupiers: HashMap::new(),
             map: FloorMap::new(),
         }
     }
 
-    pub fn add_entity(&self, mut new: Entity) -> Self {
-        new.id = self.entities.len();
-        let id = new.id;
-
+    pub fn add_entity(&self, new: Entity) -> (Self, EntityId) {
         let mut next_entities = self.entities.clone();
-        next_entities.push(Rc::new(new));
+        let id = next_entities.add(new);
 
         let mut next_occupiers = self.occupiers.clone();
         match next_occupiers.entry(next_entities[id].pos) {
@@ -104,11 +88,14 @@ impl Floor {
             "New entity occupies wall position."
         );
 
-        Floor {
-            entities: next_entities,
-            occupiers: next_occupiers,
-            map: self.map.clone(),
-        }
+        (
+            Floor {
+                entities: next_entities,
+                occupiers: next_occupiers,
+                map: self.map.clone(),
+            },
+            id,
+        )
     }
 
     pub fn set_map(&self, map: FloorMap) -> Self {
@@ -124,14 +111,6 @@ impl Floor {
             occupiers: self.occupiers.clone(),
             map,
         }
-    }
-
-    pub fn get_player(&self) -> Rc<Entity> {
-        Rc::clone(self.entities.first().unwrap())
-    }
-
-    pub fn get_someone(&self) -> Rc<Entity> {
-        Rc::clone(self.entities.last().unwrap())
     }
 
     pub fn update_entity(&self, new: Rc<Entity>) -> Floor {
@@ -200,7 +179,7 @@ impl Floor {
         }
     }
 
-    pub fn get_next_entity(&self) -> Option<usize> {
+    pub fn get_next_entity(&self) -> Option<EntityId> {
         return self
             .entities
             .iter()
@@ -217,8 +196,8 @@ impl Floor {
         let next_id = next_id.unwrap();
 
         // hardcoded player.
-        // TODO: unhardcode.
-        if next_id == 0 {
+        // TODO: unhardcode. currently hacky behavior with default.
+        if next_id == EntityId::default() {
             return Result::Err(());
         }
 

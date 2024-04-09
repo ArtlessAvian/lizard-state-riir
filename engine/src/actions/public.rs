@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 use std::rc::Rc;
 
-use crate::data::Entity;
 use crate::data::Floor;
+use crate::entity::Entity;
 use crate::positional::RelativePosition;
 
 use super::ActionTrait;
@@ -141,17 +141,19 @@ impl ActionTrait for StepMacroAction {
 #[cfg(test)]
 #[test]
 fn bump_test() {
-    use crate::positional::AbsolutePosition;
+    use crate::{entity::EntityId, positional::AbsolutePosition};
 
     let mut floor = Floor::new();
-    floor = floor.add_entity(Entity {
-        id: 0,
+    let player_id;
+    (floor, player_id) = floor.add_entity(Entity {
+        id: EntityId::default(),
         next_turn: Some(0),
         pos: AbsolutePosition::new(0, 0),
         health: 0,
     });
-    floor = floor.add_entity(Entity {
-        id: 1,
+    let other_id;
+    (floor, other_id) = floor.add_entity(Entity {
+        id: EntityId::default(),
         next_turn: Some(0),
         pos: AbsolutePosition::new(1, 0),
         health: 0,
@@ -160,7 +162,7 @@ fn bump_test() {
     (floor, log) = BumpAction {
         dir: RelativePosition::new(1, 0),
     }
-    .verify_action(&floor, &floor.get_player())
+    .verify_action(&floor, &floor.entities[player_id])
     .unwrap()
     .do_action(&floor);
     dbg!(floor);
@@ -168,8 +170,8 @@ fn bump_test() {
     assert_eq!(
         log,
         vec![
-            FloorEvent::StartAttack(0, RelativePosition::new(1, 0)),
-            FloorEvent::AttackHit(0, 1, 1)
+            FloorEvent::StartAttack(player_id, RelativePosition::new(1, 0)),
+            FloorEvent::AttackHit(player_id, other_id, 1)
         ]
     );
 }

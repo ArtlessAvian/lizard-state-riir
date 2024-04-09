@@ -1,15 +1,17 @@
 extends Node
 
+var player_id: EntityId;
 var floor: Floor;
 var id_to_node: Dictionary;
+# TODO: Consider pop_front instead? So like a deque.
 var event_index = 0;
 
 func _ready():
 	floor = Floor.new();
-	var a = floor.add_entity_at(Vector2i.ZERO);
-	var b = floor.add_entity_at(Vector2i(-1, 0));
-	id_to_node[a] = %Entity
-	id_to_node[b] = %Entity2
+	player_id = floor.add_entity_at(Vector2i.ZERO);
+	var other = floor.add_entity_at(Vector2i(-1, 0));
+	id_to_node[player_id] = %Entity
+	id_to_node[other] = %Entity2
 
 func _process(delta):
 	poll_input()
@@ -43,7 +45,7 @@ func poll_input():
 		move_player(Vector2i.DOWN + Vector2i.RIGHT)
 
 func move_player(dir: Vector2i):
-	var player = floor.get_player()
+	var player = floor.get_entity_by_id(player_id)
 	var action : Action = floor.get_step_macro_action(dir)
 	var command = action.to_command(floor, player)
 	if command:
