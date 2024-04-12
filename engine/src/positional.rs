@@ -1,4 +1,6 @@
-use std::ops::{Add, Sub};
+mod algorithms;
+
+use std::ops::{Add, Mul, Sub};
 
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +22,17 @@ impl Add for RelativePosition {
         RelativePosition {
             dx: self.dx + rhs.dx,
             dy: self.dy + rhs.dy,
+        }
+    }
+}
+
+impl Mul<RelativePosition> for i32 {
+    type Output = RelativePosition;
+
+    fn mul(self, rhs: RelativePosition) -> Self::Output {
+        RelativePosition {
+            dx: rhs.dx * self,
+            dy: rhs.dy * self,
         }
     }
 }
@@ -79,6 +92,72 @@ impl Sub for AbsolutePosition {
         RelativePosition {
             dx: self.x - rhs.x,
             dy: self.y - rhs.y,
+        }
+    }
+}
+
+/// Not very useful outside of algorithms.
+/// Don't make public.
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+struct OctantRelative {
+    run: u32,
+    rise: u32, // rise < run
+    octant: u8,
+}
+
+impl From<RelativePosition> for OctantRelative {
+    fn from(value: RelativePosition) -> Self {
+        // let mut octant = 0;
+        // if value.dy < 0 {
+        //     octant += 4;
+        //     value.dy *= -1;
+        // }
+        // if value.dx < 0 {
+        //     octant += 2;
+        //     value.dx *= -1;
+        // }
+        // if value.dx < value.dy {
+        //     octant += 1;
+        //     (value.dx, value.dy) = (value.dy, value.dx)
+        // }
+        Self {
+            run: u32::max(value.dx.unsigned_abs(), value.dy.unsigned_abs()),
+            rise: u32::min(value.dx.unsigned_abs(), value.dy.unsigned_abs()),
+            octant: if value.dy < 0 { 0b100 } else { 0 }
+                + if value.dx < 0 { 0b010 } else { 0 }
+                + if value.dy.abs() > value.dx.abs() {
+                    0b001
+                } else {
+                    0
+                },
+        }
+    }
+}
+
+impl From<OctantRelative> for RelativePosition {
+    fn from(value: OctantRelative) -> Self {
+        let (mut dx, mut dy) = (value.run as i32, value.rise as i32);
+
+        if value.octant & 0b001 != 0 {
+            (dx, dy) = (dy, dx);
+        }
+        dx *= if value.octant & 0b010 != 0 { -1 } else { 1 };
+        dy *= if value.octant & 0b100 != 0 { -1 } else { 1 };
+
+        Self { dx, dy }
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn test_octant_from_into() {
+    for dx in -10..11 {
+        for dy in -10..11 {
+            let relative = RelativePosition { dx, dy };
+            assert_eq!(
+                relative,
+                RelativePosition::from(OctantRelative::from(relative))
+            );
         }
     }
 }
