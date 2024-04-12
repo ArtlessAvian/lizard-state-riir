@@ -7,6 +7,7 @@ use engine::actions::public::StepAction;
 use engine::actions::public::StepMacroAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
+use engine::actions::FloorEvent as FloorEventInternal;
 use engine::actions::NullAction;
 use engine::data::Floor as FloorInternal;
 use engine::entity::Entity as EntityInternal;
@@ -20,22 +21,28 @@ struct MyExtension;
 #[gdextension]
 unsafe impl ExtensionLibrary for MyExtension {}
 
+/// The game.
+///
+/// Container for the Floor and an accumulated log.
+/// From Godot, you can read the log, read game info, get actions, submit actions.
+/// Other than that, there should be no game logic, eg information hiding.
+///
+/// Note that FloorInternal is entirely pure functions, but this wrapper does not the same.
 #[derive(GodotClass)]
 #[class(init)]
-struct Floor {
+pub struct Floor {
     floor: FloorInternal,
     #[export]
-    log: Array<i32>,
+    log: Array<Gd<FloorEvent>>,
     id_bijection: HashMap<EntityIdInternal, Gd<EntityId>>,
 }
 
-/// Container for the Floor and an accumulated log.
 #[godot_api]
 impl Floor {
     /// Since Floor (in glue code) is not a pure class unlike the Floor (in engine),
     /// this is here to explicitly copy.
     #[func]
-    fn duplicate(&self) -> Gd<Floor> {
+    pub fn duplicate(&self) -> Gd<Floor> {
         Gd::from_object(Floor {
             floor: self.floor.clone(),
             log: self.log.duplicate_shallow(),
@@ -44,7 +51,7 @@ impl Floor {
     }
 
     #[func]
-    fn add_entity_at(&mut self, pos: Vector2i) -> Gd<EntityId> {
+    pub fn add_entity_at(&mut self, pos: Vector2i) -> Gd<EntityId> {
         let id;
         (self.floor, id) = self.floor.add_entity(EntityInternal {
             id: Default::default(),
@@ -56,7 +63,7 @@ impl Floor {
     }
 
     #[func]
-    fn get_entity_ids(&mut self) -> Array<Gd<EntityId>> {
+    pub fn get_entity_ids(&mut self) -> Array<Gd<EntityId>> {
         self.floor
             .entities
             .iter()
@@ -66,57 +73,62 @@ impl Floor {
     }
 
     #[func]
-    fn get_entity_by_id(&self, id: Gd<EntityId>) -> Gd<Entity> {
+    pub fn get_entity_by_id(&self, id: Gd<EntityId>) -> Gd<Entity> {
         Entity::new(Rc::clone(&self.floor.entities[id.bind().id]))
     }
 
     #[func]
-    fn take_npc_turn(&mut self) {
+    pub fn take_npc_turn(&mut self) {
         // TODO: handle err.
         let result = self.floor.take_npc_turn();
         if let Ok((next, log)) = result {
             self.floor = next;
-            let temp = log.iter().map(|_| 1).collect();
+            let temp = log.into_iter().map(FloorEvent::new).collect();
             self.log.extend_array(temp);
         }
     }
 
     #[func]
-    fn do_action(&mut self, command: Gd<Command>) {
+    pub fn do_action(&mut self, command: Gd<Command>) {
         let (next, log) = command.bind().command.do_action(&self.floor);
         self.floor = next;
 
-        let temp = log.iter().map(|_| 1).collect();
+        let temp = log.into_iter().map(FloorEvent::new).collect();
         self.log.extend_array(temp)
     }
 
     // engine::actions::public::* goes here.
 
     #[func]
-    fn get_step_action(&self, direction: Vector2i) -> Gd<Action> {
+    pub fn get_step_action(&self, direction: Vector2i) -> Gd<Action> {
         Action::new(Box::new(StepAction {
             dir: RelativePosition::new(direction.x, direction.y),
         }))
     }
 
     #[func]
-    fn get_bump_action(&self, direction: Vector2i) -> Gd<Action> {
+    pub fn get_bump_action(&self, direction: Vector2i) -> Gd<Action> {
         Action::new(Box::new(BumpAction {
             dir: RelativePosition::new(direction.x, direction.y),
         }))
     }
 
     #[func]
-    fn get_step_macro_action(&self, direction: Vector2i) -> Gd<Action> {
+    pub fn get_step_macro_action(&self, direction: Vector2i) -> Gd<Action> {
         Action::new(Box::new(StepMacroAction {
             dir: RelativePosition::new(direction.x, direction.y),
         }))
     }
 }
 
+/// An opaque EntityId.
+///
+/// An alternative was to map to an i32 for Godot to avoid allocation.
+/// This lets Godot try to convert random i32s *back* to internal ids, which is error prone.
+/// Or encourages implementation detail shenanigans, like comparison or arithmetic.
 #[derive(GodotClass)]
 #[class(no_init)]
-struct EntityId {
+pub struct EntityId {
     id: EntityIdInternal,
     _use_constructor: (),
 }
@@ -141,9 +153,13 @@ impl EntityId {
     }
 }
 
+/// A snapshot of an Entity. Has no logic.
+///
+/// Does not update when the Floor updates.
+/// Only contains getters. It is impossible to have setters.
 #[derive(GodotClass)]
 #[class(no_init)]
-struct Entity {
+pub struct Entity {
     entity: Rc<EntityInternal>,
 }
 
@@ -159,8 +175,9 @@ impl Entity {
     }
 }
 
+/// An opaque object containing an Action. Has no logic.
 #[derive(GodotClass)]
-struct Action {
+pub struct Action {
     // Godot doesn't see this anyways.
     action: Box<dyn ActionTrait>,
 }
@@ -192,9 +209,26 @@ impl Action {
     }
 }
 
+/// An opaque object representing a Command. Has no logic.
+///
+/// Note the inversion between object and param compared to Engine (though that may change).
+/// ```rust
+/// // Note this will not run as a doctest since godot_glue is a cdylib.
+/// use engine::data::Floor as FloorInternal;
+/// use engine::actions::Command as CommandInternal;
+/// use godot_glue::Floor;
+/// use godot_glue::Command;
+///
+/// fn engine_context(floor: &FloorInternal, command: &Box<dyn CommandTrait>) {
+///     command.do_action(floor);
+/// }
+/// fn glue_context(floor: &mut Floor, command: &Command) {
+///     floor.do_action(command);
+/// }
+/// ```
 #[derive(GodotClass)]
 #[class(no_init)]
-struct Command {
+pub struct Command {
     // Godot doesn't see this anyways.
     command: Box<dyn CommandTrait>,
 }
@@ -203,5 +237,33 @@ struct Command {
 impl Command {
     fn new(command: Box<dyn CommandTrait>) -> Gd<Self> {
         Gd::from_object(Self { command })
+    }
+}
+
+/// A statement about something that happened in the game.
+///
+/// Not necessary to understand the state of the game, but rather what happened between states.
+
+// Some options, from strict to dynamic.
+// # Wrapper for each case, store in VariantArray. Getter for each field.
+// This preserves schema. Godot can do static analysis! But it will need to deduce the type first, eg InputEvent.
+// Lots of glue code though. Maybe a macro can make getters. Or just expose the variable, the event is a throwaway value (mostly).
+//
+// # Wrapper around or convert from enum. Expose union of all fields wrapped in Option.
+// Preserves some schema. Godot gets little type info.
+// Godot will never key error (like a dict), but may read null values.
+//
+// # Convert to dictionary.
+// No schema, no static analysis. Avoids repeated marshalling.
+
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct FloorEvent {}
+
+#[godot_api]
+impl FloorEvent {
+    fn new(_event: FloorEventInternal) -> Gd<Self> {
+        // TODO
+        Gd::from_object(Self {})
     }
 }

@@ -10,18 +10,30 @@ use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
-/// An action, without definining a user or a context.
+
+/// An action, something that someone could do. Who and when is not defined.
+///
+/// Sort of like a dry run. If this returned floors immediately, it would be "most correct"
+/// but also create a lot of allocations.
 ///
 /// A generic flow.
-/// TODO: Rethink this.
 /// ```rust
+/// use std::rc::Rc;
 /// use engine::actions::*;
 /// use engine::data::*;
-/// fn context(action: Box<dyn ActionTrait>, floor: &Floor) -> (Floor, Vec<FloorEvent>) {
-///     let command = action.verify_action(floor, &floor.get_player()).unwrap();
+/// use engine::entity::*;
+/// fn context(action: Box<dyn ActionTrait>, floor: &Floor, player_id: Rc<Entity>) -> (Floor, Vec<FloorEvent>) {
+///     let command = action.verify_action(floor, &player_id).unwrap();
 ///     command.do_action(floor)
 /// }
 /// ```
+///
+/// TODOs
+/// * Maybe create another trait to describe an UnaimedAction? Currently you construct an action with the aiming built in.
+///   This would involve yet more type erasure. You would know what UnaimedAction you have, but you would forget when you aim it.
+/// * Consider if subject should **always** the floor's next turn taker.
+/// * If not, can actions/commands call each other?
+
 pub trait ActionTrait {
     fn verify_action(
         &self,
@@ -30,12 +42,22 @@ pub trait ActionTrait {
     ) -> Option<Box<dyn CommandTrait>>;
 }
 
-/// A command, with user and context.
+/// Someone, doing something, in some context. Can panic!
+///
+/// If there is an error, it is not the user's fault. So panicking is fine.
+///
+/// Unfortunately the context is not stored, so you have to pass it back in again. Which leads to:
+/// TODO: Figure out lifetime shenanigans, so Commands live shorter than Actions.
+/// You shouldn't need to store a command, you just do it.
+/// If you must, you store the action that produced it.
+
 pub trait CommandTrait {
     fn do_action(&self, floor: &Floor) -> (Floor, Vec<FloorEvent>);
 }
 
-/// Never verifies.
+/// An action that never verifies to a command.
+///
+/// This is preferable to a no-op command, since that would produce a new Floor.
 pub struct NullAction {}
 impl ActionTrait for NullAction {
     fn verify_action(&self, _: &Floor, _: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
@@ -43,6 +65,9 @@ impl ActionTrait for NullAction {
     }
 }
 
+/// A statement about something that happened in the game.
+///
+/// Not necessary to understand the state of the game, but rather what happened between states.
 #[derive(Debug, PartialEq, Eq)]
 pub enum FloorEvent {
     Move(EntityId, AbsolutePosition),

@@ -9,6 +9,7 @@ use super::ActionTrait;
 use super::CommandTrait;
 use super::FloorEvent;
 
+/// Moves one space.
 pub struct StepAction {
     pub dir: RelativePosition,
 }
@@ -55,6 +56,9 @@ impl CommandTrait for StepCommand {
     }
 }
 
+/// Does some attack to someone one space away.
+///
+/// Currently hardcoded to just subtract one health.
 pub struct BumpAction {
     pub dir: RelativePosition,
 }
@@ -114,6 +118,9 @@ impl CommandTrait for BumpCommand {
     }
 }
 
+/// In order, tries to Bump, Walk, or no-op.
+///
+/// TODO: Maybe move to a submodule.
 pub struct StepMacroAction {
     pub dir: RelativePosition,
 }

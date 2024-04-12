@@ -9,8 +9,10 @@ use crate::actions::ActionTrait;
 use crate::actions::NullAction;
 use crate::positional::AbsolutePosition;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+/// An opaque index into an EntitySet.
+//
 // TODO: Remove Default.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub struct EntityId(usize);
 
 impl From<EntityId> for i32 {
@@ -19,6 +21,14 @@ impl From<EntityId> for i32 {
     }
 }
 
+/// An entity as it exists in a Floor.
+/// Not aware of the floor.
+///
+/// As part of a floor, an Entity has an `id`, a `next_turn` to optionally participate in turntaking,
+/// and a `position` and `state.`
+///
+/// Outside a Floor, entities have a statline (`health`, etc.) and some constant data (`max_health`, etc.).
+// TODO: Split into an EntityData. Wrap with Entity when added to a Floor?
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Entity {
     pub id: EntityId,
@@ -36,6 +46,9 @@ impl Entity {
 
 /// An add only collection.
 /// Elements are wrapped in Rc for efficient `Clone`ing.
+//
+// Remove should never be implemented. If something were to be removed,
+// mark it as dead or exited and remove it from turntaking.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntitySet(Vec<Rc<Entity>>);
 

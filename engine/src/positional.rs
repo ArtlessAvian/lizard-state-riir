@@ -2,6 +2,11 @@ use std::ops::{Add, Sub};
 
 use serde::{Deserialize, Serialize};
 
+/// The isometry group on a metric space.
+///
+/// To not be cryptic but this is just a Vector2i.
+///
+/// (ok to continue being a nerd, you can't "rotate" in the plane with l-infinity norm because the corners don't preserve distance. only translate.)
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct RelativePosition {
     pub dx: i32,
@@ -28,6 +33,17 @@ impl RelativePosition {
         u32::max(self.dx.unsigned_abs(), self.dy.unsigned_abs())
     }
 }
+
+/// An element in a metric space.
+///
+/// This is just a Vector2i. I'm being intentionally obtuse.
+///
+/// The distance function is the L-infinity norm, aka Chebyshev distance.
+/// This was chosen because it behaves nicely at distance 1 (compared to L-1 norm)
+/// The alternatives are:
+/// * The L-1 norm has direct diagonals at 2 distance. You'd need to attack 1-2 range, like a Fire Emblem mage.
+/// * The L-2 norm has non-integer values. Diagonals are >1 distance. You can round but it stops being a metric space. It produces nice circles!
+/// * Tabletop rules: Every second diagonal costs 2. Again stops being a metric space. Nice integer values! (and octagons!)
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct AbsolutePosition {
