@@ -5,6 +5,9 @@ use crate::data::Floor;
 use crate::entity::Entity;
 use crate::positional::RelativePosition;
 
+use super::events::AttackHitEvent;
+use super::events::MoveEvent;
+use super::events::StartAttackEvent;
 use super::ActionTrait;
 use super::CommandTrait;
 use super::FloorEvent;
@@ -50,7 +53,10 @@ impl CommandTrait for StepCommand {
         subject_clone.pos = subject_clone.pos + self.dir;
         *subject_clone.next_turn.as_mut().unwrap() += 1;
 
-        log.push(FloorEvent::Move(subject_clone.id, subject_clone.pos));
+        log.push(FloorEvent::Move(MoveEvent {
+            subject: subject_clone.id,
+            tile: subject_clone.pos,
+        }));
 
         (floor.update_entity(Rc::new(subject_clone)), log)
     }
@@ -98,7 +104,10 @@ impl CommandTrait for BumpCommand {
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         *subject_clone.next_turn.as_mut().unwrap() += 1;
 
-        log.push(FloorEvent::StartAttack(subject_clone.id, self.dir));
+        log.push(FloorEvent::StartAttack(StartAttackEvent {
+            subject: subject_clone.id,
+            tile: self.subject_ref.pos + self.dir,
+        }));
 
         let object_index = floor.occupiers[&(self.subject_ref.pos + self.dir)];
 
@@ -106,7 +115,11 @@ impl CommandTrait for BumpCommand {
         let mut object_clone: Entity = (**object_ref).clone();
         object_clone.health -= 1;
 
-        log.push(FloorEvent::AttackHit(subject_clone.id, object_clone.id, 1));
+        log.push(FloorEvent::AttackHit(AttackHitEvent {
+            subject: subject_clone.id,
+            target: object_clone.id,
+            damage: 1,
+        }));
 
         (
             floor.update_entities(HashSet::from([
@@ -177,8 +190,15 @@ fn bump_test() {
     assert_eq!(
         log,
         vec![
-            FloorEvent::StartAttack(player_id, RelativePosition::new(1, 0)),
-            FloorEvent::AttackHit(player_id, other_id, 1)
+            FloorEvent::StartAttack(StartAttackEvent {
+                subject: player_id,
+                tile: AbsolutePosition::new(1, 0)
+            }),
+            FloorEvent::AttackHit(AttackHitEvent {
+                subject: player_id,
+                target: other_id,
+                damage: 1,
+            })
         ]
     );
 }

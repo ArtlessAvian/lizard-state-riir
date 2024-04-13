@@ -1,5 +1,7 @@
 mod example;
 
+pub mod events;
+
 /// Publicly exposed actions, free to construct.
 pub mod public;
 
@@ -7,9 +9,8 @@ use std::rc::Rc;
 
 use crate::data::Floor;
 use crate::entity::Entity;
-use crate::entity::EntityId;
-use crate::positional::AbsolutePosition;
-use crate::positional::RelativePosition;
+
+use self::events::FloorEvent;
 
 /// An action, something that someone could do. Who and when is not defined.
 ///
@@ -63,14 +64,4 @@ impl ActionTrait for NullAction {
     fn verify_action(&self, _: &Floor, _: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
         None
     }
-}
-
-/// A statement about something that happened in the game.
-///
-/// Not necessary to understand the state of the game, but rather what happened between states.
-#[derive(Debug, PartialEq, Eq)]
-pub enum FloorEvent {
-    Move(EntityId, AbsolutePosition),
-    StartAttack(EntityId, RelativePosition),
-    AttackHit(EntityId, EntityId, i32),
 }

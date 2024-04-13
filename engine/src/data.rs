@@ -6,9 +6,9 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use crate::actions::events::FloorEvent;
 use crate::actions::public::StepAction;
 use crate::actions::ActionTrait;
-use crate::actions::FloorEvent;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntitySet;

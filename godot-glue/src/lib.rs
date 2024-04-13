@@ -1,13 +1,15 @@
+mod events;
+
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use engine::actions::events::FloorEvent as FloorEventInternal;
 use engine::actions::public::BumpAction;
 use engine::actions::public::StepAction;
 use engine::actions::public::StepMacroAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
-use engine::actions::FloorEvent as FloorEventInternal;
 use engine::actions::NullAction;
 use engine::data::Floor as FloorInternal;
 use engine::entity::Entity as EntityInternal;
