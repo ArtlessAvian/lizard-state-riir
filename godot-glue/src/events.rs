@@ -1,7 +1,39 @@
+use engine::actions::events::FloorEvent as FloorEventInternal;
+
 use godot::prelude::*;
 
 use crate::positional::AbsolutePosition;
 use crate::EntityId;
+use crate::Floor;
+
+/// A statement about something that happened in the game.
+///
+/// Not necessary to understand the state of the game, but rather what happened between states.
+
+// Some options, from strict to dynamic.
+// # Wrapper for each case, store in VariantArray. Getter for each field.
+// This preserves schema. Godot can do static analysis! But it will need to deduce the type first, eg InputEvent.
+// Lots of glue code though. Maybe a macro can make getters. Or just expose the variable, the event is a throwaway value (mostly).
+//
+// # Wrapper around or convert from enum. Expose union of all fields wrapped in Option.
+// Preserves some schema. Godot gets little type info.
+// Godot will never key error (like a dict), but may read null values.
+//
+// # Convert to dictionary.
+// No schema, no static analysis. Avoids repeated marshalling.
+pub struct FloorEvent;
+
+impl FloorEvent {
+    pub fn to_variant(floor: &mut Floor, event: FloorEventInternal) -> Variant {
+        match event {
+            FloorEventInternal::Move(x) => MoveEvent::new(floor, x).to_variant(),
+            // TEMPORARY
+            default => Variant::nil(),
+            // FloorEventInternal::StartAttack(_) => todo!(),
+            // FloorEventInternal::AttackHit(_) => todo!(),
+        }
+    }
+}
 
 #[derive(GodotClass)]
 #[class(no_init)]
@@ -12,11 +44,11 @@ pub struct MoveEvent {
     tile: AbsolutePosition,
 }
 
-// TODO: think about how these will be constructed from the engine enum.
-// something like
-// match event {
-//  case MyEvent(e): {MyEvent::new(e)}
-// }
-// doesn't seem too bad.
-
-// TODO: also export relativeposition and such as vector2i and other godot primitives.
+impl MoveEvent {
+    fn new(floor: &mut Floor, event: engine::actions::events::MoveEvent) -> Gd<Self> {
+        Gd::from_object(Self {
+            subject: EntityId::new(event.subject, &mut floor.id_bijection),
+            tile: event.tile.into(),
+        })
+    }
+}

@@ -22,7 +22,10 @@ func _process(delta):
 	floor.take_npc_turn()
 
 	while event_index < len(floor.log):
-		print(floor.log[event_index])
+		var event = floor.log[event_index]
+		print(event)
+		if event is MoveEvent:
+			prints(event.subject, event.tile)
 		event_index += 1
 
 	for id in floor.get_entity_ids():

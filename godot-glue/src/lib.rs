@@ -17,6 +17,7 @@ use engine::entity::Entity as EntityInternal;
 use engine::entity::EntityId as EntityIdInternal;
 use engine::positional::AbsolutePosition;
 use engine::positional::RelativePosition;
+use events::FloorEvent;
 use godot::prelude::*;
 
 struct MyExtension;
@@ -36,7 +37,7 @@ unsafe impl ExtensionLibrary for MyExtension {}
 pub struct Floor {
     floor: FloorInternal,
     #[export]
-    log: Array<Gd<FloorEvent>>,
+    log: VariantArray,
     id_bijection: HashMap<EntityIdInternal, Gd<EntityId>>,
 }
 
@@ -86,7 +87,10 @@ impl Floor {
         let result = self.floor.take_npc_turn();
         if let Ok((next, log)) = result {
             self.floor = next;
-            let temp = log.into_iter().map(FloorEvent::new).collect();
+            let temp = log
+                .into_iter()
+                .map(|ev| FloorEvent::to_variant(self, ev))
+                .collect();
             self.log.extend_array(temp);
         }
     }
@@ -96,7 +100,10 @@ impl Floor {
         let (next, log) = command.bind().command.do_action(&self.floor);
         self.floor = next;
 
-        let temp = log.into_iter().map(FloorEvent::new).collect();
+        let temp = log
+            .into_iter()
+            .map(|ev| FloorEvent::to_variant(self, ev))
+            .collect();
         self.log.extend_array(temp)
     }
 
@@ -240,33 +247,5 @@ pub struct Command {
 impl Command {
     fn new(command: Box<dyn CommandTrait>) -> Gd<Self> {
         Gd::from_object(Self { command })
-    }
-}
-
-/// A statement about something that happened in the game.
-///
-/// Not necessary to understand the state of the game, but rather what happened between states.
-
-// Some options, from strict to dynamic.
-// # Wrapper for each case, store in VariantArray. Getter for each field.
-// This preserves schema. Godot can do static analysis! But it will need to deduce the type first, eg InputEvent.
-// Lots of glue code though. Maybe a macro can make getters. Or just expose the variable, the event is a throwaway value (mostly).
-//
-// # Wrapper around or convert from enum. Expose union of all fields wrapped in Option.
-// Preserves some schema. Godot gets little type info.
-// Godot will never key error (like a dict), but may read null values.
-//
-// # Convert to dictionary.
-// No schema, no static analysis. Avoids repeated marshalling.
-
-#[derive(GodotClass)]
-#[class(no_init)]
-pub struct FloorEvent {}
-
-#[godot_api]
-impl FloorEvent {
-    fn new(_event: FloorEventInternal) -> Gd<Self> {
-        // TODO
-        Gd::from_object(Self {})
     }
 }
