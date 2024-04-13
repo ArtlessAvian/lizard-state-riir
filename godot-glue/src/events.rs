@@ -1,15 +1,15 @@
-use engine::positional::AbsolutePosition;
 use godot::prelude::*;
 
+use crate::positional::AbsolutePosition;
 use crate::EntityId;
 
 #[derive(GodotClass)]
 #[class(no_init)]
 pub struct MoveEvent {
-    #[export]
-    pub subject: Gd<EntityId>,
-    // #[export]
-    pub tile: AbsolutePosition,
+    #[var(get)]
+    subject: Gd<EntityId>,
+    #[var(get)]
+    tile: AbsolutePosition,
 }
 
 // TODO: think about how these will be constructed from the engine enum.
