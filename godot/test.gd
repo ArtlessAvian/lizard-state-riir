@@ -57,6 +57,7 @@ func sync_with_engine():
 		if not id in id_to_node:
 			var dup = %Entity.duplicate()
 			id_to_node[id] = dup
+			dup.name = id.petname
 			%Entity.get_parent().add_child(dup)
 		var entity = floor.get_entity_by_id(id)
 		id_to_node[id].position = Vector3(entity.get_pos().x, 0, entity.get_pos().y)

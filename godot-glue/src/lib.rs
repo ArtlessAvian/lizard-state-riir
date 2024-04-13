@@ -140,6 +140,8 @@ impl Floor {
 #[class(no_init)]
 pub struct EntityId {
     id: EntityIdInternal,
+    #[var(get)]
+    petname: GString,
     _use_constructor: (),
 }
 
@@ -156,10 +158,18 @@ impl EntityId {
             Entry::Vacant(slot) => slot
                 .insert(Gd::from_object(EntityId {
                     id,
+                    petname: petname::Petnames::default().generate_one(2, "-").into(),
                     _use_constructor: (),
                 }))
                 .clone(),
         }
+    }
+}
+
+#[godot_api]
+impl IRefCounted for EntityId {
+    fn to_string(&self) -> GString {
+        self.petname.clone()
     }
 }
 
