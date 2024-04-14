@@ -48,6 +48,8 @@ func clear_queue(delta):
 	if event is MoveEvent:
 		prints(event.subject, event.tile)
 		id_to_node[event.subject].position = Vector3(event.tile.x, 0, event.tile.y)
+		# temporary, cleanup whenever.
+		#id_to_node[event.subject].get_node("DiscardBasis/DamagePopup").popup(-1)
 
 	event_index += 1
 
@@ -58,7 +60,7 @@ func sync_with_engine():
 			var dup = %Entity.duplicate()
 			id_to_node[id] = dup
 			dup.name = id.petname
-			%Entity.get_parent().add_child(dup)
+			%Entity.add_sibling(dup)
 		var entity = floor.get_entity_by_id(id)
 		id_to_node[id].position = Vector3(entity.get_pos().x, 0, entity.get_pos().y)
 

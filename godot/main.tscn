@@ -1,10 +1,12 @@
-[gd_scene load_steps=15 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=17 format=3 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_7s6h2"]
 [ext_resource type="Script" path="res://FloorCamera.gd" id="2_0g4sw"]
 [ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://tegu.png" id="2_sn4vf"]
 [ext_resource type="Shader" path="res://grid.gdshader" id="3_ebqio"]
+[ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="4_7waja"]
 [ext_resource type="Script" path="res://DiscardBasis.gd" id="4_mi30g"]
+[ext_resource type="Script" path="res://DamagePopup.gd" id="5_fs18x"]
 [ext_resource type="Script" path="res://EntitySprite.gd" id="6_7r5ow"]
 [ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
 
@@ -88,6 +90,22 @@ unique_name_in_owner = true
 [node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity"]
 top_level = true
 script = ExtResource("4_mi30g")
+
+[node name="DamagePopup" type="Label3D" parent="WorldSkew/Map/Entity/DiscardBasis"]
+visible = false
+layers = 2
+pixel_size = 0.0417
+offset = Vector2(0, 24)
+billboard = 1
+texture_filter = 0
+render_priority = 2
+outline_render_priority = 1
+modulate = Color(1, 0, 0, 1)
+text = "-1"
+font = ExtResource("4_7waja")
+font_size = 8
+outline_size = 2
+script = ExtResource("5_fs18x")
 
 [node name="Perspective" type="Camera3D" parent="WorldSkew/Map/Entity/DiscardBasis"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
