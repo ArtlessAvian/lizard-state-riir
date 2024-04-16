@@ -9,7 +9,7 @@ func _popup_internal(value: int):
 	self.visible = true
 	
 	self.text = str(value)
-	var t_end = 1
+	var t_end = 0.8
 	
 	# animate offset and not position due to billboarding shenanigans.
 
@@ -17,7 +17,7 @@ func _popup_internal(value: int):
 	self.create_tween().tween_property(self, "offset:x", drift_x, t_end).set_trans(Tween.TRANS_LINEAR)
 
 	var peak_y = 15
-	var t_peak = 0.7
+	var t_peak = 0.8
 
 	var y_at_t = func(t):
 		# parabola passing through (0, 0) and point (t_peak, peak_y).
@@ -30,7 +30,7 @@ func _popup_internal(value: int):
 	y_tween.tween_property(self, "offset:y", self.offset.y + y_at_t.call(t_end), t_end - t_peak).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	# Honestly this might be replaced by rising linearly and then hanging for a little.
 
-	const t_fade = 0.9
+	const t_fade = 0.6
 	var fade_tween = self.create_tween()
 	fade_tween.tween_interval(t_fade)
 
