@@ -16,8 +16,8 @@ func _ready():
 	player_id = floor.add_entity_at(Vector2i.ZERO)
 	id_to_node[player_id] = %Entity
 
-	floor.add_entity_at(Vector2i(-5, 1))
-	floor.add_entity_at(Vector2i(-5, 0))
+	floor.add_entity_at(Vector2i(-3, 0))
+	floor.add_entity_at(Vector2i(-3, -1))
 	desynced_from_floor = true
 
 
@@ -41,15 +41,26 @@ func clear_queue(delta):
 		return
 
 	if event_index + 1 < len(floor.log):
-		test_event_delay += 0.5
+		test_event_delay += 0.2
 
 	var event = floor.log[event_index]
 	print(event)
 	if event is MoveEvent:
 		prints(event.subject, event.tile)
 		id_to_node[event.subject].position = Vector3(event.tile.x, 0, event.tile.y)
-		# temporary, cleanup whenever.
-		#id_to_node[event.subject].get_node("DiscardBasis/DamagePopup").popup(-1)
+	elif event is StartAttackEvent:
+		# TODO: Replace with actual animation player.
+		var subject = id_to_node[event.subject]
+		var tween = subject.create_tween()
+		tween.tween_property(
+			subject,
+			"position",
+			subject.position.lerp(Vector3(event.tile.x, 0, event.tile.y), 0.5),
+			2 / 60.0
+		)
+		tween.tween_property(subject, "position", subject.position, 2 / 60.0)
+	elif event is AttackHitEvent:
+		id_to_node[event.target].get_node("DiscardBasis/DamagePopup").popup(-1)
 
 	event_index += 1
 

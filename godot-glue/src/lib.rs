@@ -5,7 +5,6 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use engine::actions::events::FloorEvent as FloorEventInternal;
 use engine::actions::public::BumpAction;
 use engine::actions::public::StepAction;
 use engine::actions::public::StepMacroAction;
