@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+use std::hash::Hash;
+
+use crate::data::FloorTile;
 use crate::entity::EntityId;
 use crate::positional::AbsolutePosition;
 
@@ -9,6 +13,7 @@ pub enum FloorEvent {
     Move(MoveEvent),
     StartAttack(StartAttackEvent),
     AttackHit(AttackHitEvent),
+    SeeMap(SeeMapEvent),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -28,4 +33,10 @@ pub struct AttackHitEvent {
     pub subject: EntityId,
     pub target: EntityId,
     pub damage: i32,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct SeeMapEvent {
+    pub subject: EntityId,
+    pub vision: HashMap<AbsolutePosition, FloorTile>,
 }

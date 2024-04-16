@@ -16,7 +16,7 @@ use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 // TODO: Decide whether to use non_exhaustive.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum FloorTile {
     FLOOR,
@@ -44,6 +44,18 @@ impl FloorMap {
     pub fn is_tile_floor(&self, pos: &AbsolutePosition) -> bool {
         // clean (and obvious) but more floors will be added ig.
         matches!(self.get_tile(pos), FloorTile::FLOOR)
+    }
+
+    // TODO: Move responsibility to new struct.
+    pub fn get_vision(&self, pos: &AbsolutePosition) -> HashMap<AbsolutePosition, FloorTile> {
+        let mut out: HashMap<AbsolutePosition, FloorTile> = HashMap::new();
+        for dx in -1..2 {
+            for dy in -1..2 {
+                let offsetted = *pos + RelativePosition::new(dx, dy);
+                out.insert(offsetted, self.get_tile(&offsetted).clone());
+            }
+        }
+        out
     }
 }
 

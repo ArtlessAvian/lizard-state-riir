@@ -29,6 +29,7 @@ impl FloorEvent {
             FloorEventInternal::Move(x) => MoveEvent::new(floor, x).to_variant(),
             FloorEventInternal::StartAttack(x) => StartAttackEvent::new(floor, x).to_variant(),
             FloorEventInternal::AttackHit(x) => AttackHitEvent::new(floor, x).to_variant(),
+            FloorEventInternal::SeeMap(x) => SeeMapEvent::new(floor, x).to_variant(),
             // default => Variant::nil(),
         }
     }
@@ -87,6 +88,33 @@ impl AttackHitEvent {
             subject: EntityId::new(event.subject, &mut floor.id_bijection),
             target: EntityId::new(event.target, &mut floor.id_bijection),
             damage: event.damage,
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct SeeMapEvent {
+    #[var(get)]
+    subject: Gd<EntityId>,
+    #[var(get)]
+    vision: Dictionary,
+}
+
+impl SeeMapEvent {
+    fn new(floor: &mut Floor, event: engine::actions::events::SeeMapEvent) -> Gd<Self> {
+        Gd::from_object(Self {
+            subject: EntityId::new(event.subject, &mut floor.id_bijection),
+            vision: event
+                .vision
+                .iter()
+                .map(|(pos, tile)| {
+                    (
+                        AbsolutePosition::from(*pos),
+                        *tile == engine::data::FloorTile::FLOOR,
+                    )
+                })
+                .collect(),
         })
     }
 }

@@ -61,6 +61,10 @@ func clear_queue(delta):
 		tween.tween_property(subject, "position", subject.position, 2 / 60.0)
 	elif event is AttackHitEvent:
 		id_to_node[event.target].get_node("DiscardBasis/DamagePopup").popup(-1)
+	elif event is SeeMapEvent:
+		var map = $WorldSkew/Map as GridMap
+		for pos in event.vision:
+			map.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if event.vision[pos] else 1)
 
 	event_index += 1
 

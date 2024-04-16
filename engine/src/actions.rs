@@ -1,5 +1,6 @@
 mod example;
 
+// TOOD: move to data, which should also be renamed floor/gamestate.
 pub mod events;
 
 /// Publicly exposed actions, free to construct.
