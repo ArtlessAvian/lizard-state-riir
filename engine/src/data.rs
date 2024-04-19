@@ -77,7 +77,7 @@ impl FloorUpdate {
         self.1.append(&mut update.1);
     }
 
-    // TODO: Make ergonomic? Functions that return (FloorUpdate, *) tuples are annoying to chain.
+    // FloorUpdate is not generic, so we have `bind` and `bind_with_payload`.
     // An actual monad bind would wrap the *entire* output.
     // Eg for add_entity, which currently returns ((Floor, Vec), EntityId) or (Writer<Floor>, EntityId),
     // it should return ((Floor, EntityId), Vec) or Writer<(Floor, EntityId)>.
@@ -88,6 +88,16 @@ impl FloorUpdate {
     {
         let update = f(&self.0);
         self.compose(update);
+    }
+
+    // Restricts functions to match this signature. Not an ideal solution but it works.
+    pub fn bind_with_payload<F, Payload>(&mut self, f: F) -> Payload
+    where
+        F: FnOnce(&Floor) -> (FloorUpdate, Payload),
+    {
+        let (update, payload) = f(&self.0);
+        self.compose(update);
+        payload
     }
 
     pub fn log(&mut self, event: FloorEvent) {
@@ -119,6 +129,15 @@ impl<'a> BorrowedFloorUpdate<'a> {
     {
         let update = f(self.0);
         self.compose(update)
+    }
+
+    #[must_use]
+    pub fn bind_with_payload<F, Payload>(self, f: F) -> (FloorUpdate, Payload)
+    where
+        F: FnOnce(&Floor) -> (FloorUpdate, Payload),
+    {
+        let (update, payload) = f(self.0);
+        (self.compose(update), payload)
     }
 
     pub fn log(&mut self, event: FloorEvent) {

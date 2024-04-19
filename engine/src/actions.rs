@@ -25,7 +25,7 @@ use self::events::FloorEvent;
 /// use engine::actions::*;
 /// use engine::data::*;
 /// use engine::entity::*;
-/// fn context(action: Box<dyn ActionTrait>, floor: &Floor, player_id: Rc<Entity>) -> (Floor, Vec<FloorEvent>) {
+/// fn context(action: Box<dyn ActionTrait>, floor: &Floor, player_id: Rc<Entity>) -> FloorUpdate {
 ///     let command = action.verify_action(floor, &player_id).unwrap();
 ///     command.do_action(floor)
 /// }

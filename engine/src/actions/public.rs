@@ -172,32 +172,38 @@ impl ActionTrait for StepMacroAction {
 fn bump_test() {
     use crate::{entity::EntityId, positional::AbsolutePosition};
 
-    let mut floor = Floor::new();
-    let player_id;
-    (FloorUpdate(floor, _), player_id) = floor.add_entity(Entity {
-        id: EntityId::default(),
-        next_turn: Some(0),
-        pos: AbsolutePosition::new(0, 0),
-        health: 0,
+    let mut update = FloorUpdate::new(Floor::new());
+    let player_id = update.bind_with_payload(|floor| {
+        floor.add_entity(Entity {
+            id: EntityId::default(),
+            next_turn: Some(0),
+            pos: AbsolutePosition::new(0, 0),
+            health: 0,
+        })
     });
-    let other_id;
-    (FloorUpdate(floor, _), other_id) = floor.add_entity(Entity {
-        id: EntityId::default(),
-        next_turn: Some(0),
-        pos: AbsolutePosition::new(1, 0),
-        health: 0,
+    let other_id = update.bind_with_payload(|floor| {
+        floor.add_entity(Entity {
+            id: EntityId::default(),
+            next_turn: Some(0),
+            pos: AbsolutePosition::new(1, 0),
+            health: 0,
+        })
     });
-    let log;
-    FloorUpdate(floor, log) = BumpAction {
-        dir: RelativePosition::new(1, 0),
-    }
-    .verify_action(&floor, &floor.entities[player_id])
-    .unwrap()
-    .do_action(&floor);
-    dbg!(floor);
 
+    // discard the log.
+    let mut update = FloorUpdate::new(update.0);
+    update.bind(|floor| {
+        BumpAction {
+            dir: RelativePosition::new(1, 0),
+        }
+        .verify_action(floor, &floor.entities[player_id])
+        .unwrap()
+        .do_action(floor)
+    });
+
+    dbg!(update.0);
     assert_eq!(
-        log,
+        update.1,
         vec![
             FloorEvent::StartAttack(StartAttackEvent {
                 subject: player_id,
