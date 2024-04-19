@@ -65,6 +65,8 @@ impl Default for FloorMap {
     }
 }
 
+pub struct FloorUpdate(pub Floor, pub Vec<FloorEvent>);
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Floor {
     // Rc is shared between Floor generations.
@@ -83,7 +85,7 @@ impl Floor {
         }
     }
 
-    pub fn add_entity(&self, new: Entity) -> (Self, EntityId) {
+    pub fn add_entity(&self, new: Entity) -> (FloorUpdate, EntityId) {
         let mut next_entities = self.entities.clone();
         let id = next_entities.add(new);
 
@@ -101,11 +103,14 @@ impl Floor {
         );
 
         (
-            Floor {
-                entities: next_entities,
-                occupiers: next_occupiers,
-                map: self.map.clone(),
-            },
+            FloorUpdate(
+                Floor {
+                    entities: next_entities,
+                    occupiers: next_occupiers,
+                    map: self.map.clone(),
+                },
+                vec![],
+            ),
             id,
         )
     }
@@ -125,7 +130,7 @@ impl Floor {
         }
     }
 
-    pub fn update_entity(&self, new: Rc<Entity>) -> Floor {
+    pub fn update_entity(&self, new: Rc<Entity>) -> FloorUpdate {
         let old = &self.entities[new.id];
 
         let mut next_entities = self.entities.clone();
@@ -145,14 +150,17 @@ impl Floor {
             "Updated entity occupies wall position."
         );
 
-        Floor {
-            entities: next_entities,
-            occupiers: next_occupiers,
-            map: self.map.clone(),
-        }
+        FloorUpdate(
+            Floor {
+                entities: next_entities,
+                occupiers: next_occupiers,
+                map: self.map.clone(),
+            },
+            vec![],
+        )
     }
 
-    pub fn update_entities(&self, new_set: HashSet<Rc<Entity>>) -> Floor {
+    pub fn update_entities(&self, new_set: HashSet<Rc<Entity>>) -> FloorUpdate {
         let old_set = new_set
             .iter()
             .map(|x| &self.entities[x.id])
@@ -184,11 +192,14 @@ impl Floor {
             );
         }
 
-        Floor {
-            entities: next_entities,
-            occupiers: next_occupiers,
-            map: self.map.clone(),
-        }
+        FloorUpdate(
+            Floor {
+                entities: next_entities,
+                occupiers: next_occupiers,
+                map: self.map.clone(),
+            },
+            vec![],
+        )
     }
 
     pub fn get_next_entity(&self) -> Option<EntityId> {
@@ -200,7 +211,7 @@ impl Floor {
             .map(|e| e.id);
     }
 
-    pub fn take_npc_turn(&self) -> Result<(Floor, Vec<FloorEvent>), ()> {
+    pub fn take_npc_turn(&self) -> Result<FloorUpdate, ()> {
         let next_id = self.get_next_entity();
         if next_id.is_none() {
             return Result::Err(());

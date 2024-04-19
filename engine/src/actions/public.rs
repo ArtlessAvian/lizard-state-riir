@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use crate::data::Floor;
+use crate::data::FloorUpdate;
 use crate::entity::Entity;
 use crate::positional::RelativePosition;
 
@@ -47,7 +48,7 @@ struct StepCommand {
 }
 
 impl CommandTrait for StepCommand {
-    fn do_action(&self, floor: &Floor) -> (Floor, Vec<FloorEvent>) {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut log = Vec::new();
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
@@ -66,7 +67,10 @@ impl CommandTrait for StepCommand {
             vision: floor.map.get_vision(&subject_clone.pos),
         }));
 
-        (floor.update_entity(Rc::new(subject_clone)), log)
+        // TODO: Make cleaner.
+        let update_entity = floor.update_entity(Rc::new(subject_clone));
+        log.extend(update_entity.1);
+        FloorUpdate(update_entity.0, log)
     }
 }
 
@@ -106,7 +110,7 @@ struct BumpCommand {
 }
 
 impl CommandTrait for BumpCommand {
-    fn do_action(&self, floor: &Floor) -> (Floor, Vec<FloorEvent>) {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut log = Vec::new();
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
@@ -129,13 +133,12 @@ impl CommandTrait for BumpCommand {
             damage: 1,
         }));
 
-        (
-            floor.update_entities(HashSet::from([
-                Rc::new(subject_clone),
-                Rc::new(object_clone),
-            ])),
-            log,
-        )
+        let update_entities = floor.update_entities(HashSet::from([
+            Rc::new(subject_clone),
+            Rc::new(object_clone),
+        ]));
+        log.extend(update_entities.1);
+        FloorUpdate(update_entities.0, log)
     }
 }
 
@@ -173,21 +176,21 @@ fn bump_test() {
 
     let mut floor = Floor::new();
     let player_id;
-    (floor, player_id) = floor.add_entity(Entity {
+    (FloorUpdate(floor, _), player_id) = floor.add_entity(Entity {
         id: EntityId::default(),
         next_turn: Some(0),
         pos: AbsolutePosition::new(0, 0),
         health: 0,
     });
     let other_id;
-    (floor, other_id) = floor.add_entity(Entity {
+    (FloorUpdate(floor, _), other_id) = floor.add_entity(Entity {
         id: EntityId::default(),
         next_turn: Some(0),
         pos: AbsolutePosition::new(1, 0),
         health: 0,
     });
     let log;
-    (floor, log) = BumpAction {
+    FloorUpdate(floor, log) = BumpAction {
         dir: RelativePosition::new(1, 0),
     }
     .verify_action(&floor, &floor.entities[player_id])

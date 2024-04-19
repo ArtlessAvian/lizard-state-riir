@@ -9,6 +9,7 @@ pub mod public;
 use std::rc::Rc;
 
 use crate::data::Floor;
+use crate::data::FloorUpdate;
 use crate::entity::Entity;
 
 use self::events::FloorEvent;
@@ -54,7 +55,7 @@ pub trait ActionTrait {
 /// If you must, you store the action that produced it.
 
 pub trait CommandTrait {
-    fn do_action(&self, floor: &Floor) -> (Floor, Vec<FloorEvent>);
+    fn do_action(&self, floor: &Floor) -> FloorUpdate;
 }
 
 /// An action that never verifies to a command.

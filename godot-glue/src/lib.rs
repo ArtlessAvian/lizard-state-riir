@@ -12,6 +12,7 @@ use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::NullAction;
 use engine::data::Floor as FloorInternal;
+use engine::data::FloorUpdate;
 use engine::entity::Entity as EntityInternal;
 use engine::entity::EntityId as EntityIdInternal;
 use engine::positional::AbsolutePosition;
@@ -56,12 +57,20 @@ impl Floor {
     #[func]
     pub fn add_entity_at(&mut self, pos: Vector2i) -> Gd<EntityId> {
         let id;
-        (self.floor, id) = self.floor.add_entity(EntityInternal {
+        let log;
+        (FloorUpdate(self.floor, log), id) = self.floor.add_entity(EntityInternal {
             id: Default::default(),
             next_turn: Some(0),
             pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,
         });
+
+        let temp = log
+            .into_iter()
+            .map(|ev| FloorEvent::to_variant(self, ev))
+            .collect();
+        self.log.extend_array(temp);
+
         EntityId::new(id, &mut self.id_bijection)
     }
 
@@ -84,7 +93,7 @@ impl Floor {
     pub fn take_npc_turn(&mut self) {
         // TODO: handle err.
         let result = self.floor.take_npc_turn();
-        if let Ok((next, log)) = result {
+        if let Ok(FloorUpdate(next, log)) = result {
             self.floor = next;
             let temp = log
                 .into_iter()
@@ -96,7 +105,7 @@ impl Floor {
 
     #[func]
     pub fn do_action(&mut self, command: Gd<Command>) {
-        let (next, log) = command.bind().command.do_action(&self.floor);
+        let FloorUpdate(next, log) = command.bind().command.do_action(&self.floor);
         self.floor = next;
 
         let temp = log
