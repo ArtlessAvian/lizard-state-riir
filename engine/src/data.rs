@@ -65,18 +65,11 @@ impl Default for FloorMap {
     }
 }
 
-// TODO: Consider Cow<Floor>. This removes the need for prepend_log.
-// Alternatively, a dedicated borrowed version.
 pub struct FloorUpdate(pub Floor, pub Vec<FloorEvent>);
 
 impl FloorUpdate {
     pub fn new(floor: Floor) -> FloorUpdate {
         FloorUpdate(floor, vec![])
-    }
-
-    pub fn prepend_log(&mut self, mut prepend: Vec<FloorEvent>) {
-        prepend.append(&mut self.1);
-        self.1 = prepend;
     }
 
     pub fn compose(&mut self, mut update: FloorUpdate) {
@@ -91,10 +84,41 @@ impl FloorUpdate {
     // From there, you can read the contents. Then you can bind to |tup| {tup.0}.
     pub fn bind<F>(&mut self, f: F)
     where
-        F: Fn(&Floor) -> FloorUpdate,
+        F: FnOnce(&Floor) -> FloorUpdate,
     {
         let update = f(&self.0);
         self.compose(update);
+    }
+
+    pub fn log(&mut self, event: FloorEvent) {
+        self.1.push(event);
+    }
+}
+
+// Since Bind creates owned floors, we only need this to begin composing (without an explicit clone).
+// Alternative is Cow<Floor>, but that bleeds lifetimes *everywhere*.
+// Annoying return types, but hey there's #[must_use].
+pub struct BorrowedFloorUpdate<'a>(pub &'a Floor, pub Vec<FloorEvent>);
+
+impl<'a> BorrowedFloorUpdate<'a> {
+    pub fn new(floor: &'a Floor) -> Self {
+        BorrowedFloorUpdate(floor, vec![])
+    }
+
+    #[must_use]
+    pub fn compose(mut self, mut update: FloorUpdate) -> FloorUpdate {
+        self.1.append(&mut update.1);
+        update.1 = self.1;
+        update
+    }
+
+    #[must_use]
+    pub fn bind<F>(self, f: F) -> FloorUpdate
+    where
+        F: FnOnce(&Floor) -> FloorUpdate,
+    {
+        let update = f(self.0);
+        self.compose(update)
     }
 
     pub fn log(&mut self, event: FloorEvent) {
