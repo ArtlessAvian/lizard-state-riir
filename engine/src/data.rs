@@ -65,7 +65,42 @@ impl Default for FloorMap {
     }
 }
 
+// TODO: Consider Cow<Floor>. This removes the need for prepend_log.
+// Alternatively, a dedicated borrowed version.
 pub struct FloorUpdate(pub Floor, pub Vec<FloorEvent>);
+
+impl FloorUpdate {
+    pub fn new(floor: Floor) -> FloorUpdate {
+        FloorUpdate(floor, vec![])
+    }
+
+    pub fn prepend_log(&mut self, mut prepend: Vec<FloorEvent>) {
+        prepend.append(&mut self.1);
+        self.1 = prepend;
+    }
+
+    pub fn compose(&mut self, mut update: FloorUpdate) {
+        self.0 = update.0;
+        self.1.append(&mut update.1);
+    }
+
+    // TODO: Make ergonomic? Functions that return (FloorUpdate, *) tuples are annoying to chain.
+    // An actual monad bind would wrap the *entire* output.
+    // Eg for add_entity, which currently returns ((Floor, Vec), EntityId) or (Writer<Floor>, EntityId),
+    // it should return ((Floor, EntityId), Vec) or Writer<(Floor, EntityId)>.
+    // From there, you can read the contents. Then you can bind to |tup| {tup.0}.
+    pub fn bind<F>(&mut self, f: F)
+    where
+        F: Fn(&Floor) -> FloorUpdate,
+    {
+        let update = f(&self.0);
+        self.compose(update);
+    }
+
+    pub fn log(&mut self, event: FloorEvent) {
+        self.1.push(event);
+    }
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Floor {
@@ -103,14 +138,11 @@ impl Floor {
         );
 
         (
-            FloorUpdate(
-                Floor {
-                    entities: next_entities,
-                    occupiers: next_occupiers,
-                    map: self.map.clone(),
-                },
-                vec![],
-            ),
+            FloorUpdate::new(Floor {
+                entities: next_entities,
+                occupiers: next_occupiers,
+                map: self.map.clone(),
+            }),
             id,
         )
     }

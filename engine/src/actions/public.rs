@@ -68,9 +68,9 @@ impl CommandTrait for StepCommand {
         }));
 
         // TODO: Make cleaner.
-        let update_entity = floor.update_entity(Rc::new(subject_clone));
-        log.extend(update_entity.1);
-        FloorUpdate(update_entity.0, log)
+        let mut update_entity = floor.update_entity(Rc::new(subject_clone));
+        update_entity.prepend_log(log);
+        update_entity
     }
 }
 
@@ -133,12 +133,12 @@ impl CommandTrait for BumpCommand {
             damage: 1,
         }));
 
-        let update_entities = floor.update_entities(HashSet::from([
+        let mut update_entities = floor.update_entities(HashSet::from([
             Rc::new(subject_clone),
             Rc::new(object_clone),
         ]));
-        log.extend(update_entities.1);
-        FloorUpdate(update_entities.0, log)
+        update_entities.prepend_log(log);
+        update_entities
     }
 }
 
