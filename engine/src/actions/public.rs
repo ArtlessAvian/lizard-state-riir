@@ -48,7 +48,7 @@ impl ActionTrait for StepAction {
 }
 
 #[derive(Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(TypeName))]
+#[archive_attr(derive(Debug, TypeName))]
 struct StepCommand {
     dir: RelativePosition,
     subject_ref: Rc<Entity>,

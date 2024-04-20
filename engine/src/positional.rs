@@ -10,7 +10,7 @@ use rkyv::{Archive, Deserialize, Serialize};
 ///
 /// (ok to continue being a nerd, you can't "rotate" in the plane with l-infinity norm because the corners don't preserve distance. only translate.)
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Hash, PartialEq, Eq))]
+#[archive_attr(derive(Hash, PartialEq, Eq, Debug))]
 pub struct RelativePosition {
     pub dx: i32,
     pub dy: i32,
@@ -60,7 +60,7 @@ impl RelativePosition {
 /// * Tabletop rules: Every second diagonal costs 2. Again stops being a metric space. Nice integer values! (and octagons!)
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Hash, PartialEq, Eq))]
+#[archive_attr(derive(Hash, PartialEq, Eq, Debug))]
 pub struct AbsolutePosition {
     pub x: i32,
     pub y: i32,
@@ -100,7 +100,7 @@ impl Sub for AbsolutePosition {
 
 /// Not very useful outside of algorithms.
 /// Don't make public.
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
 struct OctantRelative {
     run: u32,
     rise: u32, // rise < run

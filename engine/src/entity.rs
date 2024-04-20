@@ -16,6 +16,7 @@ use crate::positional::AbsolutePosition;
 //
 // TODO: Remove Default.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize, Default)]
+#[archive_attr(derive(Debug))]
 pub struct EntityId(usize);
 
 impl From<EntityId> for i32 {
@@ -33,6 +34,7 @@ impl From<EntityId> for i32 {
 /// Outside a Floor, entities have a statline (`health`, etc.) and some constant data (`max_health`, etc.).
 // TODO: Split into an EntityData. Wrap with Entity when added to a Floor?
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub struct Entity {
     pub id: EntityId,
     pub next_turn: Option<u8>,
@@ -54,6 +56,7 @@ impl Entity {
 // Remove should never be implemented. If something were to be removed,
 // mark it as dead or exited and remove it from turntaking.
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub struct EntitySet(Vec<Rc<Entity>>);
 
 impl EntitySet {
@@ -133,7 +136,8 @@ impl<'a> IntoIterator for &'a mut EntitySet {
 
 /// Logicless container of info.
 // TODO: Consider moving turn taking into this?
-#[derive(Clone, Debug, Archive)]
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub enum EntityState {
     Ok {
         /// On your turn, automatically runs this command.

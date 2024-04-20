@@ -18,6 +18,7 @@ use crate::writer::Writer;
 
 // TODO: Decide whether to use non_exhaustive.
 #[derive(Clone, Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 #[non_exhaustive]
 pub enum FloorTile {
     FLOOR,
@@ -25,6 +26,7 @@ pub enum FloorTile {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub struct FloorMap {
     pub tiles: Rc<HashMap<AbsolutePosition, FloorTile>>,
     pub default: FloorTile,
@@ -74,6 +76,7 @@ pub type FloorUpdate = Writer<Floor, FloorEvent>;
 pub type BorrowedFloorUpdate<'a> = Writer<&'a Floor, FloorEvent>;
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.
@@ -238,4 +241,37 @@ impl Default for Floor {
     fn default() -> Self {
         Floor::new()
     }
+}
+
+#[cfg(test)]
+#[test]
+// TODO: Decide scope of test.
+// (To compile error if floor fails to serialize, deserialize?)
+fn serialize_deserialize() {
+    use rkyv::ser::{serializers::AllocSerializer, Serializer};
+
+    let floor = Floor::new();
+    let floor = floor
+        .add_entity(Entity {
+            id: EntityId::default(),
+            next_turn: Some(100),
+            state: crate::entity::EntityState::Hitstun,
+            pos: AbsolutePosition::new(101, 101),
+            health: 103,
+        })
+        .0
+        .into_both()
+        .0;
+
+    let mut serializer = AllocSerializer::<256>::default();
+    serializer.serialize_value(&floor).unwrap();
+
+    let bytes = dbg!(serializer.into_serializer().into_inner());
+    let archived = unsafe { rkyv::archived_root::<Floor>(&bytes[..]) };
+
+    let deserialized: Floor = dbg!(archived
+        .deserialize(&mut rkyv::de::deserializers::SharedDeserializeMap::new())
+        .unwrap());
+
+    assert_eq!(format!("{:?}", deserialized), format!("{:?}", floor));
 }
