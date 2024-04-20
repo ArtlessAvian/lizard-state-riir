@@ -7,7 +7,9 @@ use std::ops::IndexMut;
 use std::rc::Rc;
 
 use crate::actions::ActionTrait;
+use crate::actions::CommandTrait;
 use crate::actions::NullAction;
+use crate::actions::SerializeCommandTrait;
 use crate::positional::AbsolutePosition;
 
 /// An opaque index into an EntitySet.
@@ -30,11 +32,12 @@ impl From<EntityId> for i32 {
 ///
 /// Outside a Floor, entities have a statline (`health`, etc.) and some constant data (`max_health`, etc.).
 // TODO: Split into an EntityData. Wrap with Entity when added to a Floor?
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 pub struct Entity {
     pub id: EntityId,
     pub next_turn: Option<u8>,
 
+    pub state: EntityState,
     pub pos: AbsolutePosition,
     pub health: i8,
 }
@@ -65,8 +68,11 @@ impl EntitySet {
         id
     }
 
+    // TODO: Think about what this is asking.
     pub fn contains(&self, reference: &Rc<Entity>) -> bool {
-        self.0.contains(reference)
+        self.0
+            .binary_search_by_key(&reference.id.0, |e| e.id.0)
+            .is_ok()
     }
 
     pub fn contains_id(&self, id: &EntityId) -> bool {
@@ -123,4 +129,18 @@ impl<'a> IntoIterator for &'a mut EntitySet {
     fn into_iter(self) -> Self::IntoIter {
         self.0.iter_mut()
     }
+}
+
+/// Logicless container of info.
+// TODO: Consider moving turn taking into this?
+#[derive(Clone, Debug, Archive)]
+pub enum EntityState {
+    Ok {
+        /// On your turn, automatically runs this command.
+        // Rc for Clone.
+        queued_command: Option<Rc<dyn SerializeCommandTrait>>,
+    },
+    Hitstun,
+    Knockdown,
+    Dead,
 }

@@ -14,6 +14,7 @@ use engine::actions::NullAction;
 use engine::data::Floor as FloorInternal;
 use engine::entity::Entity as EntityInternal;
 use engine::entity::EntityId as EntityIdInternal;
+use engine::entity::EntityState;
 use engine::positional::AbsolutePosition;
 use engine::positional::RelativePosition;
 use events::FloorEvent;
@@ -58,6 +59,9 @@ impl Floor {
         let (update, id) = self.floor.add_entity(EntityInternal {
             id: Default::default(),
             next_turn: Some(0),
+            state: EntityState::Ok {
+                queued_command: None,
+            },
             pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,
         });

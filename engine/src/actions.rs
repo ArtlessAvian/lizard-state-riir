@@ -8,6 +8,10 @@ pub mod public;
 
 use std::rc::Rc;
 
+use std::fmt::Debug;
+
+use rkyv_dyn::archive_dyn;
+
 use crate::data::Floor;
 use crate::data::FloorUpdate;
 use crate::entity::Entity;
@@ -54,7 +58,8 @@ pub trait ActionTrait {
 /// You shouldn't need to store a command, you just do it.
 /// If you must, you store the action that produced it.
 
-pub trait CommandTrait {
+#[archive_dyn(deserialize)]
+pub trait CommandTrait: Debug {
     fn do_action(&self, floor: &Floor) -> FloorUpdate;
 }
 

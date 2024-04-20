@@ -1,100 +1,178 @@
-// use std::collections::HashMap;
-// use std::rc::Rc;
+use std::rc::Rc;
 
-// use crate::actions::ActionTrait;
-// use crate::actions::CommandTrait;
-// use crate::data::Entity;
-// use crate::data::Floor;
+use crate::data::BorrowedFloorUpdate;
+use crate::data::Floor;
+use crate::data::FloorUpdate;
+use crate::entity::Entity;
+use crate::positional::RelativePosition;
 
-// pub struct DoNothingAction;
-// impl ActionTrait for DoNothingAction {
-//     fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
-//         assert!(floor.entities.contains(e));
-//         Some(Box::new(DoNothingAction))
-//     }
-// }
-// impl CommandTrait for DoNothingAction {
-//     fn do_action(&self, floor: &Floor) -> Floor {
-//         floor.clone()
-//     }
-// }
+use super::events::AttackHitEvent;
+use super::events::StartAttackEvent;
+use super::ActionTrait;
+use super::CommandTrait;
+use super::FloorEvent;
 
-// pub struct GoRightAction;
-// impl ActionTrait for GoRightAction {
-//     fn verify_action(
-//         &self,
-//         floor: &Floor,
-//         subject_ref: &Rc<Entity>,
-//     ) -> Option<Box<dyn CommandTrait>> {
-//         assert!(floor.entities.contains(subject_ref));
-//         if floor.entities.iter().all(|e| e.x != subject_ref.x + 1) {
-//             Some(Box::new(GoRightCommand {
-//                 subject_ref: subject_ref.clone(),
-//             }))
-//         } else {
-//             None
-//         }
-//     }
-// }
+// Hits once, then queues another.
+pub struct DoubleHitAction {
+    pub dir: RelativePosition,
+}
 
-// pub struct GoRightCommand {
-//     subject_ref: Rc<Entity>,
-// }
-// impl CommandTrait for GoRightCommand {
-//     // TODO: assumes entity is on floor
-//     fn do_action(&self, floor: &Floor) -> Floor {
-//         let mut subject_clone: Entity = (*self.subject_ref).clone();
+impl ActionTrait for DoubleHitAction {
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_ref: &Rc<Entity>,
+    ) -> Option<Box<dyn CommandTrait>> {
+        assert!(floor.entities.contains(subject_ref));
 
-//         subject_clone.x += 1;
+        if self.dir.length() > 1 {
+            return None;
+        }
 
-//         floor.update_entity(Rc::clone(&self.subject_ref), Rc::new(subject_clone))
-//     }
-// }
+        Some(Box::new(DoubleHitCommand {
+            dir: self.dir,
+            subject_ref: Rc::clone(subject_ref),
+        }))
+    }
+}
 
-// pub struct EveryoneGoRightAction;
-// impl ActionTrait for EveryoneGoRightAction {
-//     fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
-//         assert!(floor.entities.contains(e));
-//         Some(Box::new(EveryoneGoRightCommand))
-//     }
-// }
+#[derive(Debug)]
+struct DoubleHitCommand {
+    dir: RelativePosition,
+    subject_ref: Rc<Entity>,
+}
 
-// pub struct EveryoneGoRightCommand;
-// impl CommandTrait for EveryoneGoRightCommand {
-//     // TODO: assumes entity is on floor
-//     fn do_action(&self, floor: &Floor) -> Floor {
-//         let mut map = HashMap::new();
-//         for entity in &floor.entities {
-//             let mut clone = entity.as_ref().clone();
-//             clone.x += 1;
-//             map.insert(entity.clone(), Rc::new(clone));
-//         }
-//         floor.update_entities(map)
-//     }
-// }
+impl CommandTrait for DoubleHitCommand {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        let mut update = BorrowedFloorUpdate::new(floor);
 
-// pub struct AttackRightAction;
-// impl ActionTrait for AttackRightAction {
-//     fn verify_action(&self, floor: &Floor, e: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
-//         assert!(floor.entities.contains(e));
-//         let target = floor.entities.iter().find(|other| other.x == e.x + 1)?;
-//         Some(Box::new(AttackRightCommand {
-//             subject_ref: Rc::clone(&e),
-//             target_ref: Rc::clone(&target),
-//         }))
-//     }
-// }
+        let mut dirty = Vec::new();
 
-// pub struct AttackRightCommand {
-//     subject_ref: Rc<Entity>,
-//     target_ref: Rc<Entity>,
-// }
-// impl CommandTrait for AttackRightCommand {
-//     fn do_action(&self, floor: &Floor) -> Floor {
-//         println!(
-//             "subject at {} hits target at {}",
-//             self.subject_ref.x, self.target_ref.x
-//         );
-//         floor.clone()
-//     }
-// }
+        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        *subject_clone.next_turn.as_mut().unwrap() += 1;
+
+        update = update.log(FloorEvent::StartAttack(StartAttackEvent {
+            subject: subject_clone.id,
+            tile: self.subject_ref.pos + self.dir,
+        }));
+
+        if let Some(&object_index) = floor.occupiers.get(&(self.subject_ref.pos + self.dir)) {
+            let object_ref = &floor.entities[object_index];
+            let mut object_clone: Entity = (**object_ref).clone();
+            object_clone.health -= 1;
+
+            update = update.log(FloorEvent::AttackHit(AttackHitEvent {
+                subject: subject_clone.id,
+                target: object_clone.id,
+                damage: 1,
+            }));
+
+            dirty.push(Rc::new(object_clone));
+        } else {
+            println!("Hit no one.");
+        }
+
+        dirty.push(Rc::new(subject_clone));
+        update.bind(|floor| floor.update_entities(dirty))
+    }
+}
+
+#[derive(Debug)]
+struct DoubleHitFollowup {
+    dir: RelativePosition,
+    subject_ref: Rc<Entity>,
+}
+
+impl CommandTrait for DoubleHitFollowup {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        let mut update = BorrowedFloorUpdate::new(floor);
+
+        let mut dirty = Vec::new();
+
+        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        *subject_clone.next_turn.as_mut().unwrap() += 1;
+
+        if let Some(&object_index) = floor.occupiers.get(&(self.subject_ref.pos + self.dir)) {
+            let object_ref = &floor.entities[object_index];
+            let mut object_clone: Entity = (**object_ref).clone();
+            object_clone.health -= 1;
+
+            update = update.log(FloorEvent::AttackHit(AttackHitEvent {
+                subject: subject_clone.id,
+                target: object_clone.id,
+                damage: 1,
+            }));
+
+            dirty.push(Rc::new(object_clone));
+        } else {
+            println!("Hit no one.");
+        }
+
+        dirty.push(Rc::new(subject_clone));
+        update.bind(|floor| floor.update_entities(dirty))
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn double_hit() {
+    use crate::{
+        entity::{EntityId, EntityState},
+        positional::AbsolutePosition,
+    };
+
+    let update = FloorUpdate::new(Floor::new());
+    let (update, player_id) = update.bind_with_side_output(|floor| {
+        floor.add_entity(Entity {
+            id: EntityId::default(),
+            next_turn: Some(0),
+            state: EntityState::Ok {
+                queued_command: None,
+            },
+            pos: AbsolutePosition::new(0, 0),
+            health: 0,
+        })
+    });
+    let (update, other_id) = update.bind_with_side_output(|floor| {
+        floor.add_entity(Entity {
+            id: EntityId::default(),
+            next_turn: Some(0),
+            state: EntityState::Ok {
+                queued_command: None,
+            },
+            pos: AbsolutePosition::new(1, 0),
+            health: 0,
+        })
+    });
+
+    // discard the log.
+    let mut update = FloorUpdate::new(update.get_contents().clone());
+    update = update.bind(|floor| {
+        DoubleHitAction {
+            dir: RelativePosition::new(1, 0),
+        }
+        .verify_action(floor, &floor.entities[player_id])
+        .unwrap()
+        .do_action(floor)
+    });
+    // update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Do nothing.
+    // update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
+
+    let (floor, log) = update.into_both();
+
+    dbg!(floor);
+    assert_eq!(
+        log,
+        vec![
+            FloorEvent::StartAttack(StartAttackEvent {
+                subject: player_id,
+                tile: AbsolutePosition::new(1, 0)
+            }),
+            FloorEvent::AttackHit(AttackHitEvent {
+                subject: player_id,
+                target: other_id,
+                damage: 1,
+            })
+        ]
+    );
+}

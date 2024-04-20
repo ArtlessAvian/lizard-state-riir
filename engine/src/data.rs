@@ -4,7 +4,6 @@ use rkyv::Serialize;
 
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::rc::Rc;
 
 use crate::actions::events::FloorEvent;
@@ -162,11 +161,11 @@ impl Floor {
         })
     }
 
-    pub fn update_entities(&self, new_set: HashSet<Rc<Entity>>) -> FloorUpdate {
+    pub fn update_entities(&self, new_set: Vec<Rc<Entity>>) -> FloorUpdate {
         let old_set = new_set
             .iter()
             .map(|x| &self.entities[x.id])
-            .collect::<HashSet<&Rc<Entity>>>();
+            .collect::<Vec<&Rc<Entity>>>();
 
         let mut next_entities = self.entities.clone();
         for new in &new_set {

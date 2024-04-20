@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::hash::Hash;
 
 use crate::data::FloorTile;
 use crate::entity::EntityId;

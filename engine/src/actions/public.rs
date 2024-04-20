@@ -1,5 +1,9 @@
-use std::collections::HashSet;
 use std::rc::Rc;
+
+use rkyv::Archive;
+use rkyv::Deserialize;
+use rkyv::Serialize;
+use rkyv_typename::TypeName;
 
 use crate::data::BorrowedFloorUpdate;
 use crate::data::Floor;
@@ -43,6 +47,8 @@ impl ActionTrait for StepAction {
     }
 }
 
+#[derive(Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(TypeName))]
 struct StepCommand {
     dir: RelativePosition,
     subject_ref: Rc<Entity>,
@@ -102,6 +108,7 @@ impl ActionTrait for BumpAction {
     }
 }
 
+#[derive(Debug)]
 struct BumpCommand {
     dir: RelativePosition,
     subject_ref: Rc<Entity>,
@@ -132,10 +139,7 @@ impl CommandTrait for BumpCommand {
         }));
 
         update.bind(|floor| {
-            floor.update_entities(HashSet::from([
-                Rc::new(subject_clone),
-                Rc::new(object_clone),
-            ]))
+            floor.update_entities(Vec::from([Rc::new(subject_clone), Rc::new(object_clone)]))
         })
     }
 }
@@ -170,13 +174,19 @@ impl ActionTrait for StepMacroAction {
 #[cfg(test)]
 #[test]
 fn bump_test() {
-    use crate::{entity::EntityId, positional::AbsolutePosition};
+    use crate::{
+        entity::{EntityId, EntityState},
+        positional::AbsolutePosition,
+    };
 
     let update = FloorUpdate::new(Floor::new());
     let (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
             next_turn: Some(0),
+            state: EntityState::Ok {
+                queued_command: None,
+            },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
         })
@@ -185,6 +195,9 @@ fn bump_test() {
         floor.add_entity(Entity {
             id: EntityId::default(),
             next_turn: Some(0),
+            state: EntityState::Ok {
+                queued_command: None,
+            },
             pos: AbsolutePosition::new(1, 0),
             health: 0,
         })
