@@ -14,6 +14,7 @@ use crate::entity::EntityId;
 use crate::entity::EntitySet;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
+use crate::writer::Writer;
 
 // TODO: Decide whether to use non_exhaustive.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -65,85 +66,12 @@ impl Default for FloorMap {
     }
 }
 
-pub struct FloorUpdate(pub Floor, pub Vec<FloorEvent>);
-
-impl FloorUpdate {
-    pub fn new(floor: Floor) -> FloorUpdate {
-        FloorUpdate(floor, vec![])
-    }
-
-    pub fn compose(&mut self, mut update: FloorUpdate) {
-        self.0 = update.0;
-        self.1.append(&mut update.1);
-    }
-
-    // FloorUpdate is not generic, so we have `bind` and `bind_with_payload`.
-    // An actual monad bind would wrap the *entire* output.
-    // Eg for add_entity, which currently returns ((Floor, Vec), EntityId) or (Writer<Floor>, EntityId),
-    // it should return ((Floor, EntityId), Vec) or Writer<(Floor, EntityId)>.
-    // From there, you can read the contents. Then you can bind to |tup| {tup.0}.
-    pub fn bind<F>(&mut self, f: F)
-    where
-        F: FnOnce(&Floor) -> FloorUpdate,
-    {
-        let update = f(&self.0);
-        self.compose(update);
-    }
-
-    // Restricts functions to match this signature. Not an ideal solution but it works.
-    pub fn bind_with_payload<F, Payload>(&mut self, f: F) -> Payload
-    where
-        F: FnOnce(&Floor) -> (FloorUpdate, Payload),
-    {
-        let (update, payload) = f(&self.0);
-        self.compose(update);
-        payload
-    }
-
-    pub fn log(&mut self, event: FloorEvent) {
-        self.1.push(event);
-    }
-}
+pub type FloorUpdate = Writer<Floor, FloorEvent>;
 
 // Since Bind creates owned floors, we only need this to begin composing (without an explicit clone).
 // Alternative is Cow<Floor>, but that bleeds lifetimes *everywhere*.
 // Annoying return types, but hey there's #[must_use].
-pub struct BorrowedFloorUpdate<'a>(pub &'a Floor, pub Vec<FloorEvent>);
-
-impl<'a> BorrowedFloorUpdate<'a> {
-    pub fn new(floor: &'a Floor) -> Self {
-        BorrowedFloorUpdate(floor, vec![])
-    }
-
-    #[must_use]
-    pub fn compose(mut self, mut update: FloorUpdate) -> FloorUpdate {
-        self.1.append(&mut update.1);
-        update.1 = self.1;
-        update
-    }
-
-    #[must_use]
-    pub fn bind<F>(self, f: F) -> FloorUpdate
-    where
-        F: FnOnce(&Floor) -> FloorUpdate,
-    {
-        let update = f(self.0);
-        self.compose(update)
-    }
-
-    #[must_use]
-    pub fn bind_with_payload<F, Payload>(self, f: F) -> (FloorUpdate, Payload)
-    where
-        F: FnOnce(&Floor) -> (FloorUpdate, Payload),
-    {
-        let (update, payload) = f(self.0);
-        (self.compose(update), payload)
-    }
-
-    pub fn log(&mut self, event: FloorEvent) {
-        self.1.push(event);
-    }
-}
+pub type BorrowedFloorUpdate<'a> = Writer<&'a Floor, FloorEvent>;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Floor {
@@ -163,6 +91,7 @@ impl Floor {
         }
     }
 
+    // TODO: Consider returning Writer<(Floor, EntityId), FloorEvent>
     pub fn add_entity(&self, new: Entity) -> (FloorUpdate, EntityId) {
         let mut next_entities = self.entities.clone();
         let id = next_entities.add(new);
@@ -225,14 +154,11 @@ impl Floor {
             "Updated entity occupies wall position."
         );
 
-        FloorUpdate(
-            Floor {
-                entities: next_entities,
-                occupiers: next_occupiers,
-                map: self.map.clone(),
-            },
-            vec![],
-        )
+        FloorUpdate::new(Floor {
+            entities: next_entities,
+            occupiers: next_occupiers,
+            map: self.map.clone(),
+        })
     }
 
     pub fn update_entities(&self, new_set: HashSet<Rc<Entity>>) -> FloorUpdate {
@@ -267,14 +193,11 @@ impl Floor {
             );
         }
 
-        FloorUpdate(
-            Floor {
-                entities: next_entities,
-                occupiers: next_occupiers,
-                map: self.map.clone(),
-            },
-            vec![],
-        )
+        FloorUpdate::new(Floor {
+            entities: next_entities,
+            occupiers: next_occupiers,
+            map: self.map.clone(),
+        })
     }
 
     pub fn get_next_entity(&self) -> Option<EntityId> {

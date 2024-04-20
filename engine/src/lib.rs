@@ -38,3 +38,6 @@ pub mod entity;
 ///
 /// TODO: Maybe rename to something grid related?
 pub mod positional;
+
+/// Functional Magic.
+mod writer;
