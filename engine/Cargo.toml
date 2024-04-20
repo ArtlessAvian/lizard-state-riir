@@ -6,5 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "1.0", features = ["derive", "rc"] }
-serde_yaml = { version = "0.9" }
+rkyv = "0.7.44"

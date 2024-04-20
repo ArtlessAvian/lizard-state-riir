@@ -2,14 +2,15 @@ mod algorithms;
 
 use std::ops::{Add, Mul, Sub};
 
-use serde::{Deserialize, Serialize};
+use rkyv::{Archive, Deserialize, Serialize};
 
 /// The isometry group on a metric space.
 ///
 /// To not be cryptic but this is just a Vector2i.
 ///
 /// (ok to continue being a nerd, you can't "rotate" in the plane with l-infinity norm because the corners don't preserve distance. only translate.)
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Hash, PartialEq, Eq))]
 pub struct RelativePosition {
     pub dx: i32,
     pub dy: i32,
@@ -58,7 +59,8 @@ impl RelativePosition {
 /// * The L-2 norm has non-integer values. Diagonals are >1 distance. You can round but it stops being a metric space. It produces nice circles!
 /// * Tabletop rules: Every second diagonal costs 2. Again stops being a metric space. Nice integer values! (and octagons!)
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Hash, PartialEq, Eq))]
 pub struct AbsolutePosition {
     pub x: i32,
     pub y: i32,
@@ -98,7 +100,7 @@ impl Sub for AbsolutePosition {
 
 /// Not very useful outside of algorithms.
 /// Don't make public.
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
 struct OctantRelative {
     run: u32,
     rise: u32, // rise < run

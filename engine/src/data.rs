@@ -1,5 +1,6 @@
-use serde::Deserialize;
-use serde::Serialize;
+use rkyv::Archive;
+use rkyv::Deserialize;
+use rkyv::Serialize;
 
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
@@ -17,14 +18,14 @@ use crate::positional::RelativePosition;
 use crate::writer::Writer;
 
 // TODO: Decide whether to use non_exhaustive.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum FloorTile {
     FLOOR,
     WALL,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 pub struct FloorMap {
     pub tiles: Rc<HashMap<AbsolutePosition, FloorTile>>,
     pub default: FloorTile,
@@ -73,7 +74,7 @@ pub type FloorUpdate = Writer<Floor, FloorEvent>;
 // Annoying return types, but hey there's #[must_use].
 pub type BorrowedFloorUpdate<'a> = Writer<&'a Floor, FloorEvent>;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.
