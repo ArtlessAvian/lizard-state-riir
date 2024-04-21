@@ -219,6 +219,19 @@ impl Floor {
         }
         let next_id = next_id.unwrap();
 
+        // Return early depending on state.
+        match &self.entities[next_id].state {
+            crate::entity::EntityState::Ok {
+                queued_command: Some(queued),
+            } => {
+                return Ok(queued.do_action(self));
+            }
+            crate::entity::EntityState::Ok {
+                queued_command: None,
+            } => {}
+            _ => {}
+        }
+
         // hardcoded player.
         // TODO: unhardcode. currently hacky behavior with default.
         if next_id == EntityId::default() {

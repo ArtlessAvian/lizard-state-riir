@@ -111,6 +111,9 @@ impl CommandTrait for DoubleHitFollowup {
         let mut dirty = Vec::new();
 
         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+        subject_clone.state = EntityState::Ok {
+            queued_command: None,
+        };
         *subject_clone.next_turn.as_mut().unwrap() += 1;
 
         if let Some(&object_index) = floor.occupiers.get(&(subject_clone.pos + self.dir)) {
@@ -168,7 +171,7 @@ fn double_hit() {
     let (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            next_turn: Some(100),
+            next_turn: None,
             state: EntityState::Ok {
                 queued_command: None,
             },
@@ -187,7 +190,9 @@ fn double_hit() {
         .unwrap()
         .do_action(floor)
     });
-    // update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
+    update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
+
+    // update.get_contents().take_npc_turn().unwrap_err(); // TODO: Make pass.
 
     let (floor, log) = update.into_both();
 
@@ -203,7 +208,12 @@ fn double_hit() {
                 subject: player_id,
                 target: other_id,
                 damage: 1,
-            })
+            }),
+            FloorEvent::AttackHit(AttackHitEvent {
+                subject: player_id,
+                target: other_id,
+                damage: 1,
+            }),
         ]
     );
 }

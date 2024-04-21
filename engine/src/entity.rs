@@ -36,7 +36,7 @@ impl From<EntityId> for i32 {
 #[archive_attr(derive(Debug))]
 pub struct Entity {
     pub id: EntityId,
-    pub next_turn: Option<u8>,
+    pub next_turn: Option<u8>, // TODO: Try moving into state
 
     pub state: EntityState,
     pub pos: AbsolutePosition,
