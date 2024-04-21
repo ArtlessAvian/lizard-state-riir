@@ -1,5 +1,17 @@
 use std::rc::Rc;
 
+use crate::actions::DeserializeCommandTrait;
+use crate::actions::SerializeCommandTrait;
+use crate::entity::EntityId;
+use crate::entity::EntityState;
+use rkyv::Archive;
+use rkyv::Archived;
+use rkyv::Deserialize;
+use rkyv::Infallible;
+use rkyv::Serialize;
+use rkyv_dyn::archive_dyn;
+use rkyv_typename::TypeName;
+
 use crate::data::BorrowedFloorUpdate;
 use crate::data::Floor;
 use crate::data::FloorUpdate;
@@ -49,6 +61,12 @@ impl CommandTrait for DoubleHitCommand {
         let mut dirty = Vec::new();
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
+        subject_clone.state = EntityState::Ok {
+            queued_command: Some(Rc::new(DoubleHitFollowup {
+                dir: self.dir,
+                subject_id: subject_clone.id,
+            })),
+        };
         *subject_clone.next_turn.as_mut().unwrap() += 1;
 
         update = update.log(FloorEvent::StartAttack(StartAttackEvent {
@@ -77,22 +95,25 @@ impl CommandTrait for DoubleHitCommand {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug, TypeName))]
 struct DoubleHitFollowup {
     dir: RelativePosition,
-    subject_ref: Rc<Entity>,
+    // TODO: Either restore Rc<Entity>, or decide if EntityId everywhere else is preferable.
+    subject_id: EntityId,
 }
 
+#[archive_dyn(deserialize)]
 impl CommandTrait for DoubleHitFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut update = BorrowedFloorUpdate::new(floor);
 
         let mut dirty = Vec::new();
 
-        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
         *subject_clone.next_turn.as_mut().unwrap() += 1;
 
-        if let Some(&object_index) = floor.occupiers.get(&(self.subject_ref.pos + self.dir)) {
+        if let Some(&object_index) = floor.occupiers.get(&(subject_clone.pos + self.dir)) {
             let object_ref = &floor.entities[object_index];
             let mut object_clone: Entity = (**object_ref).clone();
             object_clone.health -= 1;
@@ -110,6 +131,17 @@ impl CommandTrait for DoubleHitFollowup {
 
         dirty.push(Rc::new(subject_clone));
         update.bind(|floor| floor.update_entities(dirty))
+    }
+}
+
+// TODO: Figure out how to resolve `private_interfaces` warning. Maybe commands should be public but not constructable?
+#[allow(private_interfaces)]
+impl CommandTrait for Archived<DoubleHitFollowup> {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        // Deserialize and do. Not zero-copy, but whatever.
+        Deserialize::<DoubleHitFollowup, _>::deserialize(self, &mut Infallible)
+            .unwrap()
+            .do_action(floor)
     }
 }
 
@@ -136,7 +168,7 @@ fn double_hit() {
     let (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            next_turn: Some(0),
+            next_turn: Some(100),
             state: EntityState::Ok {
                 queued_command: None,
             },
@@ -155,7 +187,6 @@ fn double_hit() {
         .unwrap()
         .do_action(floor)
     });
-    // update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Do nothing.
     // update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
 
     let (floor, log) = update.into_both();

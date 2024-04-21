@@ -7,7 +7,6 @@ use std::ops::IndexMut;
 use std::rc::Rc;
 
 use crate::actions::ActionTrait;
-use crate::actions::CommandTrait;
 use crate::actions::NullAction;
 use crate::actions::SerializeCommandTrait;
 use crate::positional::AbsolutePosition;

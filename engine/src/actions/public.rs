@@ -1,10 +1,5 @@
 use std::rc::Rc;
 
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-use rkyv_typename::TypeName;
-
 use crate::data::BorrowedFloorUpdate;
 use crate::data::Floor;
 use crate::data::FloorUpdate;
@@ -47,8 +42,7 @@ impl ActionTrait for StepAction {
     }
 }
 
-#[derive(Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug, TypeName))]
+#[derive(Debug)]
 struct StepCommand {
     dir: RelativePosition,
     subject_ref: Rc<Entity>,
