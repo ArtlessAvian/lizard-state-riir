@@ -25,7 +25,7 @@ impl From<EntityId> for i32 {
 }
 
 /// An entity as it exists in a Floor.
-/// Not aware of the floor.
+/// Not aware of the floor (and therefore of other entities)
 ///
 /// As part of a floor, an Entity has an `id`, a `next_turn` to optionally participate in turntaking,
 /// and a `position` and `state.`
@@ -35,12 +35,24 @@ impl From<EntityId> for i32 {
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct Entity {
+    // TODO: Try removing. Anywhere where this would've been read, (presumably) the caller could have had indirect access, so pass around (Id, Entity) pairs.
     pub id: EntityId,
-    pub next_turn: Option<u8>, // TODO: Try moving into state
+    // TODO: Try moving into state.
+    // The two are highly correlated, and changing one usually implies something about the other.
+    // (EG: Doing a move, queued or not, should usually unset the queued move.)
+    // (EG: Being dead means you are not participating in turntaking. (Consequently we don't need to wrap in Option anymore.))
+    // (EG: Taking a hit unqueues your move AND delays your next action.)
+    pub next_turn: Option<u8>,
 
     pub state: EntityState,
     pub pos: AbsolutePosition,
     pub health: i8,
+    // TODO: AI. Roughly should be a type that tries a sequence of actions, and on success may mutate its own clone and return the FloorUpdate.
+    // Should not be wrapped in Option. A "NullAI" should just wait in place forever.
+
+    // TODO: Simple flag for player control. Not mutually exclusive with AI.
+    // Eg you might switch between controlling entities, or temporarily take control of one.
+    // pub is_player_controlled: bool,
 }
 
 impl Entity {

@@ -1,10 +1,24 @@
+// TODO: "Continuous" rays/segments?
+// TODO: Field of view calculation.
+// TODO: Consider the difference between seeing a tile, seeing something on the tile, and hitting something on the tile.
+// (Maybe only the last is symmetric? Maybe symmetry is not valuable?)
+// (Currently the only gameplay value is revealing the map in a neat way.)
+// (There's no cover mechanics for example.)
+
 use super::{OctantRelative, RelativePosition};
 
 /// A symmetric segment.
 ///
-/// The symmetry is a bit pointless.
+/// The symmetry is a bit pointless, but it looks good.
 /// If you at A draw a line to C which passes through B without hitting a wall,
 /// Sometimes B cannot draw a line passing through A without hitting a wall.
+///
+/// ```markdown
+/// Fig A      Fig B-1     Fig B-2
+/// ##########  ##!#######  !!########
+/// ..A---....  ..A---....  ..A!!.....
+/// ######B--C  ######B...  #####!B...
+/// ```
 ///
 /// TODON'T: Make an infinte iterator for Rays, maybe.
 /// They aren't symmetric, but that's not a problem.

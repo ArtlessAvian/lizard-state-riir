@@ -68,11 +68,13 @@ impl Default for FloorMap {
     }
 }
 
-pub type FloorUpdate = Writer<Floor, FloorEvent>;
+// TODO: Move this into the actions module?
+// TODO: Also consider aliasing `EntityUpdate` to `Writer<Entity, FloorEvent>` or `Writer<Vec<Entity>, FloorEvent>`
+// HOWEVER. Do not do `Writer<(&Floor, Vec<Entity>), FloorEvent>` to allow lazy Floor::update_entities.
+// This encourages moving through invalid states and makes it hard to debug on panic.
+// Eager validation is a feature.
 
-// Since Bind creates owned floors, we only need this to begin composing (without an explicit clone).
-// Alternative is Cow<Floor>, but that bleeds lifetimes *everywhere*.
-// Annoying return types, but hey there's #[must_use].
+pub type FloorUpdate = Writer<Floor, FloorEvent>;
 pub type BorrowedFloorUpdate<'a> = Writer<&'a Floor, FloorEvent>;
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
@@ -212,6 +214,13 @@ impl Floor {
             .map(|e| e.id);
     }
 
+    // TODO: Make an error enum. Figure out where to scope it lol.
+    // Also this just generally feels bad/inconsistent as an API?
+    // To make player turns (with no checking if its your turn???), you [do whatever and] get a CommandTrait, and execute it on the floor.
+    // Maybe we can make it impossible to call `do_action` unless you're the floor.
+    // Also maybe we wrap EntityId with something to signify its their turn.
+    // This again raises the question, does it need to be your turn to run a Command?
+    #[allow(clippy::result_unit_err)]
     pub fn take_npc_turn(&self) -> Result<FloorUpdate, ()> {
         let next_id = self.get_next_entity();
         if next_id.is_none() {
