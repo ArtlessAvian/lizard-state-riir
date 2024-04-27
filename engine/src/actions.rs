@@ -36,8 +36,14 @@ use self::events::FloorEvent;
 /// ```
 ///
 /// TODOs
+/// * Some indicator of an infallible action?
 /// * Maybe create another trait to describe an UnaimedAction? Currently you construct an action with the aiming built in.
 ///   This would involve yet more type erasure. You would know what UnaimedAction you have, but you would forget when you aim it.
+///     * Consider ordering? First converting Unaimed to Aimed, then converting to Command (with Entity) is a bit awkward.
+///       Binding entity first makes more sense but requires twice as many traits (unbound -> unaimed -> command).
+/// * Alternatively, create an enum with all the options of Box<dyn Trait>? If you know the type, then no problem, parse into a command normally.
+///   If you don't (since its in the enum), match from enum and run targeting logic in each arm. Having only one conversion means all the validation is in one place.
+///   There's not likely to be some absurd targeting type not already defined.
 /// * Consider if subject should **always** the floor's next turn taker.
 /// * If not, can actions/commands call each other?
 

@@ -205,6 +205,9 @@ impl Floor {
         })
     }
 
+    // TODO: Return set of entities?
+    // Alternatively, add "pass turn to partner."
+    // I don't think NPCs should *need* to reorder their turns, its cool if its in, its whatever if it isn't.
     pub fn get_next_entity(&self) -> Option<EntityId> {
         return self
             .entities

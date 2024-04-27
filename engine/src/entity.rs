@@ -154,6 +154,10 @@ pub enum EntityState {
         /// On your turn, automatically runs this command.
         // Rc for Clone.
         queued_command: Option<Rc<dyn SerializeCommandTrait>>,
+        // TODO: Extra actions? (Previously, confirmed actions, but may be more than one. Can choose to *not* use the action.)
+        // TODO: Restricted actions? (The next action *must* be within a set.)
+        //       One must be guaranteed infallible to prevent softlock.
+        // queued_command and these two probably belong in an enum, since they are mutually exclusive.
     },
     Hitstun,
     Knockdown,
