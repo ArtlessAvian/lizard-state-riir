@@ -26,11 +26,11 @@ use super::{OctantRelative, RelativePosition};
 /// If one were to be made anyways, maybe there could be a bias "up" and bias "down,"
 /// similar to the bias in the implementation for segments.
 pub struct Segment {
-    target: OctantRelative,
+    pub(super) target: OctantRelative,
 }
 
 impl Segment {
-    pub fn calculate(&self) -> (Vec<OctantRelative>, Option<Vec<OctantRelative>>) {
+    pub(super) fn calculate(&self) -> (Vec<OctantRelative>, Option<Vec<OctantRelative>>) {
         let mut tiles = Vec::new();
 
         let mut rise = 0;
@@ -66,11 +66,7 @@ impl Segment {
                 rise += 1;
             }
 
-            tiles.push(OctantRelative {
-                run,
-                rise,
-                octant: self.target.octant,
-            })
+            tiles.push(self.target.in_same_octant(rise, run))
         }
 
         let mut alt = None;

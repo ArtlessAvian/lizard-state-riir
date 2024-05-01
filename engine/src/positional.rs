@@ -1,14 +1,12 @@
 pub mod algorithms;
+pub mod fov;
 
 use std::ops::{Add, Mul, Sub};
 
 use rkyv::{Archive, Deserialize, Serialize};
 
-/// The isometry group on a metric space.
-///
-/// To not be cryptic but this is just a Vector2i.
-///
-/// (ok to continue being a nerd, you can't "rotate" in the plane with l-infinity norm because the corners don't preserve distance. only translate.)
+/// An offset.
+/// A Vector2i, like AbsolutePosition.
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Hash, PartialEq, Eq, Debug))]
 pub struct RelativePosition {
@@ -48,9 +46,7 @@ impl RelativePosition {
     }
 }
 
-/// An element in a metric space.
-///
-/// This is just a Vector2i. I'm being intentionally obtuse.
+/// A Vector2i.
 ///
 /// The distance function is the L-infinity norm, aka Chebyshev distance.
 /// This was chosen because it behaves nicely at distance 1 (compared to L-1 norm)
@@ -76,6 +72,7 @@ impl AbsolutePosition {
     }
 }
 
+// Only right addition is defined intentionally.
 impl Add<RelativePosition> for AbsolutePosition {
     type Output = AbsolutePosition;
 
@@ -98,13 +95,38 @@ impl Sub for AbsolutePosition {
     }
 }
 
+/// An alternate representation of a RelativePosition that hides direction.
 /// Not very useful outside of algorithms.
 /// Don't make public.
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
 struct OctantRelative {
     run: u32,
-    rise: u32, // rise < run
-    octant: u8,
+    rise: u32,  // rise < run
+    octant: u8, // Treat as a black box.
+}
+
+impl OctantRelative {
+    fn ignore_octant(rise: u32, run: u32) -> Self {
+        Self {
+            run,
+            rise,
+            octant: 0,
+        }
+    }
+
+    // If you are working in an octant, you are not likely to exit the octant.
+    fn in_same_octant(&self, rise: u32, run: u32) -> Self {
+        Self {
+            rise,
+            run,
+            octant: self.octant,
+        }
+    }
+
+    // TODO:
+    // fn make_all_octants(&self) -> [OctantRelative; 8] {
+    //     (0..8).map(|octant| OctantRelative { octant, ..*self })
+    // }
 }
 
 impl From<RelativePosition> for OctantRelative {
