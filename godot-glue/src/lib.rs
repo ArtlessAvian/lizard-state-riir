@@ -54,6 +54,34 @@ impl Floor {
         })
     }
 
+    // TODO: Sort of temporary. Maybe make a builder?
+    // And a corresponding scene in Godot to match.
+    #[func]
+    pub fn set_map(&mut self, gridmap: Gd<godot::engine::GridMap>) {
+        let tiles = gridmap
+            .get_used_cells()
+            .iter_shared()
+            .filter(|vec| vec.y == 0)
+            .map(|vec| {
+                (
+                    AbsolutePosition::new(vec.x, vec.z),
+                    if gridmap.get_cell_item(vec) == 0 {
+                        engine::data::FloorTile::FLOOR
+                    } else {
+                        engine::data::FloorTile::WALL
+                    },
+                )
+            })
+            .collect();
+
+        let map = engine::data::FloorMap {
+            tiles: Rc::new(tiles),
+            default: engine::data::FloorTile::FLOOR,
+        };
+
+        self.floor = self.floor.set_map(map);
+    }
+
     #[func]
     pub fn add_entity_at(&mut self, pos: Vector2i) -> Gd<EntityId> {
         let (update, id) = self.floor.add_entity(EntityInternal {

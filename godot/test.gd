@@ -13,6 +13,9 @@ var test_tweens = []
 
 func _ready():
 	floor = Floor.new()
+	# TODO: Temporary.
+	floor.set_map($WorldSkew/Map)
+	($WorldSkew/Map as GridMap).clear()
 
 	player_id = floor.add_entity_at(Vector2i.ZERO)
 	id_to_node[player_id] = %Entity
