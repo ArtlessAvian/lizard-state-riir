@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=20 format=3 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_7s6h2"]
 [ext_resource type="Script" path="res://FloorCamera.gd" id="2_0g4sw"]
@@ -9,6 +9,15 @@
 [ext_resource type="Script" path="res://DamagePopup.gd" id="5_fs18x"]
 [ext_resource type="Script" path="res://EntitySprite.gd" id="6_7r5ow"]
 [ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
+[ext_resource type="Shader" path="res://dither.gdshader" id="9_mwgub"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ebx3n"]
+render_priority = 0
+shader = ExtResource("9_mwgub")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_k7u2w"]
+material = SubResource("ShaderMaterial_ebx3n")
+size = Vector2(30, 30)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0i8tf"]
 render_priority = 0
@@ -66,6 +75,11 @@ size = 20.0
 script = ExtResource("2_0g4sw")
 screen_pixels_per_pixel = null
 metadata/_edit_lock_ = true
+
+[node name="Dithering" type="MeshInstance3D" parent="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, -30)
+mesh = SubResource("PlaneMesh_k7u2w")
+skeleton = NodePath("../../WorldSkew/MapHistory")
 
 [node name="WorldSkew" type="Node3D" parent="."]
 editor_description = "Funky transformation that appears to rotate, but actually keeps \"up\" as Y+, so billboard sprites don't clip into vertical walls behind them. Set directly by ../Camera3D."
@@ -127,8 +141,7 @@ editor_description = "Renders literally behind the main game. If you can't see i
 Match rotation with ../Map.
 
 TODO: Figure out how to draw in same position pass?"
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -20, -30)
-visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -13.333, -14.907)
 mesh_library = SubResource("MeshLibrary_1b75v")
 cell_size = Vector3(1, 9999, 1)
 cell_center_x = false

@@ -10,12 +10,15 @@ var desynced_from_floor = false
 var test_event_delay = 0
 var test_tweens = []
 
+var test_visions: Dictionary  # of EntityIds to their most recent vision.
+
 
 func _ready():
 	floor = Floor.new()
-	# TODO: Temporary.
+	# HACK: Temporary.
 	floor.set_map($WorldSkew/Map)
 	($WorldSkew/Map as GridMap).clear()
+	($WorldSkew/MapHistory as GridMap).clear()
 
 	player_id = floor.add_entity_at(Vector2i.ZERO)
 	id_to_node[player_id] = %Entity
@@ -62,7 +65,7 @@ func clear_queue(delta):
 		subject.get_node("DiscardBasis/Sprite3D").look_at = tile - subject.position
 
 		var tween = subject.create_tween()
-		tween.tween_property(subject, "position", tile, 5 / 60.0)
+		tween.tween_property(subject, "position", tile, 10 / 60.0)
 
 		test_tweens.push_back(tween)
 		event_index += 1
@@ -98,9 +101,18 @@ func clear_queue(delta):
 		clear_queue(delta)
 
 	elif event is SeeMapEvent:
+		test_visions[event.subject] = event.vision
+
 		var map = $WorldSkew/Map as GridMap
+		map.clear()
+		for vision in test_visions.values():
+			for pos in vision:
+				map.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if vision[pos] else 1)
+
+		var history = $WorldSkew/MapHistory as GridMap
 		for pos in event.vision:
-			map.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if event.vision[pos] else 1)
+			history.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if event.vision[pos] else 1)
+
 		event_index += 1
 		clear_queue(delta)
 

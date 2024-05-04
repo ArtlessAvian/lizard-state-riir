@@ -27,7 +27,8 @@ const tile_apparent_width: float = 24
 
 func _process(delta):
 	# TODO: Temporary.
-	look_at_target = %Entity.global_position.lerp(look_at_target, exp(-delta * 5))
+	look_at_target = %Entity.global_position
+	# look_at_target = %Entity.global_position.lerp(look_at_target, exp(-delta * 5))
 
 	if not Engine.is_editor_hint():
 		adjust_size()
