@@ -41,9 +41,10 @@ func _process(delta):
 		if test_tweens.any(func(t): return t.is_running()):
 			return
 		test_tweens.clear()
-		
+
 		desynced_from_floor = false
 		sync_with_engine()
+		_process(0)  # repoll input for smooth movement.
 
 
 func clear_queue(delta):
@@ -116,21 +117,21 @@ func sync_with_engine():
 
 
 func poll_input():
-	if Input.is_action_just_pressed("move_left"):
+	if Input.is_action_pressed("move_left"):
 		move_player(Vector2i.LEFT)
-	if Input.is_action_just_pressed("move_up"):
+	if Input.is_action_pressed("move_up"):
 		move_player(Vector2i.UP)
-	if Input.is_action_just_pressed("move_down"):
+	if Input.is_action_pressed("move_down"):
 		move_player(Vector2i.DOWN)
-	if Input.is_action_just_pressed("move_right"):
+	if Input.is_action_pressed("move_right"):
 		move_player(Vector2i.RIGHT)
-	if Input.is_action_just_pressed("move_upleft"):
+	if Input.is_action_pressed("move_upleft"):
 		move_player(Vector2i.UP + Vector2i.LEFT)
-	if Input.is_action_just_pressed("move_upright"):
+	if Input.is_action_pressed("move_upright"):
 		move_player(Vector2i.UP + Vector2i.RIGHT)
-	if Input.is_action_just_pressed("move_downleft"):
+	if Input.is_action_pressed("move_downleft"):
 		move_player(Vector2i.DOWN + Vector2i.LEFT)
-	if Input.is_action_just_pressed("move_downright"):
+	if Input.is_action_pressed("move_downright"):
 		move_player(Vector2i.DOWN + Vector2i.RIGHT)
 
 
@@ -143,3 +144,4 @@ func move_player(dir: Vector2i):
 	var command = action.to_command(floor, player)
 	if command:
 		floor.do_action(command)
+		desynced_from_floor = true

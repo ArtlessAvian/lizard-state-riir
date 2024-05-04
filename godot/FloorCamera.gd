@@ -1,6 +1,8 @@
 @tool
 extends Camera3D
 
+@export var screen_pixels_per_pixel: int = 3
+
 enum CameraSkew { PRESERVE_ALL, PRESERVE_Y, PRESERVE_XZ }
 @export var do_skew_world: CameraSkew = CameraSkew.PRESERVE_ALL
 
@@ -24,6 +26,9 @@ const tile_apparent_width: float = 24
 
 
 func _process(delta):
+	# TODO: Temporary.
+	look_at_target = %Entity.global_position.lerp(look_at_target, exp(-delta * 5))
+
 	if not Engine.is_editor_hint():
 		adjust_size()
 
@@ -69,7 +74,7 @@ func adjust_size():
 	keep_aspect = Camera3D.KEEP_WIDTH
 	# pixels * (1 tile / 24 pixels) * (1 meter / tile)
 	self.size = get_viewport().size.x / tile_apparent_width
-	self.size /= 3.0  # zoom some extra
+	self.size /= screen_pixels_per_pixel  # zoom some extra
 
 
 func get_skew() -> Transform3D:
