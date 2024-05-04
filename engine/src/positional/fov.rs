@@ -62,13 +62,13 @@ impl TrieNode {
 // TODO: Lenient FOV.
 // TODO: Make a lazy-static? I also doubt you will need to increase radius much more than it is already.
 #[derive(Debug)]
-struct StrictFOV {
+pub struct StrictFOV {
     radius: u32,
     origin: TrieNode,
 }
 
 impl StrictFOV {
-    fn new(radius: u32) -> Self {
+    pub fn new(radius: u32) -> Self {
         let mut partial = StrictFOV {
             radius: 0,
             origin: TrieNode::new(

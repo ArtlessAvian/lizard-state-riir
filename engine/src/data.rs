@@ -12,6 +12,7 @@ use crate::actions::ActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntitySet;
+use crate::positional::fov::StrictFOV;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 use crate::writer::Writer;
@@ -51,12 +52,15 @@ impl FloorMap {
 
     // TODO: Move responsibility to new struct.
     pub fn get_vision(&self, pos: &AbsolutePosition) -> HashMap<AbsolutePosition, FloorTile> {
+        let fov = StrictFOV::new(3); // HACK: Very expensive to calculate every time!
+        let mut tiles = fov.get_field_of_view_tiles(*pos, |x| !self.is_tile_floor(&x));
+        // honestly this probably makes this slower for small radius
+        tiles.sort_by_key(|x| (x.x, x.y));
+        tiles.dedup();
+
         let mut out: HashMap<AbsolutePosition, FloorTile> = HashMap::new();
-        for dx in -1..2 {
-            for dy in -1..2 {
-                let offsetted = *pos + RelativePosition::new(dx, dy);
-                out.insert(offsetted, self.get_tile(&offsetted).clone());
-            }
+        for tile in tiles {
+            out.insert(tile, self.get_tile(&tile).clone());
         }
         out
     }
