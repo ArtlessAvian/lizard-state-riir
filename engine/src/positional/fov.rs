@@ -104,9 +104,10 @@ impl StrictFOV {
     pub fn get_field_of_view_tiles<F: Fn(AbsolutePosition) -> bool>(
         &self,
         center: AbsolutePosition,
+        radius: u32,
         blocks_vision: F,
     ) -> Vec<AbsolutePosition> {
-        self.get_field_of_view_tiles_relative(|x| blocks_vision(center + x))
+        self.get_field_of_view_tiles_relative(radius, |x| blocks_vision(center + x))
             .into_iter()
             .map(|x| center + x)
             .collect()
@@ -114,13 +115,28 @@ impl StrictFOV {
 
     fn get_field_of_view_tiles_relative<F: Fn(RelativePosition) -> bool>(
         &self,
+        radius: u32,
         blocks_vision_relative: F,
     ) -> Vec<RelativePosition> {
+        assert!(
+            radius <= self.radius,
+            "caller requested radius {}, we have precalculated radius {}",
+            radius,
+            self.radius
+        );
+
         let mut out = Vec::new();
         for octant in 0..8 {
             // DFS through the trie. BFS would return tiles in order of radius, which is nice.
             let mut frontier = vec![&self.origin];
             while let Some(current) = frontier.pop() {
+                if current.generator.run > radius {
+                    // In this subtree, we know that every tile we would output
+                    // would be outside the radius. Rather than checking radius before outputting,
+                    // we can just stop early.
+                    continue;
+                }
+
                 let mut tile = current.tile;
                 tile.octant = octant;
                 let relative = RelativePosition::from(tile);
@@ -154,10 +170,18 @@ fn new_strict_fov() {
 
 #[cfg(test)]
 #[test]
+#[should_panic]
+fn get_fov_radius_too_large() {
+    let fov = StrictFOV::new(0);
+    fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 1, |_| true);
+}
+
+#[cfg(test)]
+#[test]
 fn get_fov() {
     let fov = StrictFOV::new(2);
     let blocks_vision = |_| false;
-    let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), blocks_vision);
+    let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, blocks_vision);
 
     for x in -2..=2 {
         for y in -2..=2 {
@@ -183,7 +207,7 @@ fn get_fov() {
 fn get_fov_with_obstruction() {
     let fov = StrictFOV::new(2);
     let blocks_vision = |pos: AbsolutePosition| pos.x > 0 && -1 <= pos.y && pos.y <= 1;
-    let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), blocks_vision);
+    let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, blocks_vision);
 
     // @#
     // .#
@@ -201,7 +225,7 @@ fn get_fov_with_obstruction() {
 fn get_fov_with_direct_only() {
     let fov = StrictFOV::new(4);
     let blocks_vision = |pos: AbsolutePosition| pos.x / 3 != pos.y;
-    let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), blocks_vision);
+    let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 4, blocks_vision);
 
     // We can see (4, 1) passing through (3, 1), but we can't see (3, 1) itself.
     // This causes a discontinuity, which is ugly but whatever. This makes sense for "game logic" like hitting each other.

@@ -52,8 +52,10 @@ impl FloorMap {
 
     // TODO: Move responsibility to new struct.
     pub fn get_vision(&self, pos: &AbsolutePosition) -> HashMap<AbsolutePosition, FloorTile> {
-        let fov = StrictFOV::new(3); // HACK: Very expensive to calculate every time!
-        let mut tiles = fov.get_field_of_view_tiles(*pos, |x| !self.is_tile_floor(&x));
+        // HACK: StrictFOV doesn't make sense for vision. You can *infer* extra data (what is/isn't a wall) from what is returned.
+        // HACK: Avoid expensive construction on every call!
+        let fov: StrictFOV = StrictFOV::new(5);
+        let mut tiles = fov.get_field_of_view_tiles(*pos, 5, |x| !self.is_tile_floor(&x));
         // honestly this probably makes this slower for small radius
         tiles.sort_by_key(|x| (x.x, x.y));
         tiles.dedup();
