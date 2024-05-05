@@ -15,7 +15,7 @@ use crate::positional::AbsolutePosition;
 //
 // TODO: Remove Default.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize, Default)]
-#[archive_attr(derive(Debug))]
+#[archive_attr(derive(Debug, PartialEq, Eq, Hash))]
 pub struct EntityId(usize);
 
 impl From<EntityId> for i32 {
