@@ -2,8 +2,6 @@ use std::rc::Rc;
 
 use crate::actions::DeserializeCommandTrait;
 use crate::actions::SerializeCommandTrait;
-use crate::entity::EntityId;
-use crate::entity::EntityState;
 use rkyv::Archive;
 use rkyv::Archived;
 use rkyv::Deserialize;
@@ -13,6 +11,8 @@ use rkyv_dyn::archive_dyn;
 use rkyv_typename::TypeName;
 
 use crate::entity::Entity;
+use crate::entity::EntityId;
+use crate::entity::EntityState;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
@@ -198,7 +198,9 @@ fn double_hit() {
 
     dbg!(floor);
     assert_eq!(
-        log,
+        log.into_iter()
+            .filter(|x| !matches!(x, FloorEvent::SeeMap(_)))
+            .collect::<Vec<FloorEvent>>(),
         vec![
             FloorEvent::StartAttack(StartAttackEvent {
                 subject: player_id,

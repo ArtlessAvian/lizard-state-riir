@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Writer<T, Payload> {
     contents: T,
     log: Vec<Payload>,

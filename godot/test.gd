@@ -129,6 +129,9 @@ func sync_with_engine():
 
 
 func poll_input():
+	if desynced_from_floor:
+		return
+		
 	if Input.is_action_pressed("move_left"):
 		move_player(Vector2i.LEFT)
 	if Input.is_action_pressed("move_up"):
@@ -145,7 +148,9 @@ func poll_input():
 		move_player(Vector2i.DOWN + Vector2i.LEFT)
 	if Input.is_action_pressed("move_downright"):
 		move_player(Vector2i.DOWN + Vector2i.RIGHT)
-
+	
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		goto_mouse()
 
 func move_player(dir: Vector2i):
 	if desynced_from_floor:
@@ -153,6 +158,29 @@ func move_player(dir: Vector2i):
 
 	var player = floor.get_entity_by_id(player_id)
 	var action: Action = floor.get_step_macro_action(dir)
+	var command = action.to_command(floor, player)
+	if command:
+		floor.do_action(command)
+		desynced_from_floor = true
+
+func goto_mouse():
+	if desynced_from_floor:
+		return
+		
+	# HACK: Assumes entire game is on the XZ plane.
+	# But this is also kind of expected.
+	var mouse = get_viewport().get_mouse_position()
+	var origin = get_viewport().get_camera_3d().project_ray_origin(mouse)
+	var direction = get_viewport().get_camera_3d().project_ray_normal(mouse)
+	
+	var projected_xz: Vector3 = origin + (-origin.y / direction.y) * direction
+	var rounded = projected_xz.round()
+	var absolute_position = Vector2i(rounded.x, rounded.z)
+	
+	print("absolute position", absolute_position)
+	
+	var player = floor.get_entity_by_id(player_id)
+	var action: Action = floor.get_goto_action(absolute_position)
 	var command = action.to_command(floor, player)
 	if command:
 		floor.do_action(command)

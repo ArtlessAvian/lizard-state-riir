@@ -34,8 +34,17 @@ pub struct AttackHitEvent {
     pub damage: i32,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 pub struct SeeMapEvent {
     pub subject: EntityId,
     pub vision: HashMap<AbsolutePosition, FloorTile>,
+}
+
+impl std::fmt::Debug for SeeMapEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SeeMapEvent")
+            .field("subject", &self.subject)
+            // .field("vision", &self.vision)
+            .finish()
+    }
 }

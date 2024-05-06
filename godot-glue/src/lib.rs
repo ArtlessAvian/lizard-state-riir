@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use engine::actions::public::BumpAction;
+use engine::actions::public::GotoAction;
 use engine::actions::public::StepAction;
 use engine::actions::public::StepMacroAction;
 use engine::actions::ActionTrait;
@@ -168,6 +169,13 @@ impl Floor {
     pub fn get_step_macro_action(&self, direction: Vector2i) -> Gd<Action> {
         Action::new(Box::new(StepMacroAction {
             dir: RelativePosition::new(direction.x, direction.y),
+        }))
+    }
+
+    #[func]
+    pub fn get_goto_action(&self, absolute_position: Vector2i) -> Gd<Action> {
+        Action::new(Box::new(GotoAction {
+            tile: AbsolutePosition::new(absolute_position.x, absolute_position.y),
         }))
     }
 }

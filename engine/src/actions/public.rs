@@ -1,9 +1,22 @@
 use std::rc::Rc;
 
+use crate::actions::DeserializeCommandTrait;
+use crate::actions::SerializeCommandTrait;
+use rkyv::Archive;
+use rkyv::Archived;
+use rkyv::Deserialize;
+use rkyv::Infallible;
+use rkyv::Serialize;
+use rkyv_dyn::archive_dyn;
+use rkyv_typename::TypeName;
+
 use crate::entity::Entity;
+use crate::entity::EntityId;
+use crate::entity::EntityState;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 use super::events::AttackHitEvent;
@@ -157,6 +170,93 @@ impl ActionTrait for StepMacroAction {
     }
 }
 
+#[derive(Debug)]
+pub struct GotoAction {
+    pub tile: AbsolutePosition,
+}
+
+impl ActionTrait for GotoAction {
+    fn verify_action(
+        &self,
+        _floor: &Floor,
+        subject_ref: &Rc<Entity>,
+    ) -> Option<Box<dyn CommandTrait>> {
+        Some(Box::new(GotoCommand {
+            tile: self.tile,
+            subject_id: subject_ref.id,
+        }))
+    }
+}
+
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug, TypeName))]
+pub struct GotoCommand {
+    pub tile: AbsolutePosition,
+    subject_id: EntityId,
+}
+
+#[archive_dyn(deserialize)]
+impl CommandTrait for GotoCommand {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        let update = BorrowedFloorUpdate::new(floor);
+
+        let subject_pos = floor.entities[self.subject_id].pos;
+        let step_action = StepAction {
+            dir: RelativePosition {
+                dx: (self.tile.x - subject_pos.x).clamp(-1, 1),
+                dy: (self.tile.y - subject_pos.y).clamp(-1, 1),
+            },
+        };
+        let verify_action = step_action.verify_action(floor, &floor.entities[self.subject_id]);
+
+        // HACK: this should go to EntityState::OK.extra_actions or something idk
+
+        match verify_action {
+            None => update.bind(|floor| {
+                let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+                subject_clone.state = EntityState::Ok {
+                    queued_command: None,
+                };
+                floor.update_entity(Rc::new(subject_clone))
+            }),
+            Some(command) => {
+                let mut update = update.bind(|floor| command.do_action(floor));
+
+                if update.get_contents().entities[self.subject_id].pos != self.tile {
+                    update = update.bind(|floor| {
+                        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+                        subject_clone.state = EntityState::Ok {
+                            queued_command: Some(Rc::new(self.clone())),
+                        };
+                        floor.update_entity(Rc::new(subject_clone))
+                    })
+                } else {
+                    update = update.bind(|floor| {
+                        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+                        subject_clone.state = EntityState::Ok {
+                            queued_command: None,
+                        };
+                        floor.update_entity(Rc::new(subject_clone))
+                    })
+                }
+
+                update
+            }
+        }
+    }
+}
+
+// TODO: Figure out how to resolve `private_interfaces` warning. Maybe commands should be public but not constructable?
+#[allow(private_interfaces)]
+impl CommandTrait for Archived<GotoCommand> {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        // Deserialize and do. Not zero-copy, but whatever.
+        Deserialize::<GotoCommand, _>::deserialize(self, &mut Infallible)
+            .unwrap()
+            .do_action(floor)
+    }
+}
+
 #[cfg(test)]
 #[test]
 fn bump_test() {
@@ -204,7 +304,9 @@ fn bump_test() {
 
     dbg!(floor);
     assert_eq!(
-        log,
+        log.into_iter()
+            .filter(|x| !matches!(x, FloorEvent::SeeMap(_)))
+            .collect::<Vec<FloorEvent>>(),
         vec![
             FloorEvent::StartAttack(StartAttackEvent {
                 subject: player_id,
@@ -217,4 +319,44 @@ fn bump_test() {
             })
         ]
     );
+}
+
+#[cfg(test)]
+#[test]
+fn goto_test() {
+    use crate::{
+        entity::{EntityId, EntityState},
+        positional::AbsolutePosition,
+    };
+
+    let update = FloorUpdate::new(Floor::new());
+    let (update, player_id) = update.bind_with_side_output(|floor| {
+        floor.add_entity(Entity {
+            id: EntityId::default(),
+            next_turn: Some(0),
+            state: EntityState::Ok {
+                queued_command: None,
+            },
+            pos: AbsolutePosition::new(0, 0),
+            health: 0,
+        })
+    });
+
+    let mut update = FloorUpdate::new(update.get_contents().clone());
+    update = update.bind(|floor| {
+        GotoAction {
+            tile: AbsolutePosition::new(5, 3),
+        }
+        .verify_action(floor, &floor.entities[player_id])
+        .unwrap()
+        .do_action(floor)
+    });
+    update = update.bind(|floor| floor.take_npc_turn().unwrap());
+    update = update.bind(|floor| floor.take_npc_turn().unwrap());
+    update = update.bind(|floor| floor.take_npc_turn().unwrap());
+    update = update.bind(|floor| floor.take_npc_turn().unwrap());
+
+    let (floor, log) = update.into_both();
+    floor.take_npc_turn().unwrap_err();
+    assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 3))
 }
