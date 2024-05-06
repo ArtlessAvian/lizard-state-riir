@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::entity::EntityId;
-use crate::floor::FloorTile;
+use crate::floor::map::FloorTile;
 use crate::positional::AbsolutePosition;
 
 /// A statement about something that happened in the game.

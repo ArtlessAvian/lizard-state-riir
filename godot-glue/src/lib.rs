@@ -66,17 +66,17 @@ impl Floor {
                 (
                     AbsolutePosition::new(vec.x, vec.z),
                     if gridmap.get_cell_item(vec) == 0 {
-                        engine::floor::FloorTile::FLOOR
+                        engine::floor::map::FloorTile::FLOOR
                     } else {
-                        engine::floor::FloorTile::WALL
+                        engine::floor::map::FloorTile::WALL
                     },
                 )
             })
             .collect();
 
-        let map = engine::floor::FloorMap {
+        let map = engine::floor::map::FloorMap {
             tiles: Rc::new(tiles),
-            default: engine::floor::FloorTile::FLOOR,
+            default: engine::floor::map::FloorTile::FLOOR,
         };
 
         self.floor = self.floor.set_map(map);
