@@ -11,10 +11,10 @@ use engine::actions::public::StepMacroAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::NullAction;
-use engine::data::Floor as FloorInternal;
 use engine::entity::Entity as EntityInternal;
 use engine::entity::EntityId as EntityIdInternal;
 use engine::entity::EntityState;
+use engine::floor::Floor as FloorInternal;
 use engine::positional::AbsolutePosition;
 use engine::positional::RelativePosition;
 use events::FloorEvent;
@@ -66,17 +66,17 @@ impl Floor {
                 (
                     AbsolutePosition::new(vec.x, vec.z),
                     if gridmap.get_cell_item(vec) == 0 {
-                        engine::data::FloorTile::FLOOR
+                        engine::floor::FloorTile::FLOOR
                     } else {
-                        engine::data::FloorTile::WALL
+                        engine::floor::FloorTile::WALL
                     },
                 )
             })
             .collect();
 
-        let map = engine::data::FloorMap {
+        let map = engine::floor::FloorMap {
             tiles: Rc::new(tiles),
-            default: engine::data::FloorTile::FLOOR,
+            default: engine::floor::FloorTile::FLOOR,
         };
 
         self.floor = self.floor.set_map(map);

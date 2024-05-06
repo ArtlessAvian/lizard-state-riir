@@ -27,9 +27,7 @@
 pub mod actions;
 
 /// The logic and data of the main game. The map, turntaking, etc.
-///
-/// TODO: Rename to Floor?
-pub mod data;
+pub mod floor;
 
 /// A bundle of data, usually in the a context of a floor.
 pub mod entity;

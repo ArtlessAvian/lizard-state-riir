@@ -12,9 +12,9 @@ use std::fmt::Debug;
 
 use rkyv_dyn::archive_dyn;
 
-use crate::data::Floor;
-use crate::data::FloorUpdate;
 use crate::entity::Entity;
+use crate::floor::Floor;
+use crate::floor::FloorUpdate;
 
 use self::events::FloorEvent;
 
@@ -27,7 +27,7 @@ use self::events::FloorEvent;
 /// ```rust
 /// use std::rc::Rc;
 /// use engine::actions::*;
-/// use engine::data::*;
+/// use engine::floor::*;
 /// use engine::entity::*;
 /// fn context(action: Box<dyn ActionTrait>, floor: &Floor, player_id: Rc<Entity>) -> FloorUpdate {
 ///     let command = action.verify_action(floor, &player_id).unwrap();

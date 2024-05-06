@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
-use crate::data::BorrowedFloorUpdate;
-use crate::data::Floor;
-use crate::data::FloorUpdate;
 use crate::entity::Entity;
+use crate::floor::BorrowedFloorUpdate;
+use crate::floor::Floor;
+use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
 
 use super::events::AttackHitEvent;
