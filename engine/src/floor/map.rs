@@ -1,3 +1,5 @@
+pub mod vision;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
