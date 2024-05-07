@@ -295,9 +295,9 @@ fn bump_test() {
         BumpAction {
             dir: RelativePosition::new(1, 0),
         }
-        .verify_action(floor, &floor.entities[player_id])
+        .verify_action(&floor, &floor.entities[player_id])
         .unwrap()
-        .do_action(floor)
+        .do_action(&floor)
     });
 
     let (floor, log) = update.into_both();
@@ -347,9 +347,9 @@ fn goto_test() {
         GotoAction {
             tile: AbsolutePosition::new(5, 3),
         }
-        .verify_action(floor, &floor.entities[player_id])
+        .verify_action(&floor, &floor.entities[player_id])
         .unwrap()
-        .do_action(floor)
+        .do_action(&floor)
     });
     update = update.bind(|floor| floor.take_npc_turn().unwrap());
     update = update.bind(|floor| floor.take_npc_turn().unwrap());
