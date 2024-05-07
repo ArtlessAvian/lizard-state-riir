@@ -29,7 +29,7 @@ func _ready():
 
 
 func _process(delta):
-	poll_input()
+	poll_input(delta)
 
 	floor.take_npc_turn()
 
@@ -128,7 +128,7 @@ func sync_with_engine():
 		id_to_node[id].position = Vector3(entity.get_pos().x, 0, entity.get_pos().y)
 
 
-func poll_input():
+func poll_input(delta):
 	if desynced_from_floor:
 		return
 		
@@ -149,8 +149,9 @@ func poll_input():
 	if Input.is_action_pressed("move_downright"):
 		move_player(Vector2i.DOWN + Vector2i.RIGHT)
 	
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		goto_mouse()
+	if delta != 0:
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			goto_mouse()
 
 func move_player(dir: Vector2i):
 	if desynced_from_floor:
