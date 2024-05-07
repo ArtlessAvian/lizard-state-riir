@@ -156,8 +156,10 @@ fn double_hit() {
         positional::AbsolutePosition,
     };
 
-    let update = FloorUpdate::new(Floor::new());
-    let (update, player_id) = update.bind_with_side_output(|floor| {
+    let mut update = FloorUpdate::new(Floor::new());
+    let player_id;
+    let other_id;
+    (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
             next_turn: Some(0),
@@ -168,7 +170,7 @@ fn double_hit() {
             health: 0,
         })
     });
-    let (update, other_id) = update.bind_with_side_output(|floor| {
+    (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
             next_turn: None,
@@ -179,9 +181,6 @@ fn double_hit() {
             health: 0,
         })
     });
-
-    // discard the log.
-    let mut update = FloorUpdate::new(update.get_contents().clone());
     update = update.bind(|floor| {
         DoubleHitAction {
             dir: RelativePosition::new(1, 0),
@@ -192,14 +191,13 @@ fn double_hit() {
     });
     update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
 
-    // update.get_contents().take_npc_turn().unwrap_err(); // TODO: Make pass.
+    update.get_contents().take_npc_turn().unwrap_err();
 
     let (floor, log) = update.into_both();
-
     dbg!(floor);
     assert_eq!(
         log.into_iter()
-            .filter(|x| !matches!(x, FloorEvent::SeeMap(_)))
+            .filter(|x| matches!(x, FloorEvent::StartAttack(_) | FloorEvent::AttackHit(_)))
             .collect::<Vec<FloorEvent>>(),
         vec![
             FloorEvent::StartAttack(StartAttackEvent {

@@ -181,6 +181,7 @@ impl ActionTrait for GotoAction {
         _floor: &Floor,
         subject_ref: &Rc<Entity>,
     ) -> Option<Box<dyn CommandTrait>> {
+        // Pathfind to target.
         Some(Box::new(GotoCommand {
             tile: self.tile,
             subject_id: subject_ref.id,
@@ -198,10 +199,9 @@ pub struct GotoCommand {
 #[archive_dyn(deserialize)]
 impl CommandTrait for GotoCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let update = BorrowedFloorUpdate::new(floor);
-
         let subject_pos = floor.entities[self.subject_id].pos;
         let step_action = StepAction {
+            // TODO: Read from pathfinding.
             dir: RelativePosition {
                 dx: (self.tile.x - subject_pos.x).clamp(-1, 1),
                 dy: (self.tile.y - subject_pos.y).clamp(-1, 1),
@@ -212,35 +212,33 @@ impl CommandTrait for GotoCommand {
         // HACK: this should go to EntityState::OK.extra_actions or something idk
 
         match verify_action {
-            None => update.bind(|floor| {
+            None => {
+                // Give up immediately.
+                // Even when pathfinding is implemented, a failed step should probably mean to stop.
                 let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
                 subject_clone.state = EntityState::Ok {
                     queued_command: None,
                 };
                 floor.update_entity(Rc::new(subject_clone))
-            }),
+            }
             Some(command) => {
-                let mut update = update.bind(|floor| command.do_action(floor));
+                let update = command.do_action(floor);
 
-                if update.get_contents().entities[self.subject_id].pos != self.tile {
-                    update = update.bind(|floor| {
+                update.bind(|floor| {
+                    if floor.entities[self.subject_id].pos != self.tile {
                         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
                         subject_clone.state = EntityState::Ok {
                             queued_command: Some(Rc::new(self.clone())),
                         };
                         floor.update_entity(Rc::new(subject_clone))
-                    })
-                } else {
-                    update = update.bind(|floor| {
+                    } else {
                         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
                         subject_clone.state = EntityState::Ok {
                             queued_command: None,
                         };
                         floor.update_entity(Rc::new(subject_clone))
-                    })
-                }
-
-                update
+                    }
+                })
             }
         }
     }
@@ -265,8 +263,10 @@ fn bump_test() {
         positional::AbsolutePosition,
     };
 
-    let update = FloorUpdate::new(Floor::new());
-    let (update, player_id) = update.bind_with_side_output(|floor| {
+    let mut update = FloorUpdate::new(Floor::new());
+    let player_id;
+    let other_id;
+    (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
             next_turn: Some(0),
@@ -277,7 +277,7 @@ fn bump_test() {
             health: 0,
         })
     });
-    let (update, other_id) = update.bind_with_side_output(|floor| {
+    (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
             next_turn: Some(0),
@@ -288,9 +288,6 @@ fn bump_test() {
             health: 0,
         })
     });
-
-    // discard the log.
-    let mut update = FloorUpdate::new(update.get_contents().clone());
     update = update.bind(|floor| {
         BumpAction {
             dir: RelativePosition::new(1, 0),
@@ -301,11 +298,10 @@ fn bump_test() {
     });
 
     let (floor, log) = update.into_both();
-
     dbg!(floor);
     assert_eq!(
         log.into_iter()
-            .filter(|x| !matches!(x, FloorEvent::SeeMap(_)))
+            .filter(|x| matches!(x, FloorEvent::StartAttack(_) | FloorEvent::AttackHit(_)))
             .collect::<Vec<FloorEvent>>(),
         vec![
             FloorEvent::StartAttack(StartAttackEvent {
@@ -329,8 +325,9 @@ fn goto_test() {
         positional::AbsolutePosition,
     };
 
-    let update = FloorUpdate::new(Floor::new());
-    let (update, player_id) = update.bind_with_side_output(|floor| {
+    let mut update = FloorUpdate::new(Floor::new());
+    let player_id;
+    (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
             next_turn: Some(0),
@@ -341,8 +338,6 @@ fn goto_test() {
             health: 0,
         })
     });
-
-    let mut update = FloorUpdate::new(update.get_contents().clone());
     update = update.bind(|floor| {
         GotoAction {
             tile: AbsolutePosition::new(5, 3),
