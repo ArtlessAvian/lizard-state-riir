@@ -106,6 +106,7 @@ top_level = true
 script = ExtResource("4_mi30g")
 
 [node name="DamagePopup" type="Label3D" parent="WorldSkew/Map/Entity/DiscardBasis"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.021, 0, 0)
 visible = false
 layers = 2
 pixel_size = 0.0417
@@ -118,7 +119,7 @@ modulate = Color(1, 0, 0, 1)
 text = "-1"
 font = ExtResource("4_7waja")
 font_size = 8
-outline_size = 2
+outline_size = 4
 script = ExtResource("5_fs18x")
 
 [node name="Perspective" type="Camera3D" parent="WorldSkew/Map/Entity/DiscardBasis"]

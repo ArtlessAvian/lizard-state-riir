@@ -112,7 +112,9 @@ impl Floor {
         let mut next_occupiers = self.occupiers.clone();
         next_occupiers.remove_entry(&old.pos);
         match next_occupiers.entry(new.pos) {
-            Entry::Occupied(_) => panic!("Updated entity occupy same position as existing entity."),
+            Entry::Occupied(_) => {
+                panic!("Updated entity occupies same position as existing entity.")
+            }
             Entry::Vacant(vacancy) => {
                 vacancy.insert(new.id);
             }

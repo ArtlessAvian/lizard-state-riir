@@ -62,7 +62,8 @@ func clear_queue(delta):
 	if event is MoveEvent:
 		var subject = id_to_node[event.subject]
 		var tile = Vector3(event.tile.x, 0, event.tile.y)
-		subject.get_node("DiscardBasis/Sprite3D").look_at = tile - subject.position
+		if tile - subject.position != Vector3.ZERO:
+			subject.get_node("DiscardBasis/Sprite3D").look_at = tile - subject.position
 
 		var tween = subject.create_tween()
 		tween.tween_property(subject, "position", tile, 10 / 60.0)
@@ -81,9 +82,10 @@ func clear_queue(delta):
 		var target = Vector3(event.tile.x, 0, event.tile.y)
 		subject.get_node("DiscardBasis/Sprite3D").look_at = target - subject.position
 
-		var tween = subject.create_tween()
-		tween.tween_property(subject, "position", subject.position.lerp(target, 0.5), 2 / 60.0)
-		tween.tween_property(subject, "position", subject.position, 2 / 60.0)
+		var sprite = subject.get_node("DiscardBasis/Sprite3D")
+		var tween = sprite.create_tween()
+		tween.tween_property(sprite, "position", sprite.position.lerp(target - subject.position, 0.5), 2 / 60.0)
+		tween.tween_property(sprite, "position", sprite.position, 2 / 60.0)
 
 		test_event_delay += 2 / 60.0
 		event_index += 1

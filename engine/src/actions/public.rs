@@ -47,6 +47,16 @@ impl ActionTrait for StepAction {
             return None;
         }
 
+        // TODO: Decide whether to make impossible (leave code as is)
+        // or to waste a turn (check in command, no-op if occupied.)
+        if floor
+            .occupiers
+            .get(&(subject_ref.pos + self.dir))
+            .is_some_and(|x| x != &subject_ref.id)
+        {
+            return None;
+        }
+
         Some(Box::new(StepCommand {
             dir: self.dir,
             subject_ref: Rc::clone(subject_ref),
@@ -92,7 +102,7 @@ impl ActionTrait for BumpAction {
     ) -> Option<Box<dyn CommandTrait>> {
         assert!(floor.entities.contains(subject_ref));
 
-        if self.dir.length() > 1 {
+        if self.dir.length() != 1 {
             return None;
         }
 

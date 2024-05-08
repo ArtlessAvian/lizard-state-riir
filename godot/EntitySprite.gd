@@ -34,13 +34,13 @@ func spin_around(camera_direction):
 	var cam_dir_drop_y = camera_direction * Vector3(1, 0, 1)
 	var look_at_drop_y = look_at_local * Vector3(1, 0, 1)
 
-	var angle = cam_dir_drop_y.angle_to(look_at_drop_y)
-	if angle < 45 * PI / 180.0:
+	var angle = rad_to_deg(cam_dir_drop_y.angle_to(look_at_drop_y))
+	if angle < 30:
 		self.flip_h = false
 		self.texture = towards
-	elif angle < 135 * PI / 180.0:
-		self.flip_h = cam_dir_drop_y.cross(look_at_drop_y).y < 0
-		self.texture = right
-	else:
+	elif angle > 150:
 		self.flip_h = false
 		self.texture = away
+	else:
+		self.flip_h = cam_dir_drop_y.cross(look_at_drop_y).y < 0
+		self.texture = right
