@@ -8,6 +8,7 @@ use std::rc::Rc;
 use crate::actions::events::FloorEvent;
 use crate::actions::events::SeeMapEvent;
 use crate::entity::Entity;
+use crate::entity::EntityId;
 use crate::floor::map::FloorMap;
 use crate::floor::map::FloorTile;
 use crate::floor::UnitUpdate;
@@ -18,7 +19,7 @@ use crate::writer::Writer;
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct FloorMapVision {
-    // entity_last_at: HashMap<EntityId, AbsolutePosition>,
+    entity_last_at: HashMap<EntityId, AbsolutePosition>,
     // map_vision: HashMap<EntityId, HashMap<AbsolutePosition, FloorTile>>,
     // map_history: HashMap<AbsolutePosition, FloorTile>,
 }
@@ -26,7 +27,7 @@ pub struct FloorMapVision {
 impl FloorMapVision {
     pub fn new() -> Self {
         Self {
-            // entity_last_at: HashMap::new(),
+            entity_last_at: HashMap::new(),
             // map_vision: HashMap::new(),
             // map_history: HashMap::new(),
         }
@@ -60,20 +61,42 @@ impl FloorMapVision {
 
     // I am a smug nerd.
 
-    pub fn add_entity(&self, new: &Rc<Entity>, map: &FloorMap) -> UnitUpdate {
-        let out = Writer::new(());
-        out.log(FloorMapVision::new_see_map_event(new.as_ref(), map))
+    pub fn add_entity(
+        &self,
+        new: &Rc<Entity>,
+        map: &FloorMap,
+    ) -> Writer<FloorMapVision, FloorEvent> {
+        Writer::new(self.clone()).log(FloorMapVision::new_see_map_event(new.as_ref(), map))
     }
 
-    pub fn update_entity(&self, new: &Rc<Entity>, map: &FloorMap) -> UnitUpdate {
-        let out = Writer::new(());
-        out.log(FloorMapVision::new_see_map_event(new.as_ref(), map))
+    pub fn update_entity(
+        &self,
+        new: &Rc<Entity>,
+        map: &FloorMap,
+    ) -> Writer<FloorMapVision, FloorEvent> {
+        let mut out = Writer::new(self.clone());
+        if out.get_contents().entity_last_at.get(&new.id) != Some(&new.pos) {
+            out = out.bind(|mut vision| {
+                vision.entity_last_at.insert(new.id, new.pos);
+                Writer::new(vision).log(FloorMapVision::new_see_map_event(new.as_ref(), map))
+            });
+        }
+        out
     }
 
-    pub fn update_entities(&self, new_set: &Vec<Rc<Entity>>, map: &FloorMap) -> UnitUpdate {
-        let mut out = Writer::new(());
+    pub fn update_entities(
+        &self,
+        new_set: &Vec<Rc<Entity>>,
+        map: &FloorMap,
+    ) -> Writer<FloorMapVision, FloorEvent> {
+        let mut out = Writer::new(self.clone());
         for new in new_set {
-            out = out.log(FloorMapVision::new_see_map_event(new.as_ref(), map))
+            if out.get_contents().entity_last_at.get(&new.id) != Some(&new.pos) {
+                out = out.bind(|mut vision| {
+                    vision.entity_last_at.insert(new.id, new.pos);
+                    Writer::new(vision).log(FloorMapVision::new_see_map_event(new.as_ref(), map))
+                });
+            }
         }
         out
     }

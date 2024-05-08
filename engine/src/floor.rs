@@ -69,7 +69,10 @@ impl Floor {
             "New entity occupies wall position."
         );
 
-        let update = self.vision.add_entity(&next_entities[id], &self.map);
+        let (next_vision, update) = self
+            .vision
+            .add_entity(&next_entities[id], &self.map)
+            .split_contents();
 
         (
             update.bind(|_| {
@@ -77,7 +80,7 @@ impl Floor {
                     entities: next_entities,
                     occupiers: next_occupiers,
                     map: self.map.clone(),
-                    vision: self.vision.clone(),
+                    vision: next_vision,
                 })
             }),
             id,
@@ -120,14 +123,14 @@ impl Floor {
             "Updated entity occupies wall position."
         );
 
-        let update = self.vision.update_entity(&new, &self.map);
+        let (next_vision, update) = self.vision.update_entity(&new, &self.map).split_contents();
 
         update.bind(|_| {
             FloorUpdate::new(Floor {
                 entities: next_entities,
                 occupiers: next_occupiers,
                 map: self.map.clone(),
-                vision: self.vision.clone(),
+                vision: next_vision,
             })
         })
     }
@@ -164,14 +167,17 @@ impl Floor {
             );
         }
 
-        let update = self.vision.update_entities(&new_set, &self.map);
+        let (next_vision, update) = self
+            .vision
+            .update_entities(&new_set, &self.map)
+            .split_contents();
 
         update.bind(|_| {
             FloorUpdate::new(Floor {
                 entities: next_entities,
                 occupiers: next_occupiers,
                 map: self.map.clone(),
-                vision: self.vision.clone(),
+                vision: next_vision,
             })
         })
     }
@@ -223,7 +229,7 @@ impl Floor {
 
         // TODO: do something interesting
         let next_floor = StepAction {
-            dir: RelativePosition { dx: 0, dy: 1 },
+            dir: RelativePosition { dx: 0, dy: 0 },
         }
         .verify_action(self, &self.entities[next_id])
         .expect("testing code")

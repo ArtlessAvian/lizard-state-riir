@@ -148,6 +148,8 @@ func poll_input(delta):
 		move_player(Vector2i.DOWN + Vector2i.LEFT)
 	if Input.is_action_pressed("move_downright"):
 		move_player(Vector2i.DOWN + Vector2i.RIGHT)
+	if Input.is_action_pressed("move_wait"):
+		move_player(Vector2i.ZERO)
 	
 	if delta != 0:
 		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
