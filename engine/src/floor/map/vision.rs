@@ -20,16 +20,16 @@ use crate::writer::Writer;
 #[archive_attr(derive(Debug))]
 pub struct FloorMapVision {
     entity_last_at: HashMap<EntityId, AbsolutePosition>,
-    // map_vision: HashMap<EntityId, HashMap<AbsolutePosition, FloorTile>>,
-    // map_history: HashMap<AbsolutePosition, FloorTile>,
+    map_vision: HashMap<EntityId, HashMap<AbsolutePosition, FloorTile>>,
+    map_history: HashMap<AbsolutePosition, FloorTile>,
 }
 
 impl FloorMapVision {
     pub fn new() -> Self {
         Self {
             entity_last_at: HashMap::new(),
-            // map_vision: HashMap::new(),
-            // map_history: HashMap::new(),
+            map_vision: HashMap::new(),
+            map_history: HashMap::new(),
         }
     }
 
@@ -66,7 +66,7 @@ impl FloorMapVision {
         new: &Rc<Entity>,
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
-        Writer::new(self.clone()).log(FloorMapVision::new_see_map_event(new.as_ref(), map))
+        self.update_entity(new, map)
     }
 
     pub fn update_entity(
@@ -74,14 +74,7 @@ impl FloorMapVision {
         new: &Rc<Entity>,
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
-        let mut out = Writer::new(self.clone());
-        if out.get_contents().entity_last_at.get(&new.id) != Some(&new.pos) {
-            out = out.bind(|mut vision| {
-                vision.entity_last_at.insert(new.id, new.pos);
-                Writer::new(vision).log(FloorMapVision::new_see_map_event(new.as_ref(), map))
-            });
-        }
-        out
+        self.update_entities(&vec![new.clone()], map)
     }
 
     pub fn update_entities(
@@ -92,20 +85,29 @@ impl FloorMapVision {
         let mut out = Writer::new(self.clone());
         for new in new_set {
             if out.get_contents().entity_last_at.get(&new.id) != Some(&new.pos) {
-                out = out.bind(|mut vision| {
-                    vision.entity_last_at.insert(new.id, new.pos);
-                    Writer::new(vision).log(FloorMapVision::new_see_map_event(new.as_ref(), map))
-                });
+                out = out.bind(|vision| vision.update_and_emit_event(new, map));
             }
         }
         out
     }
 
-    fn new_see_map_event(subject: &Entity, map: &FloorMap) -> FloorEvent {
-        FloorEvent::SeeMap(SeeMapEvent {
+    fn update_and_emit_event(
+        mut self,
+        subject: &Entity,
+        map: &FloorMap,
+    ) -> Writer<FloorMapVision, FloorEvent> {
+        let vision = Self::get_vision(map, &subject.pos);
+
+        self.entity_last_at.insert(subject.id, subject.pos);
+        self.map_vision.insert(subject.id, vision.clone());
+        for (pos, tile) in &vision {
+            self.map_history.insert(*pos, tile.clone());
+        }
+
+        Writer::new(self).log(FloorEvent::SeeMap(SeeMapEvent {
             subject: subject.id,
-            vision: FloorMapVision::get_vision(map, &subject.pos),
-        })
+            vision,
+        }))
     }
 
     fn get_vision(map: &FloorMap, pos: &AbsolutePosition) -> HashMap<AbsolutePosition, FloorTile> {
@@ -113,7 +115,7 @@ impl FloorMapVision {
         // HACK: Avoid expensive construction on every call!
         let fov: StrictFOV = StrictFOV::new(5);
         let mut tiles = fov.get_field_of_view_tiles(*pos, 5, |x| !map.is_tile_floor(&x));
-        // honestly this probably makes this slower for small radius
+        // honestly sorting and deduping probably makes this slower for small radius
         tiles.sort_by_key(|x| (x.x, x.y));
         tiles.dedup();
 
