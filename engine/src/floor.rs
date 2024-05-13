@@ -38,7 +38,7 @@ pub struct Floor {
     pub entities: EntitySet,
     pub occupiers: HashMap<AbsolutePosition, EntityId>,
     pub map: FloorMap,
-    pub vision: FloorMapVision,
+    pub vision: Option<FloorMapVision>,
 }
 
 impl Floor {
@@ -47,7 +47,7 @@ impl Floor {
             entities: EntitySet::new(),
             occupiers: HashMap::new(),
             map: FloorMap::new(),
-            vision: FloorMapVision::new(),
+            vision: Some(FloorMapVision::new()),
         }
     }
 
@@ -69,10 +69,13 @@ impl Floor {
             "New entity occupies wall position."
         );
 
-        let (next_vision, update) = self
-            .vision
-            .add_entity(&next_entities[id], &self.map)
-            .split_contents();
+        let update = Writer::new(&self.vision);
+        let update = update.bind(|option| {
+            option.as_ref().map_or(Writer::new(None), |x| {
+                x.add_entity(&next_entities[id], &self.map).map(Some)
+            })
+        });
+        let (next_vision, update) = update.split_contents();
 
         (
             update.bind(|_| {
@@ -125,7 +128,13 @@ impl Floor {
             "Updated entity occupies wall position."
         );
 
-        let (next_vision, update) = self.vision.update_entity(&new, &self.map).split_contents();
+        let update = Writer::new(&self.vision);
+        let update = update.bind(|option| {
+            option.as_ref().map_or(Writer::new(None), |x| {
+                x.update_entity(&new, &self.map).map(Some)
+            })
+        });
+        let (next_vision, update) = update.split_contents();
 
         update.bind(|_| {
             FloorUpdate::new(Floor {
@@ -169,10 +178,13 @@ impl Floor {
             );
         }
 
-        let (next_vision, update) = self
-            .vision
-            .update_entities(&new_set, &self.map)
-            .split_contents();
+        let update = Writer::new(&self.vision);
+        let update = update.bind(|option| {
+            option.as_ref().map_or(Writer::new(None), |x| {
+                x.update_entities(&new_set, &self.map).map(Some)
+            })
+        });
+        let (next_vision, update) = update.split_contents();
 
         update.bind(|_| {
             FloorUpdate::new(Floor {

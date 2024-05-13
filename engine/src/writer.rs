@@ -48,6 +48,16 @@ impl<T, Payload> Writer<T, Payload> {
     }
 
     #[must_use]
+    pub fn map<U, F>(self, f: F) -> Writer<U, Payload>
+    where
+        F: FnOnce(T) -> U,
+    {
+        let (contents, log) = self.into_both();
+        let next = f(contents);
+        Writer::new_with_log(next, log)
+    }
+
+    #[must_use]
     pub fn bind<U, F>(self, f: F) -> Writer<U, Payload>
     where
         F: FnOnce(T) -> Writer<U, Payload>,
