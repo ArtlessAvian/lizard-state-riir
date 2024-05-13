@@ -270,12 +270,40 @@ fn serialize_deserialize() {
     let mut serializer = AllocSerializer::<256>::default();
     serializer.serialize_value(&floor).unwrap();
 
-    let bytes = dbg!(serializer.into_serializer().into_inner());
+    let bytes = serializer.into_serializer().into_inner();
     let archived = unsafe { rkyv::archived_root::<Floor>(&bytes[..]) };
 
-    let deserialized: Floor = dbg!(archived
+    let deserialized: Floor = archived
         .deserialize(&mut rkyv::de::deserializers::SharedDeserializeMap::new())
-        .unwrap());
+        .unwrap();
 
-    assert_eq!(format!("{:?}", deserialized), format!("{:?}", floor));
+    // Debug doesn't sort the HashMaps so this hack equality check fails.
+    // PartialEq can't(?) be derived for Floor due to dyn trait (in EntityState).
+    // assert_eq!(format!("{:?}", deserialized), format!("{:?}", floor));
+
+    // Instead we have this "even better" hack. Its permissive of ordering issues.
+    // Doesn't tell you where the difference is though.
+    let count = |string: &String| {
+        let mut out = HashMap::new();
+        string.chars().for_each(|x| {
+            out.insert(x, out.get(&x).unwrap_or(&0) + 1);
+        });
+        out
+    };
+
+    let (debug_deserialized, debug_original) =
+        (format!("{:?}", deserialized), format!("{:?}", floor));
+    let (count_deserialized, count_original) = (count(&debug_deserialized), count(&debug_original));
+
+    assert!(
+        count_deserialized == count_original,
+        "Diffs in Debug dumps: {:?}\n  left: {:?}\n right: {:?}",
+        count_deserialized
+            .iter()
+            .filter(|(k, v)| count_original[k] != **v)
+            .map(|(k, _v)| k)
+            .collect::<Vec<&char>>(),
+        debug_deserialized,
+        debug_original
+    );
 }
