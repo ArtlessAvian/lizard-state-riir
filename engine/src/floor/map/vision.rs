@@ -11,7 +11,6 @@ use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::floor::map::FloorMap;
 use crate::floor::map::FloorTile;
-use crate::floor::UnitUpdate;
 use crate::positional::fov::StrictFOV;
 use crate::positional::AbsolutePosition;
 use crate::writer::Writer;
@@ -116,7 +115,7 @@ impl FloorMapVision {
         let fov: StrictFOV = StrictFOV::new(5);
         let mut tiles = fov.get_field_of_view_tiles(*pos, 5, |x| !map.is_tile_floor(&x));
         // honestly sorting and deduping probably makes this slower for small radius
-        tiles.sort_by_key(|x| (x.x, x.y));
+        tiles.sort();
         tiles.dedup();
 
         let mut out: HashMap<AbsolutePosition, FloorTile> = HashMap::new();

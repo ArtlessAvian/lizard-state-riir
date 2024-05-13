@@ -145,19 +145,19 @@ fn test_symmetry() {
     use super::RelativePosition;
 
     let target = RelativePosition::new(23, 7);
-
     let seg = Segment {
         target: OctantRelative::from(target),
     };
-    let (forwards, none) = seg.calculate_relative();
-    assert!(none.is_none());
 
+    let (mut forwards, none) = seg.calculate_relative();
+    assert!(none.is_none());
     let mut backwards = forwards
         .iter()
         .map(|x| target + -1 * *x)
         .collect::<Vec<RelativePosition>>();
-    backwards.sort_by_key(|x| x.dx);
 
+    forwards.sort();
+    backwards.sort();
     assert_eq!(forwards, backwards);
 }
 
@@ -167,18 +167,19 @@ fn test_symmetry_alt() {
     use super::RelativePosition;
 
     let target = RelativePosition::new(24, 7);
-
     let seg = Segment {
         target: OctantRelative::from(target),
     };
-    let (forwards, some) = seg.calculate_relative();
+
+    let (mut forwards, some) = seg.calculate_relative();
     let mut backwards = some
         .unwrap()
         .into_iter()
         .map(|x| target + -1 * x)
         .collect::<Vec<RelativePosition>>();
-    backwards.sort_by_key(|x| x.dx);
 
+    forwards.sort();
+    backwards.sort();
     assert_eq!(forwards, backwards);
 }
 
@@ -189,18 +190,19 @@ fn test_annoying_slope() {
 
     // Often passes through (x, y + 0.5) for some integers x and y.
     let target = RelativePosition::new(10, 5);
-
     let seg = Segment {
         target: OctantRelative::from(target),
     };
-    let (forwards, some) = seg.calculate_relative();
+
+    let (mut forwards, some) = seg.calculate_relative();
     let mut backwards = some
         .unwrap()
         .into_iter()
         .map(|x| target + -1 * x)
         .collect::<Vec<RelativePosition>>();
-    backwards.sort_by_key(|x| x.dx);
 
+    forwards.sort();
+    backwards.sort();
     assert_eq!(forwards, backwards);
 }
 
@@ -215,13 +217,14 @@ fn test_octant() {
     let seg = Segment {
         target: OctantRelative::from(target),
     };
-    let (forwards, some) = seg.calculate_relative();
+    let (mut forwards, some) = seg.calculate_relative();
     let mut backwards = some
         .unwrap()
         .into_iter()
         .map(|x| target + -1 * x)
         .collect::<Vec<RelativePosition>>();
-    backwards.sort_by_key(|x| -x.dy);
 
+    forwards.sort();
+    backwards.sort();
     assert_eq!(forwards, backwards);
 }

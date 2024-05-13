@@ -7,7 +7,20 @@ use rkyv::{Archive, Deserialize, Serialize};
 
 /// An offset.
 /// A Vector2i, like AbsolutePosition.
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[derive(
+    Clone,
+    Copy,
+    Default,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Archive,
+    Serialize,
+    Deserialize,
+    PartialOrd,
+    Ord,
+)]
 #[archive_attr(derive(Hash, PartialEq, Eq, Debug))]
 pub struct RelativePosition {
     pub dx: i32,
@@ -55,7 +68,9 @@ impl RelativePosition {
 /// * The L-2 norm has non-integer values. Diagonals are >1 distance. You can round but it stops being a metric space. It produces nice circles!
 /// * Tabletop rules: Every second diagonal costs 2. Again stops being a metric space. Nice integer values! (and octagons!)
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize, PartialOrd, Ord,
+)]
 #[archive_attr(derive(Hash, PartialEq, Eq, Debug))]
 pub struct AbsolutePosition {
     pub x: i32,
