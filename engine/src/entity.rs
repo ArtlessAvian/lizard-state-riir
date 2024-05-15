@@ -32,6 +32,7 @@ impl From<EntityId> for i32 {
 ///
 /// Outside a Floor, entities have a statline (`health`, etc.) and some constant data (`max_health`, etc.).
 // TODO: Split into an EntityData. Wrap with Entity when added to a Floor?
+// TODO: Make API more like HashMap? Iter should return keys.
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct Entity {
@@ -46,12 +47,13 @@ pub struct Entity {
 
     pub pos: AbsolutePosition,
     pub health: i8,
+
     // TODO: AI. Roughly should be a type that tries a sequence of actions, and on success may mutate its own clone and return the FloorUpdate.
     // Should not be wrapped in Option. A "NullAI" should just wait in place forever.
 
-    // TODO: Simple flag for player control. Not mutually exclusive with AI.
+    // Not mutually exclusive with AI.
     // Eg you might switch between controlling entities, or temporarily take control of one.
-    // pub is_player_controlled: bool,
+    pub is_player_controlled: bool,
 }
 
 impl Entity {

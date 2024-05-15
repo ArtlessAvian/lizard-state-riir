@@ -153,6 +153,7 @@ impl CommandTrait for Archived<DoubleHitFollowup> {
 fn double_hit() {
     use crate::{
         entity::{EntityId, EntityState},
+        floor::TurntakingError,
         positional::AbsolutePosition,
     };
 
@@ -168,17 +169,19 @@ fn double_hit() {
             },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
+            is_player_controlled: true,
         })
     });
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
             state: EntityState::Ok {
-                next_turn: 0,
+                next_turn: 100,
                 queued_command: None,
             },
             pos: AbsolutePosition::new(1, 0),
             health: 0,
+            is_player_controlled: true,
         })
     });
     update = update.bind(|floor| {
@@ -191,10 +194,12 @@ fn double_hit() {
     });
     update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
 
-    update.get_contents().take_npc_turn().unwrap_err();
+    assert_eq!(
+        update.get_contents().take_npc_turn().err(),
+        Some(TurntakingError::PlayerTurn { who: player_id })
+    );
 
-    let (floor, log) = update.into_both();
-    dbg!(floor);
+    let (_, log) = update.into_both();
     assert_eq!(
         log.into_iter()
             .filter(|x| matches!(x, FloorEvent::StartAttack(_) | FloorEvent::AttackHit(_)))

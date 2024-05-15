@@ -20,6 +20,12 @@ use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 use crate::writer::Writer;
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum TurntakingError {
+    PlayerTurn { who: EntityId },
+    NoTurntakers,
+}
+
 // TODO: Move this into the actions module?
 // TODO: Also consider aliasing `EntityUpdate` to `Writer<Entity, FloorEvent>` or `Writer<Vec<Entity>, FloorEvent>`
 // HOWEVER. Do not do `Writer<(&Floor, Vec<Entity>), FloorEvent>` to allow lazy Floor::update_entities.
@@ -221,11 +227,10 @@ impl Floor {
     // Maybe we can make it impossible to call `do_action` unless you're the floor.
     // Also maybe we wrap EntityId with something to signify its their turn.
     // This again raises the question, does it need to be your turn to run a Command?
-    #[allow(clippy::result_unit_err)]
-    pub fn take_npc_turn(&self) -> Result<FloorUpdate, ()> {
+    pub fn take_npc_turn(&self) -> Result<FloorUpdate, TurntakingError> {
         let next_id = self.get_next_entity();
         if next_id.is_none() {
-            return Result::Err(());
+            return Result::Err(TurntakingError::NoTurntakers);
         }
         let next_id = next_id.unwrap();
 
@@ -244,10 +249,8 @@ impl Floor {
             _ => {}
         }
 
-        // hardcoded player.
-        // TODO: unhardcode. currently hacky behavior with default.
-        if next_id == EntityId::default() {
-            return Result::Err(());
+        if self.entities[next_id].is_player_controlled {
+            return Result::Err(TurntakingError::PlayerTurn { who: next_id });
         }
 
         // TODO: do something interesting
@@ -282,6 +285,7 @@ fn serialize_deserialize() {
             state: crate::entity::EntityState::Hitstun,
             pos: AbsolutePosition::new(101, 101),
             health: 103,
+            is_player_controlled: false,
         })
         .0
         .into_both()

@@ -84,7 +84,7 @@ impl Floor {
     }
 
     #[func]
-    pub fn add_entity_at(&mut self, pos: Vector2i) -> Gd<EntityId> {
+    pub fn add_entity_at(&mut self, pos: Vector2i, is_player_controlled: bool) -> Gd<EntityId> {
         let (update, id) = self.floor.add_entity(EntityInternal {
             id: Default::default(),
             state: EntityState::Ok {
@@ -93,6 +93,7 @@ impl Floor {
             },
             pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,
+            is_player_controlled,
         });
 
         let (next, log) = update.into_both();

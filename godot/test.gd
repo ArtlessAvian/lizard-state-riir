@@ -20,11 +20,11 @@ func _ready():
 	($WorldSkew/Map as GridMap).clear()
 	($WorldSkew/MapHistory as GridMap).clear()
 
-	player_id = floor.add_entity_at(Vector2i.ZERO)
+	player_id = floor.add_entity_at(Vector2i.ZERO, true)
 	id_to_node[player_id] = %Entity
 
-	floor.add_entity_at(Vector2i(-3, 0))
-	floor.add_entity_at(Vector2i(-3, -1))
+	floor.add_entity_at(Vector2i(-3, 0), false)
+	floor.add_entity_at(Vector2i(-3, -1), false)
 	desynced_from_floor = true
 
 

@@ -294,6 +294,7 @@ fn bump_test() {
             },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
+            is_player_controlled: false,
         })
     });
     (update, other_id) = update.bind_with_side_output(|floor| {
@@ -305,6 +306,7 @@ fn bump_test() {
             },
             pos: AbsolutePosition::new(1, 0),
             health: 0,
+            is_player_controlled: false,
         })
     });
     update = update.bind(|floor| {
@@ -341,6 +343,7 @@ fn bump_test() {
 fn goto_test() {
     use crate::{
         entity::{EntityId, EntityState},
+        floor::TurntakingError,
         positional::AbsolutePosition,
     };
 
@@ -355,6 +358,7 @@ fn goto_test() {
             },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
+            is_player_controlled: true,
         })
     });
     update = update.bind(|floor| {
@@ -370,7 +374,10 @@ fn goto_test() {
     update = update.bind(|floor| floor.take_npc_turn().unwrap());
     update = update.bind(|floor| floor.take_npc_turn().unwrap());
 
-    let (floor, log) = update.into_both();
-    floor.take_npc_turn().unwrap_err();
+    let (floor, _) = update.into_both();
+    assert_eq!(
+        floor.take_npc_turn().err(),
+        Some(TurntakingError::PlayerTurn { who: player_id })
+    );
     assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 3))
 }
