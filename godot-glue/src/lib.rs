@@ -88,7 +88,7 @@ impl Floor {
         let (update, id) = self.floor.add_entity(EntityInternal {
             id: Default::default(),
             state: EntityState::Ok {
-                next_turn: 0, // TODO: set to the floor's current time.
+                next_turn: self.floor.get_current_turn(),
                 queued_command: None,
             },
             pos: AbsolutePosition::new(pos.x, pos.y),

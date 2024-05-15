@@ -208,6 +208,13 @@ impl Floor {
             .map(|e| e.id);
     }
 
+    // If there are no turntaking entities, the next turn can safely be 0 without "going back in time".
+    pub fn get_current_turn(&self) -> u32 {
+        self.get_next_entity()
+            .and_then(|e| self.entities[e].get_next_turn())
+            .unwrap_or(0)
+    }
+
     // TODO: Make an error enum. Figure out where to scope it lol.
     // Also this just generally feels bad/inconsistent as an API?
     // To make player turns (with no checking if its your turn???), you [do whatever and] get a CommandTrait, and execute it on the floor.

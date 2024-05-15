@@ -62,10 +62,7 @@ impl CommandTrait for DoubleHitCommand {
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         subject_clone.state = EntityState::Ok {
-            next_turn: subject_clone
-                .get_next_turn()
-                .expect("entity is current turn taker")
-                + 1,
+            next_turn: floor.get_current_turn() + 1,
             queued_command: Some(Rc::new(DoubleHitFollowup {
                 dir: self.dir,
                 subject_id: subject_clone.id,
@@ -115,10 +112,7 @@ impl CommandTrait for DoubleHitFollowup {
 
         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
-            next_turn: subject_clone
-                .get_next_turn()
-                .expect("entity is current turn taker")
-                + 1,
+            next_turn: floor.get_current_turn() + 1,
             queued_command: None,
         };
 
