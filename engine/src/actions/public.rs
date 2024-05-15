@@ -76,7 +76,10 @@ impl CommandTrait for StepCommand {
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
-        *subject_clone.next_turn.as_mut().unwrap() += 1;
+        subject_clone.state = EntityState::Ok {
+            next_turn: subject_clone.get_next_turn().unwrap() + 1,
+            queued_command: None,
+        };
 
         update = update.log(FloorEvent::Move(MoveEvent {
             subject: subject_clone.id,
@@ -128,7 +131,10 @@ impl CommandTrait for BumpCommand {
         let mut update = BorrowedFloorUpdate::new(floor);
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
-        *subject_clone.next_turn.as_mut().unwrap() += 1;
+        subject_clone.state = EntityState::Ok {
+            next_turn: subject_clone.get_next_turn().unwrap() + 1,
+            queued_command: None,
+        };
 
         update = update.log(FloorEvent::StartAttack(StartAttackEvent {
             subject: subject_clone.id,
@@ -227,6 +233,9 @@ impl CommandTrait for GotoCommand {
                 // Even when pathfinding is implemented, a failed step should probably mean to stop.
                 let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
                 subject_clone.state = EntityState::Ok {
+                    next_turn: subject_clone
+                        .get_next_turn()
+                        .expect("entity is current turn taker"),
                     queued_command: None,
                 };
                 floor.update_entity(Rc::new(subject_clone))
@@ -238,12 +247,18 @@ impl CommandTrait for GotoCommand {
                     if floor.entities[self.subject_id].pos != self.tile {
                         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
                         subject_clone.state = EntityState::Ok {
+                            next_turn: subject_clone
+                                .get_next_turn()
+                                .expect("entity is current turn taker"),
                             queued_command: Some(Rc::new(self.clone())),
                         };
                         floor.update_entity(Rc::new(subject_clone))
                     } else {
                         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
                         subject_clone.state = EntityState::Ok {
+                            next_turn: subject_clone
+                                .get_next_turn()
+                                .expect("entity is current turn taker"),
                             queued_command: None,
                         };
                         floor.update_entity(Rc::new(subject_clone))
@@ -279,8 +294,8 @@ fn bump_test() {
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            next_turn: Some(0),
             state: EntityState::Ok {
+                next_turn: 0,
                 queued_command: None,
             },
             pos: AbsolutePosition::new(0, 0),
@@ -290,8 +305,8 @@ fn bump_test() {
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            next_turn: Some(0),
             state: EntityState::Ok {
+                next_turn: 0,
                 queued_command: None,
             },
             pos: AbsolutePosition::new(1, 0),
@@ -340,8 +355,8 @@ fn goto_test() {
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            next_turn: Some(0),
             state: EntityState::Ok {
+                next_turn: 0,
                 queued_command: None,
             },
             pos: AbsolutePosition::new(0, 0),

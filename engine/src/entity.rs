@@ -37,14 +37,13 @@ impl From<EntityId> for i32 {
 pub struct Entity {
     // TODO: Try removing. Anywhere where this would've been read, (presumably) the caller could have had indirect access, so pass around (Id, Entity) pairs.
     pub id: EntityId,
-    // TODO: Try moving into state.
-    // The two are highly correlated, and changing one usually implies something about the other.
-    // (EG: Doing a move, queued or not, should usually unset the queued move.)
-    // (EG: Being dead means you are not participating in turntaking. (Consequently we don't need to wrap in Option anymore.))
-    // (EG: Taking a hit unqueues your move AND delays your next action.)
-    pub next_turn: Option<u8>,
 
+    // Turntaking and state are highly correlated, and changing one usually implies something about the other.
+    // EG: Doing a move, queued or not, should usually unset the queued move.
+    // EG: Being dead means you are not participating in turntaking.
+    // EG: Taking a hit puts you in hitstun, (unqueues your move if in ok state) AND delays your next action.
     pub state: EntityState,
+
     pub pos: AbsolutePosition,
     pub health: i8,
     // TODO: AI. Roughly should be a type that tries a sequence of actions, and on success may mutate its own clone and return the FloorUpdate.
@@ -58,6 +57,15 @@ pub struct Entity {
 impl Entity {
     pub fn get_actions() -> Box<dyn ActionTrait> {
         Box::new(NullAction {})
+    }
+
+    pub fn get_next_turn(&self) -> Option<u32> {
+        match self.state {
+            EntityState::Ok { next_turn, .. } => Some(next_turn),
+            EntityState::Hitstun => todo!(),
+            EntityState::Knockdown => todo!(),
+            EntityState::Dead => None,
+        }
     }
 }
 
@@ -151,6 +159,7 @@ impl<'a> IntoIterator for &'a mut EntitySet {
 #[archive_attr(derive(Debug))]
 pub enum EntityState {
     Ok {
+        next_turn: u32,
         /// On your turn, automatically runs this command.
         // Rc for Clone.
         queued_command: Option<Rc<dyn SerializeCommandTrait>>,

@@ -203,8 +203,8 @@ impl Floor {
         return self
             .entities
             .iter()
-            .filter(|e| e.next_turn.is_some())
-            .min_by_key(|e| e.next_turn)
+            .filter(|e| e.get_next_turn().is_some())
+            .min_by_key(|e| e.get_next_turn())
             .map(|e| e.id);
     }
 
@@ -226,11 +226,13 @@ impl Floor {
         match &self.entities[next_id].state {
             crate::entity::EntityState::Ok {
                 queued_command: Some(queued),
+                ..
             } => {
                 return Ok(queued.do_action(self));
             }
             crate::entity::EntityState::Ok {
                 queued_command: None,
+                ..
             } => {}
             _ => {}
         }
@@ -270,7 +272,6 @@ fn serialize_deserialize() {
     let floor = floor
         .add_entity(Entity {
             id: EntityId::default(),
-            next_turn: Some(100),
             state: crate::entity::EntityState::Hitstun,
             pos: AbsolutePosition::new(101, 101),
             health: 103,

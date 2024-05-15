@@ -87,8 +87,8 @@ impl Floor {
     pub fn add_entity_at(&mut self, pos: Vector2i) -> Gd<EntityId> {
         let (update, id) = self.floor.add_entity(EntityInternal {
             id: Default::default(),
-            next_turn: Some(0),
             state: EntityState::Ok {
+                next_turn: 0, // TODO: set to the floor's current time.
                 queued_command: None,
             },
             pos: AbsolutePosition::new(pos.x, pos.y),

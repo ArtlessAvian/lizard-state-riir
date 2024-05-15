@@ -62,12 +62,15 @@ impl CommandTrait for DoubleHitCommand {
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         subject_clone.state = EntityState::Ok {
+            next_turn: subject_clone
+                .get_next_turn()
+                .expect("entity is current turn taker")
+                + 1,
             queued_command: Some(Rc::new(DoubleHitFollowup {
                 dir: self.dir,
                 subject_id: subject_clone.id,
             })),
         };
-        *subject_clone.next_turn.as_mut().unwrap() += 1;
 
         update = update.log(FloorEvent::StartAttack(StartAttackEvent {
             subject: subject_clone.id,
@@ -112,9 +115,12 @@ impl CommandTrait for DoubleHitFollowup {
 
         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
+            next_turn: subject_clone
+                .get_next_turn()
+                .expect("entity is current turn taker")
+                + 1,
             queued_command: None,
         };
-        *subject_clone.next_turn.as_mut().unwrap() += 1;
 
         if let Some(&object_index) = floor.occupiers.get(&(subject_clone.pos + self.dir)) {
             let object_ref = &floor.entities[object_index];
@@ -162,8 +168,8 @@ fn double_hit() {
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            next_turn: Some(0),
             state: EntityState::Ok {
+                next_turn: 0,
                 queued_command: None,
             },
             pos: AbsolutePosition::new(0, 0),
@@ -173,8 +179,8 @@ fn double_hit() {
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            next_turn: None,
             state: EntityState::Ok {
+                next_turn: 0,
                 queued_command: None,
             },
             pos: AbsolutePosition::new(1, 0),
