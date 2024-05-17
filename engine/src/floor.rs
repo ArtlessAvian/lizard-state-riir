@@ -36,6 +36,23 @@ pub type UnitUpdate = Writer<(), FloorEvent>;
 pub type FloorUpdate = Writer<Floor, FloorEvent>;
 pub type BorrowedFloorUpdate<'a> = Writer<&'a Floor, FloorEvent>;
 
+// Proposal:
+// Systems enforce invariants and process data. (See existing FloorMapVision.)
+// Floor does not implement FloorSystem since it takes ownership unlike systems.
+// The generic lets systems read from other systems. Cycles of systems will be impossible to write.
+// TODO: Iron out the arguments. Also Floor's arguments. Also wrap in Result?
+// TODO: Make systems mutable? Use &mut self for arguments and return &mut Self.
+// trait FloorSystem<OtherSystems>: Sized {
+//     fn add_entity(&self, new: &Rc<Entity>, other: OtherSystems) -> Writer<Self, FloorEvent>;
+//     fn set_map(&self, map: FloorMap, other: OtherSystems) -> Writer<Self, FloorEvent>;
+//     fn update_entity(&self, new: &Rc<Entity>, other: OtherSystems) -> Writer<Self, FloorEvent>;
+//     fn update_entities(
+//         &self,
+//         new_set: &[Rc<Entity>],
+//         other: OtherSystems,
+//     ) -> Writer<Self, FloorEvent>;
+// }
+
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct Floor {
@@ -44,6 +61,9 @@ pub struct Floor {
     pub entities: EntitySet,
     pub occupiers: HashMap<AbsolutePosition, EntityId>,
     pub map: FloorMap,
+
+    // TODO: Wrap current behavior with inner class?
+    // Outer class/enum can select between this or a full vision mode. (or literally nothing? for testing?)
     pub vision: Option<FloorMapVision>,
 }
 
