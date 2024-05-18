@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dront5dt74xm8"
-path="res://.godot/imported/tegu.png-0cf57d5f3322f3d0cd304482c5333229.ctex"
+path="res://.godot/imported/tegu.png-84746b86f4876f90c799f3b57169d6e6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://tegu.png"
-dest_files=["res://.godot/imported/tegu.png-0cf57d5f3322f3d0cd304482c5333229.ctex"]
+source_file="res://Crawler/FloorView/tegu.png"
+dest_files=["res://.godot/imported/tegu.png-84746b86f4876f90c799f3b57169d6e6.ctex"]
 
 [params]
 
