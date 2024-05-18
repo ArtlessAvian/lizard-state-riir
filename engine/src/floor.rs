@@ -255,17 +255,11 @@ impl Floor {
         let next_id = next_id.unwrap();
 
         // Return early depending on state.
+        #[allow(clippy::single_match)]
         match &self.entities[next_id].state {
-            crate::entity::EntityState::Ok {
-                queued_command: Some(queued),
-                ..
-            } => {
-                return Ok(queued.do_action(self));
+            crate::entity::EntityState::Committed { queued_command, .. } => {
+                return Ok(queued_command.do_action(self));
             }
-            crate::entity::EntityState::Ok {
-                queued_command: None,
-                ..
-            } => {}
             _ => {}
         }
 
@@ -298,11 +292,16 @@ impl Default for Floor {
 fn serialize_deserialize() {
     use rkyv::ser::{serializers::AllocSerializer, Serializer};
 
+    use crate::entity::EntityState;
+
     let floor = Floor::new();
     let floor = floor
         .add_entity(Entity {
             id: EntityId::default(),
-            state: crate::entity::EntityState::Hitstun,
+            state: EntityState::Hitstun {
+                next_turn: 100,
+                extensions: 3,
+            },
             pos: AbsolutePosition::new(101, 101),
             health: 103,
             is_player_controlled: false,

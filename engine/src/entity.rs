@@ -64,8 +64,10 @@ impl Entity {
     pub fn get_next_turn(&self) -> Option<u32> {
         match self.state {
             EntityState::Ok { next_turn, .. } => Some(next_turn),
-            EntityState::Hitstun => todo!(),
-            EntityState::Knockdown => todo!(),
+            EntityState::Committed { next_turn, .. } => Some(next_turn),
+            EntityState::ConfirmCommand { next_turn, .. } => Some(next_turn),
+            EntityState::Hitstun { next_turn, .. } => Some(next_turn),
+            EntityState::Knockdown { next_turn, .. } => Some(next_turn),
             EntityState::Dead => None,
         }
     }
@@ -156,21 +158,50 @@ impl<'a> IntoIterator for &'a mut EntitySet {
 }
 
 /// Logicless container of info.
-// TODO: Consider moving turn taking into this?
+// TODO: Maybe split into ALIVE and DEAD.
+//       ALIVE would contain next_turn, health, and a further breakdown of state.
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum EntityState {
     Ok {
         next_turn: u32,
-        /// On your turn, automatically runs this command.
-        // Rc for Clone.
-        queued_command: Option<Rc<dyn SerializeCommandTrait>>,
-        // TODO: Extra actions? (Previously, confirmed actions, but may be more than one. Can choose to *not* use the action.)
-        // TODO: Restricted actions? (The next action *must* be within a set.)
-        //       One must be guaranteed infallible to prevent softlock.
-        // queued_command and these two probably belong in an enum, since they are mutually exclusive.
     },
-    Hitstun,
-    Knockdown,
+    /// On the entities next turn, run `queued_command` automatically.
+    /// When the entity is hit, it becomes a counterhit.
+    Committed {
+        next_turn: u32,
+        // Rc for Clone.
+        queued_command: Rc<dyn SerializeCommandTrait>,
+    },
+    /// On the entities next turn, the entity may choose to run this command.
+    /// Does *NOT* grant counterhit status.
+    // TODO: Think if counterhit should be its own enum/bool.
+    // TODO: There is a use for confirming one of a set of actions, with counterhit status.
+    //       Think about if this is here only to enable "macros." Maybe the caller should
+    //       just hold on to the command and repeat it, rather than the command
+    //       requeueing itself.
+    ConfirmCommand {
+        next_turn: u32,
+        to_confirm: Rc<dyn SerializeCommandTrait>,
+    },
+    // Restricted {
+    //     next_turn: u32,
+    //     // On the entities next turn, action must be chosen from a set.
+    //     // restricted_actions: (),
+    //     // allow_wait: bool,
+    //     // allow_step: bool, // and so on?
+    // },
+
+    // Inactionable states below.
+    /// On next turn, go into knockdown.
+    /// If hit in this state, next_turn gets extended.
+    /// If there are no more extensions, go into knockdown immediately.
+    Hitstun {
+        next_turn: u32,
+        extensions: u32, // Counts down to 0.
+    },
+    Knockdown {
+        next_turn: u32,
+    },
     Dead,
 }

@@ -61,12 +61,12 @@ impl CommandTrait for DoubleHitCommand {
         let mut dirty = Vec::new();
 
         let mut subject_clone: Entity = (*self.subject_ref).clone();
-        subject_clone.state = EntityState::Ok {
+        subject_clone.state = EntityState::Committed {
             next_turn: floor.get_current_turn() + 1,
-            queued_command: Some(Rc::new(DoubleHitFollowup {
+            queued_command: Rc::new(DoubleHitFollowup {
                 dir: self.dir,
                 subject_id: subject_clone.id,
-            })),
+            }),
         };
 
         update = update.log(FloorEvent::StartAttack(StartAttackEvent {
@@ -113,7 +113,6 @@ impl CommandTrait for DoubleHitFollowup {
         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn() + 1,
-            queued_command: None,
         };
 
         if let Some(&object_index) = floor.occupiers.get(&(subject_clone.pos + self.dir)) {
@@ -163,10 +162,7 @@ fn double_hit() {
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            state: EntityState::Ok {
-                next_turn: 0,
-                queued_command: None,
-            },
+            state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
             is_player_controlled: true,
@@ -175,10 +171,7 @@ fn double_hit() {
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            state: EntityState::Ok {
-                next_turn: 100,
-                queued_command: None,
-            },
+            state: EntityState::Ok { next_turn: 100 },
             pos: AbsolutePosition::new(1, 0),
             health: 0,
             is_player_controlled: true,

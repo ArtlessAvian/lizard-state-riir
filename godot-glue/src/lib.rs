@@ -89,7 +89,6 @@ impl Floor {
             id: Default::default(),
             state: EntityState::Ok {
                 next_turn: self.floor.get_current_turn(),
-                queued_command: None,
             },
             pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,

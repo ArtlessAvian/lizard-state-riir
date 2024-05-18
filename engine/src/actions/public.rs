@@ -78,7 +78,6 @@ impl CommandTrait for StepCommand {
         subject_clone.pos = subject_clone.pos + self.dir;
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn() + 1,
-            queued_command: None,
         };
 
         update = update.log(FloorEvent::Move(MoveEvent {
@@ -133,7 +132,6 @@ impl CommandTrait for BumpCommand {
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn() + 1,
-            queued_command: None,
         };
 
         update = update.log(FloorEvent::StartAttack(StartAttackEvent {
@@ -234,7 +232,6 @@ impl CommandTrait for GotoCommand {
                 let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
                 subject_clone.state = EntityState::Ok {
                     next_turn: floor.get_current_turn(),
-                    queued_command: None,
                 };
                 floor.update_entity(Rc::new(subject_clone))
             }
@@ -244,16 +241,15 @@ impl CommandTrait for GotoCommand {
                 update.bind(|floor| {
                     if floor.entities[self.subject_id].pos != self.tile {
                         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
-                        subject_clone.state = EntityState::Ok {
+                        subject_clone.state = EntityState::ConfirmCommand {
                             next_turn: floor.get_current_turn(),
-                            queued_command: Some(Rc::new(self.clone())),
+                            to_confirm: Rc::new(self.clone()),
                         };
                         floor.update_entity(Rc::new(subject_clone))
                     } else {
                         let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
                         subject_clone.state = EntityState::Ok {
                             next_turn: floor.get_current_turn(),
-                            queued_command: None,
                         };
                         floor.update_entity(Rc::new(subject_clone))
                     }
@@ -288,10 +284,7 @@ fn bump_test() {
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            state: EntityState::Ok {
-                next_turn: 0,
-                queued_command: None,
-            },
+            state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
             is_player_controlled: false,
@@ -300,10 +293,7 @@ fn bump_test() {
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            state: EntityState::Ok {
-                next_turn: 0,
-                queued_command: None,
-            },
+            state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(1, 0),
             health: 0,
             is_player_controlled: false,
@@ -343,7 +333,6 @@ fn bump_test() {
 fn goto_test() {
     use crate::{
         entity::{EntityId, EntityState},
-        floor::TurntakingError,
         positional::AbsolutePosition,
     };
 
@@ -352,10 +341,7 @@ fn goto_test() {
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             id: EntityId::default(),
-            state: EntityState::Ok {
-                next_turn: 0,
-                queued_command: None,
-            },
+            state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
             is_player_controlled: true,
@@ -369,15 +355,24 @@ fn goto_test() {
         .unwrap()
         .do_action(&floor)
     });
-    update = update.bind(|floor| floor.take_npc_turn().unwrap());
-    update = update.bind(|floor| floor.take_npc_turn().unwrap());
-    update = update.bind(|floor| floor.take_npc_turn().unwrap());
-    update = update.bind(|floor| floor.take_npc_turn().unwrap());
+
+    let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
+        EntityState::ConfirmCommand { to_confirm, .. } => to_confirm.do_action(&floor),
+        _ => panic!(
+            "Expected ConfirmCommand state. Got value: {:?}",
+            floor.entities[player_id].state
+        ),
+    };
+
+    update = update.bind(confirm_command);
+    update = update.bind(confirm_command);
+    update = update.bind(confirm_command);
+    update = update.bind(confirm_command);
 
     let (floor, _) = update.into_both();
-    assert_eq!(
-        floor.take_npc_turn().err(),
-        Some(TurntakingError::PlayerTurn { who: player_id })
-    );
+    assert!(matches!(
+        floor.entities[player_id].state,
+        EntityState::Ok { next_turn: 5 }
+    ));
     assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 3))
 }
