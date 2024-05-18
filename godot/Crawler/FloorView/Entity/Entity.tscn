@@ -1,0 +1,56 @@
+[gd_scene load_steps=9 format=3 uid="uid://26cefkj35wuf"]
+
+[ext_resource type="Script" path="res://Crawler/FloorView/Entity/DiscardBasis.gd" id="1_dh5rl"]
+[ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="2_sqxtn"]
+[ext_resource type="Script" path="res://Crawler/FloorView/Entity/DamagePopup.gd" id="3_vuf35"]
+[ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://Crawler/FloorView/Entity/tegu.png" id="4_w7ppg"]
+[ext_resource type="Script" path="res://Crawler/FloorView/Entity/EntitySprite.gd" id="5_jvxk3"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_31piw"]
+atlas = ExtResource("4_w7ppg")
+region = Rect2(0, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pip4u"]
+atlas = ExtResource("4_w7ppg")
+region = Rect2(0, 40, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_er8p6"]
+atlas = ExtResource("4_w7ppg")
+region = Rect2(0, 80, 40, 40)
+
+[node name="Entity" type="Node3D"]
+
+[node name="DiscardBasis" type="Node3D" parent="."]
+top_level = true
+script = ExtResource("1_dh5rl")
+
+[node name="DamagePopup" type="Label3D" parent="DiscardBasis"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.021, 0, 0)
+visible = false
+layers = 2
+pixel_size = 0.0417
+offset = Vector2(0, 24)
+billboard = 1
+texture_filter = 0
+render_priority = 2
+outline_render_priority = 1
+modulate = Color(1, 0, 0, 1)
+text = "-1"
+font = ExtResource("2_sqxtn")
+font_size = 8
+outline_size = 4
+script = ExtResource("3_vuf35")
+
+[node name="Perspective" type="Camera3D" parent="DiscardBasis"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="Sprite3D" type="Sprite3D" parent="DiscardBasis"]
+offset = Vector2(0, 15)
+pixel_size = 0.0417
+billboard = 1
+texture_filter = 0
+texture = SubResource("AtlasTexture_31piw")
+script = ExtResource("5_jvxk3")
+towards = SubResource("AtlasTexture_31piw")
+right = SubResource("AtlasTexture_pip4u")
+away = SubResource("AtlasTexture_er8p6")

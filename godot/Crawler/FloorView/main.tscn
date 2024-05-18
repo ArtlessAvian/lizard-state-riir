@@ -1,13 +1,9 @@
-[gd_scene load_steps=20 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=13 format=3 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" path="res://Crawler/FloorView/test.gd" id="1_7s6h2"]
 [ext_resource type="Script" path="res://Crawler/FloorView/FloorCamera.gd" id="2_0g4sw"]
-[ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://Crawler/FloorView/tegu.png" id="2_sn4vf"]
 [ext_resource type="Shader" path="res://Crawler/FloorView/grid.gdshader" id="3_ebqio"]
-[ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="4_7waja"]
-[ext_resource type="Script" path="res://Crawler/FloorView/DiscardBasis.gd" id="4_mi30g"]
-[ext_resource type="Script" path="res://Crawler/FloorView/DamagePopup.gd" id="5_fs18x"]
-[ext_resource type="Script" path="res://Crawler/FloorView/EntitySprite.gd" id="6_7r5ow"]
+[ext_resource type="PackedScene" uid="uid://26cefkj35wuf" path="res://Crawler/FloorView/Entity/Entity.tscn" id="5_xabx7"]
 [ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
 [ext_resource type="Shader" path="res://Crawler/FloorView/dither.gdshader" id="9_mwgub"]
 
@@ -43,18 +39,6 @@ item/1/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 item/1/shapes = []
 item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 item/1/navigation_layers = 1
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_31piw"]
-atlas = ExtResource("2_sn4vf")
-region = Rect2(0, 0, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_pip4u"]
-atlas = ExtResource("2_sn4vf")
-region = Rect2(0, 40, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_er8p6"]
-atlas = ExtResource("2_sn4vf")
-region = Rect2(0, 80, 40, 40)
 
 [node name="Floor" type="Node3D"]
 script = ExtResource("1_7s6h2")
@@ -98,43 +82,8 @@ data = {
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="Entity" type="Node3D" parent="WorldSkew/Map"]
+[node name="Entity" parent="WorldSkew/Map" instance=ExtResource("5_xabx7")]
 unique_name_in_owner = true
-
-[node name="DiscardBasis" type="Node3D" parent="WorldSkew/Map/Entity"]
-top_level = true
-script = ExtResource("4_mi30g")
-
-[node name="DamagePopup" type="Label3D" parent="WorldSkew/Map/Entity/DiscardBasis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.021, 0, 0)
-visible = false
-layers = 2
-pixel_size = 0.0417
-offset = Vector2(0, 24)
-billboard = 1
-texture_filter = 0
-render_priority = 2
-outline_render_priority = 1
-modulate = Color(1, 0, 0, 1)
-text = "-1"
-font = ExtResource("4_7waja")
-font_size = 8
-outline_size = 4
-script = ExtResource("5_fs18x")
-
-[node name="Perspective" type="Camera3D" parent="WorldSkew/Map/Entity/DiscardBasis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-
-[node name="Sprite3D" type="Sprite3D" parent="WorldSkew/Map/Entity/DiscardBasis"]
-offset = Vector2(0, 15)
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-texture = SubResource("AtlasTexture_31piw")
-script = ExtResource("6_7r5ow")
-towards = SubResource("AtlasTexture_31piw")
-right = SubResource("AtlasTexture_pip4u")
-away = SubResource("AtlasTexture_er8p6")
 
 [node name="MapHistory" type="GridMap" parent="WorldSkew"]
 editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
