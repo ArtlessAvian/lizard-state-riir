@@ -20,30 +20,29 @@ use crate::positional::RelativePosition;
 
 use super::events::AttackHitEvent;
 use super::events::StartAttackEvent;
-use super::ActionTrait;
 use super::CommandTrait;
+use super::DirectionActionTrait;
 use super::FloorEvent;
 
 // Hits once, then queues another.
 #[derive(Debug)]
-pub struct DoubleHitAction {
-    pub dir: RelativePosition,
-}
+pub struct DoubleHitAction;
 
-impl ActionTrait for DoubleHitAction {
+impl DirectionActionTrait for DoubleHitAction {
     fn verify_action(
         &self,
         floor: &Floor,
         subject_ref: &Rc<Entity>,
+        dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
         assert!(floor.entities.contains(subject_ref));
 
-        if self.dir.length() > 1 {
+        if dir.length() > 1 {
             return None;
         }
 
         Some(Box::new(DoubleHitCommand {
-            dir: self.dir,
+            dir,
             subject_ref: Rc::clone(subject_ref),
         }))
     }
@@ -179,12 +178,14 @@ fn double_hit() {
         })
     });
     update = update.bind(|floor| {
-        DoubleHitAction {
-            dir: RelativePosition::new(1, 0),
-        }
-        .verify_action(&floor, &floor.entities[player_id])
-        .unwrap()
-        .do_action(&floor)
+        DoubleHitAction
+            .verify_action(
+                &floor,
+                &floor.entities[player_id],
+                RelativePosition::new(1, 0),
+            )
+            .unwrap()
+            .do_action(&floor)
     });
     update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
 
