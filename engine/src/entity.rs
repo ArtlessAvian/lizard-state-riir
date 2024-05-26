@@ -66,6 +66,7 @@ impl Entity {
             EntityState::Ok { next_turn, .. } => Some(next_turn),
             EntityState::Committed { next_turn, .. } => Some(next_turn),
             EntityState::ConfirmCommand { next_turn, .. } => Some(next_turn),
+            EntityState::RestrictedActions { next_turn, .. } => Some(next_turn),
             EntityState::Hitstun { next_turn, .. } => Some(next_turn),
             EntityState::Knockdown { next_turn, .. } => Some(next_turn),
             EntityState::Dead => None,
@@ -184,13 +185,11 @@ pub enum EntityState {
         next_turn: u32,
         to_confirm: Rc<dyn SerializeCommandTrait>,
     },
-    // Restricted {
-    //     next_turn: u32,
-    //     // On the entities next turn, action must be chosen from a set.
-    //     // restricted_actions: (),
-    //     // allow_wait: bool,
-    //     // allow_step: bool, // and so on?
-    // },
+    RestrictedActions {
+        next_turn: u32,
+        // On the entities next turn, action must be chosen from a set.
+        restricted_actions: Vec<UnaimedAction>,
+    },
 
     // Inactionable states below.
     /// On next turn, go into knockdown.

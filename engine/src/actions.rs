@@ -26,7 +26,8 @@ use crate::positional::RelativePosition;
 use self::events::FloorEvent;
 
 // Rc to allow cloning trait objects, also its cheap!
-#[derive(Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub enum UnaimedAction {
     None(Rc<dyn SerializeActionTrait>),
     Tile(Rc<dyn SerializeTileActionTrait>),
@@ -63,7 +64,7 @@ pub enum UnaimedAction {
 /// * If not, can actions/commands call each other?
 
 #[archive_dyn(deserialize)]
-pub trait ActionTrait {
+pub trait ActionTrait: Debug {
     fn verify_action(
         &self,
         floor: &Floor,
@@ -72,7 +73,7 @@ pub trait ActionTrait {
 }
 
 #[archive_dyn(deserialize)]
-pub trait TileActionTrait {
+pub trait TileActionTrait: Debug {
     fn verify_action(
         &self,
         floor: &Floor,
@@ -82,7 +83,7 @@ pub trait TileActionTrait {
 }
 
 #[archive_dyn(deserialize)]
-pub trait DirectionActionTrait {
+pub trait DirectionActionTrait: Debug {
     fn verify_action(
         &self,
         floor: &Floor,
@@ -112,8 +113,8 @@ pub trait CommandTrait: Debug {
 /// An action that never verifies to a command.
 ///
 /// This is preferable to a no-op command, since that would produce a new Floor.
-#[derive(Archive, Serialize, Deserialize)]
-#[archive_attr(derive(TypeName))]
+#[derive(Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug, TypeName))]
 pub struct NullAction {}
 
 #[archive_dyn(deserialize)]

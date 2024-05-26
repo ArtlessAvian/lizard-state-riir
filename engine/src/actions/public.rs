@@ -28,6 +28,7 @@ use super::FloorEvent;
 use super::TileActionTrait;
 
 /// Moves one space.
+#[derive(Debug)]
 pub struct StepAction;
 
 impl DirectionActionTrait for StepAction {
@@ -92,6 +93,7 @@ impl CommandTrait for StepCommand {
 /// Does some attack to someone one space away.
 ///
 /// Currently hardcoded to just subtract one health.
+#[derive(Debug)]
 pub struct BumpAction;
 
 impl DirectionActionTrait for BumpAction {
@@ -159,6 +161,7 @@ impl CommandTrait for BumpCommand {
 /// In order, tries to Bump, Walk, or no-op.
 ///
 /// TODO: Maybe move to a submodule.
+#[derive(Debug)]
 pub struct StepMacroAction;
 
 impl DirectionActionTrait for StepMacroAction {

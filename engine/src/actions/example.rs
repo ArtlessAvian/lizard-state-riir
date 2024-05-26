@@ -25,6 +25,7 @@ use super::CommandTrait;
 use super::FloorEvent;
 
 // Hits once, then queues another.
+#[derive(Debug)]
 pub struct DoubleHitAction {
     pub dir: RelativePosition,
 }
