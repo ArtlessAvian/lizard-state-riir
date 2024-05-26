@@ -10,13 +10,25 @@ use std::rc::Rc;
 
 use std::fmt::Debug;
 
+use rkyv::Archive;
+use rkyv::Archived;
+use rkyv::Deserialize;
+use rkyv::Serialize;
 use rkyv_dyn::archive_dyn;
+use rkyv_typename::TypeName;
 
 use crate::entity::Entity;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 
 use self::events::FloorEvent;
+
+// Rc to allow cloning trait objects, also its cheap!
+#[derive(Clone, Archive, Serialize, Deserialize)]
+pub enum UnaimedAction {
+    None(Rc<dyn SerializeActionTrait>),
+    // TODO: Add more traits and enum options for them!
+}
 
 /// An action, something that someone could do. Who and when is not defined.
 ///
@@ -47,6 +59,7 @@ use self::events::FloorEvent;
 /// * Consider if subject should **always** the floor's next turn taker.
 /// * If not, can actions/commands call each other?
 
+#[archive_dyn(deserialize)]
 pub trait ActionTrait {
     fn verify_action(
         &self,
@@ -76,8 +89,18 @@ pub trait CommandTrait: Debug {
 /// An action that never verifies to a command.
 ///
 /// This is preferable to a no-op command, since that would produce a new Floor.
+#[derive(Archive, Serialize, Deserialize)]
+#[archive_attr(derive(TypeName))]
 pub struct NullAction {}
+
+#[archive_dyn(deserialize)]
 impl ActionTrait for NullAction {
+    fn verify_action(&self, _: &Floor, _: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
+        None
+    }
+}
+
+impl ActionTrait for Archived<NullAction> {
     fn verify_action(&self, _: &Floor, _: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
         None
     }

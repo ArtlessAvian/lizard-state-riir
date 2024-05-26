@@ -6,9 +6,9 @@ use std::ops::Index;
 use std::ops::IndexMut;
 use std::rc::Rc;
 
-use crate::actions::ActionTrait;
 use crate::actions::NullAction;
 use crate::actions::SerializeCommandTrait;
+use crate::actions::UnaimedAction;
 use crate::positional::AbsolutePosition;
 
 /// An opaque index into an EntitySet.
@@ -57,8 +57,8 @@ pub struct Entity {
 }
 
 impl Entity {
-    pub fn get_actions() -> Box<dyn ActionTrait> {
-        Box::new(NullAction {})
+    pub fn get_actions() -> Vec<UnaimedAction> {
+        vec![UnaimedAction::None(Rc::new(NullAction {}))]
     }
 
     pub fn get_next_turn(&self) -> Option<u32> {
