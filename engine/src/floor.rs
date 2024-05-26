@@ -11,6 +11,7 @@ use std::rc::Rc;
 use crate::actions::events::FloorEvent;
 use crate::actions::public::StepAction;
 use crate::actions::ActionTrait;
+use crate::actions::DirectionActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntitySet;
@@ -268,12 +269,14 @@ impl Floor {
         }
 
         // TODO: do something interesting
-        let next_floor = StepAction {
-            dir: RelativePosition { dx: 0, dy: 0 },
-        }
-        .verify_action(self, &self.entities[next_id])
-        .expect("testing code")
-        .do_action(self);
+        let next_floor = StepAction
+            .verify_action(
+                self,
+                &self.entities[next_id],
+                RelativePosition { dx: 0, dy: 0 },
+            )
+            .expect("testing code")
+            .do_action(self);
 
         Result::Ok(next_floor)
     }

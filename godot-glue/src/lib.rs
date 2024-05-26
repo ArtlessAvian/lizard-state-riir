@@ -11,7 +11,9 @@ use engine::actions::public::StepAction;
 use engine::actions::public::StepMacroAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
+use engine::actions::DirectionActionTrait;
 use engine::actions::NullAction;
+use engine::actions::TileActionTrait;
 use engine::entity::Entity as EntityInternal;
 use engine::entity::EntityId as EntityIdInternal;
 use engine::entity::EntityState;
@@ -152,10 +154,8 @@ impl Floor {
     // engine::actions::public::* goes here.
 
     #[func]
-    pub fn get_step_action(&self, direction: Vector2i) -> Gd<Action> {
-        Action::new(Box::new(StepAction {
-            dir: RelativePosition::new(direction.x, direction.y),
-        }))
+    pub fn get_step_action(&self) -> Gd<DirectionAction> {
+        DirectionAction::new(Box::new(StepAction))
     }
 
     #[func]
@@ -265,6 +265,66 @@ impl Action {
         let verify_action = self
             .action
             .verify_action(&floor.bind().floor, subject_ref)?;
+        Some(Command::new(verify_action))
+    }
+}
+
+/// An opaque object containing an Action. Has no logic.
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct TileAction {
+    // Godot doesn't see this anyways.
+    action: Box<dyn TileActionTrait>,
+}
+
+#[godot_api]
+impl TileAction {
+    fn new(action: Box<dyn TileActionTrait>) -> Gd<Self> {
+        Gd::from_object(Self { action })
+    }
+
+    #[func]
+    fn to_command(
+        &self,
+        floor: Gd<Floor>,
+        subject: Gd<Entity>,
+        tile: crate::positional::AbsolutePosition,
+    ) -> Option<Gd<Command>> {
+        let binding = subject.bind();
+        let subject_ref = &binding.entity;
+        let verify_action =
+            self.action
+                .verify_action(&floor.bind().floor, subject_ref, tile.into())?;
+        Some(Command::new(verify_action))
+    }
+}
+
+/// An opaque object containing an Action. Has no logic.
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct DirectionAction {
+    // Godot doesn't see this anyways.
+    action: Box<dyn DirectionActionTrait>,
+}
+
+#[godot_api]
+impl DirectionAction {
+    fn new(action: Box<dyn DirectionActionTrait>) -> Gd<Self> {
+        Gd::from_object(Self { action })
+    }
+
+    #[func]
+    fn to_command(
+        &self,
+        floor: Gd<Floor>,
+        subject: Gd<Entity>,
+        dir: crate::positional::RelativePosition,
+    ) -> Option<Gd<Command>> {
+        let binding = subject.bind();
+        let subject_ref = &binding.entity;
+        let verify_action =
+            self.action
+                .verify_action(&floor.bind().floor, subject_ref, dir.into())?;
         Some(Command::new(verify_action))
     }
 }

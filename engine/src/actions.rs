@@ -20,6 +20,8 @@ use rkyv_typename::TypeName;
 use crate::entity::Entity;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::positional::AbsolutePosition;
+use crate::positional::RelativePosition;
 
 use self::events::FloorEvent;
 
@@ -27,7 +29,8 @@ use self::events::FloorEvent;
 #[derive(Clone, Archive, Serialize, Deserialize)]
 pub enum UnaimedAction {
     None(Rc<dyn SerializeActionTrait>),
-    // TODO: Add more traits and enum options for them!
+    Tile(Rc<dyn SerializeTileActionTrait>),
+    Direction(Rc<dyn SerializeDirectionActionTrait>),
 }
 
 /// An action, something that someone could do. Who and when is not defined.
@@ -65,6 +68,26 @@ pub trait ActionTrait {
         &self,
         floor: &Floor,
         subject_ref: &Rc<Entity>,
+    ) -> Option<Box<dyn CommandTrait>>;
+}
+
+#[archive_dyn(deserialize)]
+pub trait TileActionTrait {
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_ref: &Rc<Entity>,
+        tile: AbsolutePosition,
+    ) -> Option<Box<dyn CommandTrait>>;
+}
+
+#[archive_dyn(deserialize)]
+pub trait DirectionActionTrait {
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_ref: &Rc<Entity>,
+        dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>>;
 }
 

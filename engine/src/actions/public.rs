@@ -24,26 +24,27 @@ use super::events::MoveEvent;
 use super::events::StartAttackEvent;
 use super::ActionTrait;
 use super::CommandTrait;
+use super::DirectionActionTrait;
 use super::FloorEvent;
+use super::TileActionTrait;
 
 /// Moves one space.
-pub struct StepAction {
-    pub dir: RelativePosition,
-}
+pub struct StepAction;
 
-impl ActionTrait for StepAction {
+impl DirectionActionTrait for StepAction {
     fn verify_action(
         &self,
         floor: &Floor,
         subject_ref: &Rc<Entity>,
+        dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
         assert!(floor.entities.contains(subject_ref));
 
-        if self.dir.length() > 1 {
+        if dir.length() > 1 {
             return None;
         }
 
-        if !floor.map.is_tile_floor(&(subject_ref.pos + self.dir)) {
+        if !floor.map.is_tile_floor(&(subject_ref.pos + dir)) {
             return None;
         }
 
@@ -51,14 +52,14 @@ impl ActionTrait for StepAction {
         // or to waste a turn (check in command, no-op if occupied.)
         if floor
             .occupiers
-            .get(&(subject_ref.pos + self.dir))
+            .get(&(subject_ref.pos + dir))
             .is_some_and(|x| x != &subject_ref.id)
         {
             return None;
         }
 
         Some(Box::new(StepCommand {
-            dir: self.dir,
+            dir,
             subject_ref: Rc::clone(subject_ref),
         }))
     }
@@ -175,8 +176,8 @@ impl ActionTrait for StepMacroAction {
             return Some(command);
         }
 
-        let step = StepAction { dir: self.dir };
-        if let Some(command) = step.verify_action(floor, subject_ref) {
+        let step = StepAction;
+        if let Some(command) = step.verify_action(floor, subject_ref, self.dir) {
             return Some(command);
         }
 
@@ -214,14 +215,16 @@ pub struct GotoCommand {
 impl CommandTrait for GotoCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let subject_pos = floor.entities[self.subject_id].pos;
-        let step_action = StepAction {
+        let step_action = StepAction;
+        let verify_action = step_action.verify_action(
+            floor,
+            &floor.entities[self.subject_id],
             // TODO: Read from pathfinding.
-            dir: RelativePosition {
+            RelativePosition {
                 dx: (self.tile.x - subject_pos.x).clamp(-1, 1),
                 dy: (self.tile.y - subject_pos.y).clamp(-1, 1),
             },
-        };
-        let verify_action = step_action.verify_action(floor, &floor.entities[self.subject_id]);
+        );
 
         // HACK: this should go to EntityState::OK.extra_actions or something idk
 
