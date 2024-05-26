@@ -1,6 +1,6 @@
 use godot::prelude::*;
 
-#[derive(GodotConvert, Var)]
+#[derive(GodotConvert, Var, Debug)]
 #[godot(transparent)]
 pub struct RelativePosition {
     relative: Vector2i,
@@ -26,7 +26,7 @@ impl From<RelativePosition> for engine::positional::RelativePosition {
     }
 }
 
-#[derive(GodotConvert, Var)]
+#[derive(GodotConvert, Var, Debug)]
 #[godot(transparent)]
 pub struct AbsolutePosition {
     absolute: Vector2i,

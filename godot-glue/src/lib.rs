@@ -246,25 +246,16 @@ impl Entity {
 
 /// An opaque object containing an Action. Has no logic.
 #[derive(GodotClass)]
+#[class(no_init)]
 pub struct Action {
     // Godot doesn't see this anyways.
     action: Box<dyn ActionTrait>,
 }
 
 #[godot_api]
-impl IRefCounted for Action {
-    // Return a null action.
-    fn init(_base: Base<RefCounted>) -> Self {
-        Self {
-            action: Box::new(NullAction {}),
-        }
-    }
-}
-
-#[godot_api]
 impl Action {
     fn new(action: Box<dyn ActionTrait>) -> Gd<Self> {
-        Gd::from_init_fn(|_base| Self { action })
+        Gd::from_object(Self { action })
     }
 
     #[func]
