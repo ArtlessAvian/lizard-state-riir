@@ -12,14 +12,12 @@ use engine::actions::public::StepMacroAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::DirectionActionTrait;
-use engine::actions::NullAction;
 use engine::actions::TileActionTrait;
 use engine::entity::Entity as EntityInternal;
 use engine::entity::EntityId as EntityIdInternal;
 use engine::entity::EntityState;
 use engine::floor::Floor as FloorInternal;
 use engine::positional::AbsolutePosition;
-use engine::positional::RelativePosition;
 use events::FloorEvent;
 use godot::prelude::*;
 
@@ -159,24 +157,18 @@ impl Floor {
     }
 
     #[func]
-    pub fn get_bump_action(&self, direction: Vector2i) -> Gd<Action> {
-        Action::new(Box::new(BumpAction {
-            dir: RelativePosition::new(direction.x, direction.y),
-        }))
+    pub fn get_bump_action(&self) -> Gd<DirectionAction> {
+        DirectionAction::new(Box::new(BumpAction))
     }
 
     #[func]
-    pub fn get_step_macro_action(&self, direction: Vector2i) -> Gd<Action> {
-        Action::new(Box::new(StepMacroAction {
-            dir: RelativePosition::new(direction.x, direction.y),
-        }))
+    pub fn get_step_macro_action(&self) -> Gd<DirectionAction> {
+        DirectionAction::new(Box::new(StepMacroAction))
     }
 
     #[func]
-    pub fn get_goto_action(&self, absolute_position: Vector2i) -> Gd<Action> {
-        Action::new(Box::new(GotoAction {
-            tile: AbsolutePosition::new(absolute_position.x, absolute_position.y),
-        }))
+    pub fn get_goto_action(&self) -> Gd<TileAction> {
+        TileAction::new(Box::new(GotoAction))
     }
 }
 

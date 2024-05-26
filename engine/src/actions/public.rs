@@ -22,7 +22,6 @@ use crate::positional::RelativePosition;
 use super::events::AttackHitEvent;
 use super::events::MoveEvent;
 use super::events::StartAttackEvent;
-use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
@@ -93,28 +92,27 @@ impl CommandTrait for StepCommand {
 /// Does some attack to someone one space away.
 ///
 /// Currently hardcoded to just subtract one health.
-pub struct BumpAction {
-    pub dir: RelativePosition,
-}
+pub struct BumpAction;
 
-impl ActionTrait for BumpAction {
+impl DirectionActionTrait for BumpAction {
     fn verify_action(
         &self,
         floor: &Floor,
         subject_ref: &Rc<Entity>,
+        dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
         assert!(floor.entities.contains(subject_ref));
 
-        if self.dir.length() != 1 {
+        if dir.length() != 1 {
             return None;
         }
 
-        if !floor.occupiers.contains_key(&(subject_ref.pos + self.dir)) {
+        if !floor.occupiers.contains_key(&(subject_ref.pos + dir)) {
             return None;
         }
 
         Some(Box::new(BumpCommand {
-            dir: self.dir,
+            dir,
             subject_ref: Rc::clone(subject_ref),
         }))
     }
@@ -161,23 +159,22 @@ impl CommandTrait for BumpCommand {
 /// In order, tries to Bump, Walk, or no-op.
 ///
 /// TODO: Maybe move to a submodule.
-pub struct StepMacroAction {
-    pub dir: RelativePosition,
-}
+pub struct StepMacroAction;
 
-impl ActionTrait for StepMacroAction {
+impl DirectionActionTrait for StepMacroAction {
     fn verify_action(
         &self,
         floor: &Floor,
         subject_ref: &Rc<Entity>,
+        dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        let bump = BumpAction { dir: self.dir };
-        if let Some(command) = bump.verify_action(floor, subject_ref) {
+        let bump = BumpAction;
+        if let Some(command) = bump.verify_action(floor, subject_ref, dir) {
             return Some(command);
         }
 
         let step = StepAction;
-        if let Some(command) = step.verify_action(floor, subject_ref, self.dir) {
+        if let Some(command) = step.verify_action(floor, subject_ref, dir) {
             return Some(command);
         }
 
@@ -186,19 +183,18 @@ impl ActionTrait for StepMacroAction {
 }
 
 #[derive(Debug)]
-pub struct GotoAction {
-    pub tile: AbsolutePosition,
-}
+pub struct GotoAction;
 
-impl ActionTrait for GotoAction {
+impl TileActionTrait for GotoAction {
     fn verify_action(
         &self,
         _floor: &Floor,
         subject_ref: &Rc<Entity>,
+        tile: AbsolutePosition,
     ) -> Option<Box<dyn CommandTrait>> {
         // Pathfind to target.
         Some(Box::new(GotoCommand {
-            tile: self.tile,
+            tile,
             subject_id: subject_ref.id,
         }))
     }
@@ -303,12 +299,14 @@ fn bump_test() {
         })
     });
     update = update.bind(|floor| {
-        BumpAction {
-            dir: RelativePosition::new(1, 0),
-        }
-        .verify_action(&floor, &floor.entities[player_id])
-        .unwrap()
-        .do_action(&floor)
+        BumpAction
+            .verify_action(
+                &floor,
+                &floor.entities[player_id],
+                RelativePosition::new(1, 0),
+            )
+            .unwrap()
+            .do_action(&floor)
     });
 
     let (floor, log) = update.into_both();
@@ -351,12 +349,14 @@ fn goto_test() {
         })
     });
     update = update.bind(|floor| {
-        GotoAction {
-            tile: AbsolutePosition::new(5, 3),
-        }
-        .verify_action(&floor, &floor.entities[player_id])
-        .unwrap()
-        .do_action(&floor)
+        GotoAction {}
+            .verify_action(
+                &floor,
+                &floor.entities[player_id],
+                AbsolutePosition::new(5, 3),
+            )
+            .unwrap()
+            .do_action(&floor)
     });
 
     let confirm_command = |floor: Floor| match &floor.entities[player_id].state {

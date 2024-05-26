@@ -10,7 +10,6 @@ use std::rc::Rc;
 
 use crate::actions::events::FloorEvent;
 use crate::actions::public::StepAction;
-use crate::actions::ActionTrait;
 use crate::actions::DirectionActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;

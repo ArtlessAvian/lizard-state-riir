@@ -162,8 +162,8 @@ func move_player(dir: Vector2i):
 		return
 
 	var player = floor.get_entity_by_id(player_id)
-	var action: Action = floor.get_step_macro_action(dir)
-	var command = action.to_command(floor, player)
+	var action: DirectionAction = floor.get_step_macro_action()
+	var command = action.to_command(floor, player, dir)
 	if command:
 		floor.do_action(command)
 		desynced_from_floor = true
@@ -185,8 +185,8 @@ func goto_mouse():
 	print("absolute position", absolute_position)
 	
 	var player = floor.get_entity_by_id(player_id)
-	var action: Action = floor.get_goto_action(absolute_position)
-	var command = action.to_command(floor, player)
+	var action: TileAction = floor.get_goto_action()
+	var command = action.to_command(floor, player, absolute_position)
 	if command:
 		floor.do_action(command)
 		desynced_from_floor = true
