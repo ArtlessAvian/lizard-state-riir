@@ -13,6 +13,9 @@ var test_visions: Dictionary  # of EntityIds to their most recent vision.
 
 func _ready():
 	desynced_from_floor = true
+	
+	($WorldSkew/Map as GridMap).clear()
+	($WorldSkew/MapHistory as GridMap).clear()
 
 
 func _process_floor(delta, floor: Floor):

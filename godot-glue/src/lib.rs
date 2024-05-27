@@ -83,6 +83,29 @@ impl Floor {
         self.floor = self.floor.set_map(map);
     }
 
+    // TODO: Sort of temporary. Maybe make a builder?
+    // And a corresponding scene in Godot to match.
+    #[func]
+    pub fn set_map_2d(&mut self, tilemap: Gd<godot::engine::TileMap>) {
+        let tiles = tilemap
+            .get_used_cells(0)
+            .iter_shared()
+            .map(|vec| {
+                (
+                    AbsolutePosition::new(vec.x, vec.y),
+                    engine::floor::map::FloorTile::FLOOR,
+                )
+            })
+            .collect();
+
+        let map = engine::floor::map::FloorMap {
+            tiles: Rc::new(tiles),
+            default: engine::floor::map::FloorTile::WALL,
+        };
+
+        self.floor = self.floor.set_map(map);
+    }
+
     #[func]
     pub fn add_entity_at(&mut self, pos: Vector2i, is_player_controlled: bool) -> Gd<EntityId> {
         let (update, id) = self.floor.add_entity(EntityInternal {

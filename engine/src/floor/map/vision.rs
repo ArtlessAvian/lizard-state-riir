@@ -112,8 +112,8 @@ impl FloorMapVision {
     fn get_vision(map: &FloorMap, pos: &AbsolutePosition) -> HashMap<AbsolutePosition, FloorTile> {
         // HACK: StrictFOV doesn't make sense for vision. You can *infer* extra data (what is/isn't a wall) from what is returned.
         // HACK: Avoid expensive construction on every call!
-        let fov: StrictFOV = StrictFOV::new(5);
-        let mut tiles = fov.get_field_of_view_tiles(*pos, 5, |x| !map.is_tile_floor(&x));
+        let fov: StrictFOV = StrictFOV::new(8);
+        let mut tiles = fov.get_field_of_view_tiles(*pos, 8, |x| !map.is_tile_floor(&x));
         // honestly sorting and deduping probably makes this slower for small radius
         tiles.sort();
         tiles.dedup();

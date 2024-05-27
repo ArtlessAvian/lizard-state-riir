@@ -9,15 +9,13 @@ var player_id: EntityId
 func _ready():
 	floor = Floor.new()
 	# HACK: Temporary.
-	floor.set_map($Floor/WorldSkew/Map)
-	($Floor/WorldSkew/Map as GridMap).clear()
-	($Floor/WorldSkew/MapHistory as GridMap).clear()
+	floor.set_map_2d($Map)
 
 	player_id = floor.add_entity_at(Vector2i.ZERO, true)
 	$Floor.id_to_node[player_id] = find_child("Entity")
 
-	floor.add_entity_at(Vector2i(-3, 0), false)
-	floor.add_entity_at(Vector2i(-3, -1), false)
+	#floor.add_entity_at(Vector2i(-3, 0), false)
+	#floor.add_entity_at(Vector2i(-3, -1), false)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
