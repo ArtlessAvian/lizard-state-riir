@@ -153,22 +153,22 @@ impl Floor {
 
     #[func]
     pub fn get_step_action(&self) -> Gd<DirectionAction> {
-        DirectionAction::new(Box::new(StepAction))
+        DirectionAction::new(Rc::new(StepAction))
     }
 
     #[func]
     pub fn get_bump_action(&self) -> Gd<DirectionAction> {
-        DirectionAction::new(Box::new(BumpAction))
+        DirectionAction::new(Rc::new(BumpAction))
     }
 
     #[func]
     pub fn get_step_macro_action(&self) -> Gd<DirectionAction> {
-        DirectionAction::new(Box::new(StepMacroAction))
+        DirectionAction::new(Rc::new(StepMacroAction))
     }
 
     #[func]
     pub fn get_goto_action(&self) -> Gd<TileAction> {
-        TileAction::new(Box::new(GotoAction))
+        TileAction::new(Rc::new(GotoAction))
     }
 }
 
@@ -234,6 +234,23 @@ impl Entity {
     fn get_pos(&self) -> Vector2i {
         Vector2i::new(self.entity.pos.x, self.entity.pos.y)
     }
+
+    #[func]
+    fn get_actions(&self) -> VariantArray {
+        self.entity
+            .get_actions()
+            .iter()
+            .map(|unaimed| match unaimed {
+                engine::actions::UnaimedAction::None(x) => Action::new(Rc::clone(x)).to_variant(),
+                engine::actions::UnaimedAction::Tile(x) => {
+                    TileAction::new(Rc::clone(x)).to_variant()
+                }
+                engine::actions::UnaimedAction::Direction(x) => {
+                    DirectionAction::new(Rc::clone(x)).to_variant()
+                }
+            })
+            .collect()
+    }
 }
 
 /// An opaque object containing an Action. Has no logic.
@@ -241,12 +258,12 @@ impl Entity {
 #[class(no_init)]
 pub struct Action {
     // Godot doesn't see this anyways.
-    action: Box<dyn ActionTrait>,
+    action: Rc<dyn ActionTrait>,
 }
 
 #[godot_api]
 impl Action {
-    fn new(action: Box<dyn ActionTrait>) -> Gd<Self> {
+    fn new(action: Rc<dyn ActionTrait>) -> Gd<Self> {
         Gd::from_object(Self { action })
     }
 
@@ -266,12 +283,12 @@ impl Action {
 #[class(no_init)]
 pub struct TileAction {
     // Godot doesn't see this anyways.
-    action: Box<dyn TileActionTrait>,
+    action: Rc<dyn TileActionTrait>,
 }
 
 #[godot_api]
 impl TileAction {
-    fn new(action: Box<dyn TileActionTrait>) -> Gd<Self> {
+    fn new(action: Rc<dyn TileActionTrait>) -> Gd<Self> {
         Gd::from_object(Self { action })
     }
 
@@ -296,12 +313,12 @@ impl TileAction {
 #[class(no_init)]
 pub struct DirectionAction {
     // Godot doesn't see this anyways.
-    action: Box<dyn DirectionActionTrait>,
+    action: Rc<dyn DirectionActionTrait>,
 }
 
 #[godot_api]
 impl DirectionAction {
-    fn new(action: Box<dyn DirectionActionTrait>) -> Gd<Self> {
+    fn new(action: Rc<dyn DirectionActionTrait>) -> Gd<Self> {
         Gd::from_object(Self { action })
     }
 

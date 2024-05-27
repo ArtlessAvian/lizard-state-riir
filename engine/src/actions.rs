@@ -1,5 +1,7 @@
 mod example;
 
+pub mod upcast_indirection;
+
 // TOOD: move to data, which should also be renamed floor/gamestate.
 pub mod events;
 
@@ -24,14 +26,34 @@ use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 use self::events::FloorEvent;
+use self::upcast_indirection::Upcast;
 
 // Rc to allow cloning trait objects, also its cheap!
+#[derive(Debug, Clone)]
+pub enum UnaimedAction {
+    None(Rc<dyn ActionTrait>),
+    Tile(Rc<dyn TileActionTrait>),
+    Direction(Rc<dyn DirectionActionTrait>),
+}
+
+// Same as above, but more specialized. Has an ugly conversion.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub enum UnaimedAction {
+pub enum SerializableAction {
     None(Rc<dyn SerializeActionTrait>),
     Tile(Rc<dyn SerializeTileActionTrait>),
     Direction(Rc<dyn SerializeDirectionActionTrait>),
+}
+
+impl From<SerializableAction> for UnaimedAction {
+    fn from(value: SerializableAction) -> Self {
+        // mmm yes i love indirection
+        match value {
+            SerializableAction::None(x) => UnaimedAction::None(Rc::new(Upcast::new(x))),
+            SerializableAction::Tile(x) => UnaimedAction::Tile(Rc::new(Upcast::new(x))),
+            SerializableAction::Direction(x) => UnaimedAction::Direction(Rc::new(Upcast::new(x))),
+        }
+    }
 }
 
 /// An action, something that someone could do. Who and when is not defined.

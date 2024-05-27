@@ -7,6 +7,7 @@ use std::ops::IndexMut;
 use std::rc::Rc;
 
 use crate::actions::NullAction;
+use crate::actions::SerializableAction;
 use crate::actions::SerializeCommandTrait;
 use crate::actions::UnaimedAction;
 use crate::positional::AbsolutePosition;
@@ -57,7 +58,7 @@ pub struct Entity {
 }
 
 impl Entity {
-    pub fn get_actions() -> Vec<UnaimedAction> {
+    pub fn get_actions(&self) -> Vec<UnaimedAction> {
         vec![UnaimedAction::None(Rc::new(NullAction {}))]
     }
 
@@ -188,7 +189,7 @@ pub enum EntityState {
     RestrictedActions {
         next_turn: u32,
         // On the entities next turn, action must be chosen from a set.
-        restricted_actions: Vec<UnaimedAction>,
+        restricted_actions: Vec<SerializableAction>,
     },
 
     // Inactionable states below.

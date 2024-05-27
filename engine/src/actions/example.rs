@@ -26,7 +26,7 @@ use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
-use super::UnaimedAction;
+use super::SerializableAction;
 
 // Hits once, then queues another.
 #[derive(Debug)]
@@ -156,11 +156,7 @@ impl CommandTrait for Archived<DoubleHitFollowup> {
 pub struct EnterStanceAction;
 
 impl ActionTrait for EnterStanceAction {
-    fn verify_action(
-        &self,
-        floor: &Floor,
-        subject_ref: &Rc<Entity>,
-    ) -> Option<Box<dyn CommandTrait>> {
+    fn verify_action(&self, _: &Floor, subject_ref: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
         Some(Box::new(EnterStanceCommand {
             subject_ref: Rc::clone(subject_ref),
         }))
@@ -177,7 +173,7 @@ impl CommandTrait for EnterStanceCommand {
         let mut subject_clone: Entity = (*self.subject_ref).clone();
         subject_clone.state = EntityState::RestrictedActions {
             next_turn: floor.get_current_turn() + 1,
-            restricted_actions: vec![UnaimedAction::None(Rc::new(ExitStanceAction))],
+            restricted_actions: vec![SerializableAction::None(Rc::new(ExitStanceAction))],
         };
 
         floor.update_entity(Rc::new(subject_clone))
