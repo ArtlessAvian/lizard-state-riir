@@ -1,7 +1,5 @@
 extends Node
 
-var player_id: EntityId
-var floor: Floor
 var id_to_node: Dictionary
 # TODO: Consider pop_front instead? So like a deque.
 var event_index = 0
@@ -14,28 +12,13 @@ var test_visions: Dictionary  # of EntityIds to their most recent vision.
 
 
 func _ready():
-	floor = Floor.new()
-	# HACK: Temporary.
-	floor.set_map($WorldSkew/Map)
-	($WorldSkew/Map as GridMap).clear()
-	($WorldSkew/MapHistory as GridMap).clear()
-
-	player_id = floor.add_entity_at(Vector2i.ZERO, true)
-	id_to_node[player_id] = %Entity
-
-	floor.add_entity_at(Vector2i(-3, 0), false)
-	floor.add_entity_at(Vector2i(-3, -1), false)
 	desynced_from_floor = true
 
 
-func _process(delta):
-	poll_input(delta)
-
-	floor.take_npc_turn()
-
+func _process_floor(delta, floor: Floor):
 	if event_index < len(floor.log):
 		desynced_from_floor = true
-		clear_queue(delta)
+		clear_queue(delta, floor)
 
 	if desynced_from_floor and event_index == len(floor.log):
 		if test_event_delay > 0:
@@ -46,11 +29,11 @@ func _process(delta):
 		test_tweens.clear()
 
 		desynced_from_floor = false
-		sync_with_engine()
-		_process(0)  # repoll input for smooth movement.
+		sync_with_engine(floor)
+		_process_floor(0, floor)  # repoll input for smooth movement.
 
 
-func clear_queue(delta):
+func clear_queue(delta, floor: Floor):
 	if test_event_delay > 0:
 		test_event_delay -= delta
 		return
@@ -70,7 +53,7 @@ func clear_queue(delta):
 
 		test_tweens.push_back(tween)
 		event_index += 1
-		clear_queue(delta)
+		clear_queue(delta, floor)
 
 	elif event is StartAttackEvent:
 		if test_tweens.any(func(t): return t.is_running()):
@@ -84,12 +67,14 @@ func clear_queue(delta):
 
 		var sprite = subject.get_node("DiscardBasis/Sprite3D")
 		var tween = sprite.create_tween()
-		tween.tween_property(sprite, "position", sprite.position.lerp(target - subject.position, 0.5), 2 / 60.0)
+		tween.tween_property(
+			sprite, "position", sprite.position.lerp(target - subject.position, 0.5), 2 / 60.0
+		)
 		tween.tween_property(sprite, "position", sprite.position, 2 / 60.0)
 
 		test_event_delay += 2 / 60.0
 		event_index += 1
-		clear_queue(delta)
+		clear_queue(delta, floor)
 
 	elif event is AttackHitEvent:
 		var target = id_to_node[event.target]
@@ -100,7 +85,7 @@ func clear_queue(delta):
 
 		test_event_delay += 1
 		event_index += 1
-		clear_queue(delta)
+		clear_queue(delta, floor)
 
 	elif event is SeeMapEvent:
 		test_visions[event.subject] = event.vision
@@ -116,10 +101,10 @@ func clear_queue(delta):
 			history.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if event.vision[pos] else 1)
 
 		event_index += 1
-		clear_queue(delta)
+		clear_queue(delta, floor)
 
 
-func sync_with_engine():
+func sync_with_engine(floor):
 	for id in floor.get_entity_ids():
 		if not id in id_to_node:
 			var dup = %Entity.duplicate()
@@ -130,80 +115,4 @@ func sync_with_engine():
 		id_to_node[id].position = Vector3(entity.get_pos().x, 0, entity.get_pos().y)
 		id_to_node[id].find_child("Debug").text = entity.get_debug()
 
-	print(floor.get_entity_by_id(player_id).get_actions())
-
-func poll_input(delta):
-	if desynced_from_floor:
-		return
-		
-	if Input.is_action_pressed("move_left"):
-		move_player(Vector2i.LEFT)
-	if Input.is_action_pressed("move_up"):
-		move_player(Vector2i.UP)
-	if Input.is_action_pressed("move_down"):
-		move_player(Vector2i.DOWN)
-	if Input.is_action_pressed("move_right"):
-		move_player(Vector2i.RIGHT)
-	if Input.is_action_pressed("move_upleft"):
-		move_player(Vector2i.UP + Vector2i.LEFT)
-	if Input.is_action_pressed("move_upright"):
-		move_player(Vector2i.UP + Vector2i.RIGHT)
-	if Input.is_action_pressed("move_downleft"):
-		move_player(Vector2i.DOWN + Vector2i.LEFT)
-	if Input.is_action_pressed("move_downright"):
-		move_player(Vector2i.DOWN + Vector2i.RIGHT)
-	if Input.is_action_pressed("move_wait"):
-		move_player(Vector2i.ZERO)
-	
-	if Input.is_key_pressed(KEY_Q):
-		var player = floor.get_entity_by_id(player_id)
-		var action = player.get_actions()[0]
-		var command = action.to_command(floor, player, Vector2i(0, 1))
-		if command:
-			floor.do_action(command)
-			desynced_from_floor = true
-	if Input.is_key_pressed(KEY_W):
-		var player = floor.get_entity_by_id(player_id)
-		var action = player.get_actions()[1]
-		var command = action.to_command(floor, player)
-		if command:
-			floor.do_action(command)
-			desynced_from_floor = true
-	
-	if delta != 0:
-		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			goto_mouse()
-
-func move_player(dir: Vector2i):
-	if desynced_from_floor:
-		return
-
-	var player = floor.get_entity_by_id(player_id)
-	var action: DirectionAction = floor.get_step_macro_action()
-	var command = action.to_command(floor, player, dir)
-	if command:
-		floor.do_action(command)
-		desynced_from_floor = true
-
-func goto_mouse():
-	if desynced_from_floor:
-		return
-		
-	# HACK: Assumes entire game is on the XZ plane.
-	# But this is also kind of expected.
-	var mouse = get_viewport().get_mouse_position()
-	var origin = get_viewport().get_camera_3d().project_ray_origin(mouse)
-	var direction = get_viewport().get_camera_3d().project_ray_normal(mouse)
-	
-	var projected_xz: Vector3 = origin + (-origin.y / direction.y) * direction
-	var rounded = projected_xz.round()
-	var absolute_position = Vector2i(rounded.x, rounded.z)
-	
-	print("absolute position", absolute_position)
-	
-	var player = floor.get_entity_by_id(player_id)
-	var action: TileAction = floor.get_goto_action()
-	var command = action.to_command(floor, player, absolute_position)
-	if command:
-		floor.do_action(command)
-		desynced_from_floor = true
+	#print(floor.get_entity_by_id(player_id).get_actions())

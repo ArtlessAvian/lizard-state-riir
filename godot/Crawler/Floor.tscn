@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3 uid="uid://tdlcompnvvor"]
+
+[ext_resource type="PackedScene" uid="uid://1ug7wykfxdyt" path="res://Crawler/FloorView/FloorView.tscn" id="1_bfdvb"]
+[ext_resource type="Script" path="res://Crawler/Floor.gd" id="1_kanw4"]
+[ext_resource type="Texture2D" uid="uid://c4xd5itrnko1v" path="res://smol_star.png" id="3_81e2d"]
+[ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="4_mhhcn"]
+
+[sub_resource type="Theme" id="Theme_nvbww"]
+default_font = ExtResource("4_mhhcn")
+
+[node name="Crawler" type="Node3D"]
+script = ExtResource("1_kanw4")
+
+[node name="Floor" parent="." instance=ExtResource("1_bfdvb")]
+
+[node name="Cursor" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+pixel_size = 0.0417
+axis = 1
+texture_filter = 0
+texture = ExtResource("3_81e2d")
+
+[node name="MenuBar" type="PopupMenu" parent="."]
+mode = 3
+title = "Test"
+position = Vector2i(10, 10)
+size = Vector2i(200, 200)
+visible = true
+theme = SubResource("Theme_nvbww")
+theme_override_constants/v_separation = 12
+theme_override_font_sizes/font_size = 16
+item_count = 2
+item_0/text = "Test Item"
+item_0/id = 0
+item_1/text = "Another Item"
+item_1/id = 1
