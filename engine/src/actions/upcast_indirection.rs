@@ -21,7 +21,7 @@ pub struct Upcast<T: ?Sized>(Rc<T>);
 
 impl<T: ?Sized> Upcast<T> {
     pub fn new(contents: Rc<T>) -> Self {
-        Upcast { 0: contents }
+        Upcast(contents)
     }
 }
 

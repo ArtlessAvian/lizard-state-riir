@@ -125,3 +125,9 @@ impl FloorMapVision {
         out
     }
 }
+
+impl Default for FloorMapVision {
+    fn default() -> Self {
+        Self::new()
+    }
+}

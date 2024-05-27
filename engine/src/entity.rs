@@ -8,7 +8,6 @@ use std::rc::Rc;
 
 use crate::actions::example::DoubleHitAction;
 use crate::actions::example::EnterStanceAction;
-use crate::actions::NullAction;
 use crate::actions::SerializableAction;
 use crate::actions::SerializeCommandTrait;
 use crate::actions::UnaimedAction;
