@@ -251,6 +251,11 @@ impl Entity {
             })
             .collect()
     }
+
+    #[func]
+    fn get_debug(&self) -> String {
+        format!("{:?}", self.entity.state)
+    }
 }
 
 /// An opaque object containing an Action. Has no logic.

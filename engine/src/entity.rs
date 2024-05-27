@@ -6,6 +6,8 @@ use std::ops::Index;
 use std::ops::IndexMut;
 use std::rc::Rc;
 
+use crate::actions::example::DoubleHitAction;
+use crate::actions::example::EnterStanceAction;
 use crate::actions::NullAction;
 use crate::actions::SerializableAction;
 use crate::actions::SerializeCommandTrait;
@@ -59,7 +61,10 @@ pub struct Entity {
 
 impl Entity {
     pub fn get_actions(&self) -> Vec<UnaimedAction> {
-        vec![UnaimedAction::None(Rc::new(NullAction {}))]
+        vec![
+            UnaimedAction::Direction(Rc::new(DoubleHitAction {})),
+            UnaimedAction::None(Rc::new(EnterStanceAction {})),
+        ]
     }
 
     pub fn get_next_turn(&self) -> Option<u32> {

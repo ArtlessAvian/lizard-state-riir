@@ -128,7 +128,9 @@ func sync_with_engine():
 			%Entity.add_sibling(dup)
 		var entity = floor.get_entity_by_id(id)
 		id_to_node[id].position = Vector3(entity.get_pos().x, 0, entity.get_pos().y)
+		id_to_node[id].find_child("Debug").text = entity.get_debug()
 
+	print(floor.get_entity_by_id(player_id).get_actions())
 
 func poll_input(delta):
 	if desynced_from_floor:
@@ -152,6 +154,21 @@ func poll_input(delta):
 		move_player(Vector2i.DOWN + Vector2i.RIGHT)
 	if Input.is_action_pressed("move_wait"):
 		move_player(Vector2i.ZERO)
+	
+	if Input.is_key_pressed(KEY_Q):
+		var player = floor.get_entity_by_id(player_id)
+		var action = player.get_actions()[0]
+		var command = action.to_command(floor, player, Vector2i(0, 1))
+		if command:
+			floor.do_action(command)
+			desynced_from_floor = true
+	if Input.is_key_pressed(KEY_W):
+		var player = floor.get_entity_by_id(player_id)
+		var action = player.get_actions()[1]
+		var command = action.to_command(floor, player)
+		if command:
+			floor.do_action(command)
+			desynced_from_floor = true
 	
 	if delta != 0:
 		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):

@@ -24,6 +24,17 @@ region = Rect2(0, 80, 40, 40)
 top_level = true
 script = ExtResource("1_dh5rl")
 
+[node name="Debug" type="Label3D" parent="DiscardBasis"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.042, 1.43604, 0)
+layers = 2
+pixel_size = 0.01
+billboard = 1
+texture_filter = 0
+render_priority = 2
+outline_render_priority = 1
+text = "Debug"
+autowrap_mode = 3
+
 [node name="DamagePopup" type="Label3D" parent="DiscardBasis"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.021, 0, 0)
 visible = false
