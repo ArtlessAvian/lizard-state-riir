@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
+use crate::actions::DeserializeActionTrait;
 use crate::actions::DeserializeCommandTrait;
+use crate::actions::SerializeActionTrait;
 use crate::actions::SerializeCommandTrait;
 use rkyv::Archive;
 use rkyv::Archived;
@@ -20,9 +22,11 @@ use crate::positional::RelativePosition;
 
 use super::events::AttackHitEvent;
 use super::events::StartAttackEvent;
+use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
+use super::UnaimedAction;
 
 // Hits once, then queues another.
 #[derive(Debug)]
@@ -144,6 +148,76 @@ impl CommandTrait for Archived<DoubleHitFollowup> {
         Deserialize::<DoubleHitFollowup, _>::deserialize(self, &mut Infallible)
             .unwrap()
             .do_action(floor)
+    }
+}
+
+// Waits a turn, then lets the user do a big attack or exit stance.
+#[derive(Debug)]
+pub struct EnterStanceAction;
+
+impl ActionTrait for EnterStanceAction {
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_ref: &Rc<Entity>,
+    ) -> Option<Box<dyn CommandTrait>> {
+        Some(Box::new(EnterStanceCommand {
+            subject_ref: Rc::clone(subject_ref),
+        }))
+    }
+}
+
+#[derive(Debug)]
+pub struct EnterStanceCommand {
+    subject_ref: Rc<Entity>,
+}
+
+impl CommandTrait for EnterStanceCommand {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        subject_clone.state = EntityState::RestrictedActions {
+            next_turn: floor.get_current_turn() + 1,
+            restricted_actions: vec![UnaimedAction::None(Rc::new(ExitStanceAction))],
+        };
+
+        floor.update_entity(Rc::new(subject_clone))
+    }
+}
+
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug, TypeName))]
+pub struct ExitStanceAction;
+
+#[archive_dyn(deserialize)]
+impl ActionTrait for ExitStanceAction {
+    fn verify_action(&self, _: &Floor, subject_ref: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
+        Some(Box::new(ExitStanceCommand {
+            subject_ref: Rc::clone(subject_ref),
+        }))
+    }
+}
+
+impl ActionTrait for Archived<ExitStanceAction> {
+    fn verify_action(&self, _: &Floor, subject_ref: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
+        Some(Box::new(ExitStanceCommand {
+            subject_ref: Rc::clone(subject_ref),
+        }))
+    }
+}
+
+#[derive(Debug)]
+pub struct ExitStanceCommand {
+    subject_ref: Rc<Entity>,
+}
+
+impl CommandTrait for ExitStanceCommand {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        subject_clone.state = EntityState::Ok {
+            next_turn: floor.get_current_turn(),
+        };
+
+        floor.update_entity(Rc::new(subject_clone))
     }
 }
 
