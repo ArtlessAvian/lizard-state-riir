@@ -1,61 +1,52 @@
+class_name MainState
 extends "StateInterface.gd"
 
 
 func _poll_input(floor_container: FloorContainer, delta: float):
 	if Input.is_action_pressed("move_left"):
 		move_player(floor_container, Vector2i.LEFT)
-		return self
+		return FloorContainer.ExtraTransitions.NONE
 	if Input.is_action_pressed("move_up"):
 		move_player(floor_container, Vector2i.UP)
-		return self
+		return FloorContainer.ExtraTransitions.NONE
 	if Input.is_action_pressed("move_down"):
 		move_player(floor_container, Vector2i.DOWN)
-		return self
+		return FloorContainer.ExtraTransitions.NONE
 	if Input.is_action_pressed("move_right"):
 		move_player(floor_container, Vector2i.RIGHT)
-		return self
+		return FloorContainer.ExtraTransitions.NONE
 	if Input.is_action_pressed("move_upleft"):
 		move_player(floor_container, Vector2i.UP + Vector2i.LEFT)
-		return self
+		return FloorContainer.ExtraTransitions.NONE
 	if Input.is_action_pressed("move_upright"):
 		move_player(floor_container, Vector2i.UP + Vector2i.RIGHT)
-		return self
+		return FloorContainer.ExtraTransitions.NONE
 	if Input.is_action_pressed("move_downleft"):
 		move_player(floor_container, Vector2i.DOWN + Vector2i.LEFT)
-		return self
+		return FloorContainer.ExtraTransitions.NONE
 	if Input.is_action_pressed("move_downright"):
 		move_player(floor_container, Vector2i.DOWN + Vector2i.RIGHT)
-		return self
+		return FloorContainer.ExtraTransitions.NONE
 	if Input.is_action_pressed("move_wait"):
 		move_player(floor_container, Vector2i.ZERO)
-		return self
+		return FloorContainer.ExtraTransitions.NONE
 
-	if Input.is_key_pressed(KEY_Q):
-		var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
-		var action = player.get_actions()[0]
-		var command = action.to_command(floor_container.floor, player, Vector2i(0, 1))
-		if command:
-			floor_container.floor.do_action(command)
-			floor_container.emit_signal("floor_dirtied")
-		return self
-	if Input.is_key_pressed(KEY_W):
-		var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
-		var action = player.get_actions()[1]
-		var command = action.to_command(floor_container.floor, player)
-		if command:
-			floor_container.floor.do_action(command)
-			floor_container.emit_signal("floor_dirtied")
-		return self
+	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
+	var actions = player.get_actions()
+	if Input.is_key_pressed(KEY_Q) and len(actions) > 0:
+		return transition_to_action(actions[0])
+	if Input.is_key_pressed(KEY_W) and len(actions) > 1:
+		return transition_to_action(actions[1])
 
-	return self  # nothing was input
+	return FloorContainer.ExtraTransitions.NONE  # nothing was input
 
 
-func _godot_input(floor_container: FloorContainer, event: InputEvent) -> Node:
+func _godot_input(floor_container: FloorContainer, event: InputEvent):
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			goto_mouse(floor_container)
 
-	return self
+	return FloorContainer.ExtraTransitions.NONE
 
 
 func move_player(floor_container: FloorContainer, dir: Vector2i):
@@ -70,9 +61,10 @@ func move_player(floor_container: FloorContainer, dir: Vector2i):
 func goto_mouse(floor_container: FloorContainer):
 	# HACK: Assumes entire game is on the XZ plane.
 	# But this is also kind of expected.
-	var mouse = get_viewport().get_mouse_position()
-	var origin = get_viewport().get_camera_3d().project_ray_origin(mouse)
-	var direction = get_viewport().get_camera_3d().project_ray_normal(mouse)
+	var viewport = floor_container.get_viewport()
+	var mouse = viewport.get_mouse_position()
+	var origin = viewport.get_camera_3d().project_ray_origin(mouse)
+	var direction = viewport.get_camera_3d().project_ray_normal(mouse)
 
 	var projected_xz: Vector3 = origin + (-origin.y / direction.y) * direction
 	var rounded = projected_xz.round()
@@ -88,3 +80,14 @@ func goto_mouse(floor_container: FloorContainer):
 	if command:
 		floor_container.floor.do_action(command)
 		floor_container.emit_signal("floor_dirtied")
+
+
+func transition_to_action(action: Variant):
+	if action is TileAction:
+		return preload("res://Crawler/Controller/AimTileActionState.gd").new(action)
+	if action is DirectionAction:
+		return preload("res://Crawler/Controller/AimDirectionActionState.gd").new(action)
+	if action is Action:
+		return preload("res://Crawler/Controller/AimUnaimedActionState.gd").new(action)
+
+	assert(false, "Unexpected action type: " + action.get_class())
