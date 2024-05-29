@@ -1,6 +1,8 @@
 class_name FloorContainer
 extends Node3D
 
+signal floor_dirtied
+
 var floor: Floor
 var player_id: EntityId
 

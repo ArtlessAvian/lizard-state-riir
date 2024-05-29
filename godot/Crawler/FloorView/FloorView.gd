@@ -119,3 +119,7 @@ func sync_with_engine(floor):
 		id_to_node[id].find_child("Debug").text = entity.get_debug()
 
 	#print(floor.get_entity_by_id(player_id).get_actions())
+
+
+func _on_floor_container_floor_dirtied():
+	desynced_from_floor = true

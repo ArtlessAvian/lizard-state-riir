@@ -56,3 +56,5 @@ script = ExtResource("7_6t5nc")
 
 [node name="AimDirectionAction" type="Node" parent="InputStates/Main"]
 script = ExtResource("8_8crxy")
+
+[connection signal="floor_dirtied" from="." to="Floor" method="_on_floor_container_floor_dirtied"]

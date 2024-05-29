@@ -36,7 +36,7 @@ func _poll_input(floor_container: FloorContainer, delta: float):
 		var command = action.to_command(floor_container.floor, player, Vector2i(0, 1))
 		if command:
 			floor_container.floor.do_action(command)
-			#$Floor.desynced_from_floor = true
+			floor_container.emit_signal("floor_dirtied")
 		return self
 	if Input.is_key_pressed(KEY_W):
 		var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
@@ -44,7 +44,7 @@ func _poll_input(floor_container: FloorContainer, delta: float):
 		var command = action.to_command(floor_container.floor, player)
 		if command:
 			floor_container.floor.do_action(command)
-			#$Floor.desynced_from_floor = true
+			floor_container.emit_signal("floor_dirtied")
 		return self
 
 	return self  # nothing was input
@@ -64,6 +64,7 @@ func move_player(floor_container: FloorContainer, dir: Vector2i):
 	var command = action.to_command(floor_container.floor, player, dir)
 	if command:
 		floor_container.floor.do_action(command)
+		floor_container.emit_signal("floor_dirtied")
 
 
 func goto_mouse(floor_container: FloorContainer):
@@ -86,3 +87,4 @@ func goto_mouse(floor_container: FloorContainer):
 	var command = action.to_command(floor_container.floor, player, absolute_position)
 	if command:
 		floor_container.floor.do_action(command)
+		floor_container.emit_signal("floor_dirtied")
