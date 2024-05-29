@@ -1,30 +1,30 @@
 [gd_scene load_steps=10 format=3 uid="uid://d00xpnofgcnrt"]
 
-[ext_resource type="PackedScene" uid="uid://1ug7wykfxdyt" path="res://Crawler/FloorView/FloorView.tscn" id="1_bfdvb"]
-[ext_resource type="Script" path="res://Crawler/Floor.gd" id="1_kanw4"]
-[ext_resource type="Texture2D" uid="uid://c4xd5itrnko1v" path="res://smol_star.png" id="3_81e2d"]
-[ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="4_mhhcn"]
-[ext_resource type="PackedScene" uid="uid://dykg3353qu8wv" path="res://Crawler/MVP-Scaled.tscn" id="5_6nonb"]
-[ext_resource type="Script" path="res://Crawler/Controller/MainState.gd" id="7_gxyea"]
-[ext_resource type="Script" path="res://Crawler/Controller/AimTileActionState.gd" id="7_j3mkv"]
-[ext_resource type="Script" path="res://Crawler/Controller/AimDirectionActionState.gd" id="8_wbb5j"]
+[ext_resource type="Script" path="res://Crawler/FloorContainer.gd" id="1_6nk2a"]
+[ext_resource type="PackedScene" uid="uid://1ug7wykfxdyt" path="res://Crawler/FloorView/FloorView.tscn" id="2_1cpv2"]
+[ext_resource type="Texture2D" uid="uid://c4xd5itrnko1v" path="res://smol_star.png" id="3_87haf"]
+[ext_resource type="PackedScene" uid="uid://dykg3353qu8wv" path="res://Crawler/MVP-Scaled.tscn" id="4_bjt5q"]
+[ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="5_ueg1a"]
+[ext_resource type="Script" path="res://Crawler/Controller/MainState.gd" id="6_y1y50"]
+[ext_resource type="Script" path="res://Crawler/Controller/AimTileActionState.gd" id="7_6t5nc"]
+[ext_resource type="Script" path="res://Crawler/Controller/AimDirectionActionState.gd" id="8_8crxy"]
 
 [sub_resource type="Theme" id="Theme_nvbww"]
-default_font = ExtResource("4_mhhcn")
+default_font = ExtResource("5_ueg1a")
 
-[node name="Crawler" type="Node3D"]
-script = ExtResource("1_kanw4")
+[node name="FloorContainer" type="Node3D"]
+script = ExtResource("1_6nk2a")
 
-[node name="Floor" parent="." instance=ExtResource("1_bfdvb")]
+[node name="Floor" parent="." instance=ExtResource("2_1cpv2")]
 
 [node name="Cursor" type="Sprite3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.5, 0, 0.01, 0)
 pixel_size = 0.0417
 axis = 1
 texture_filter = 0
-texture = ExtResource("3_81e2d")
+texture = ExtResource("3_87haf")
 
-[node name="Map" parent="." instance=ExtResource("5_6nonb")]
+[node name="Map" parent="." instance=ExtResource("4_bjt5q")]
 
 [node name="Popup" type="Popup" parent="."]
 position = Vector2i(30, 30)
@@ -49,10 +49,10 @@ Each path down the tree is its own flow. Children may be duplicated between path
 For now only responsible for player turns, not turntaking. (unless?) (turntaking is handled by the Crawler ig.)"
 
 [node name="Main" type="Node" parent="InputStates"]
-script = ExtResource("7_gxyea")
+script = ExtResource("6_y1y50")
 
 [node name="AimTileAction" type="Node" parent="InputStates/Main"]
-script = ExtResource("7_j3mkv")
+script = ExtResource("7_6t5nc")
 
 [node name="AimDirectionAction" type="Node" parent="InputStates/Main"]
-script = ExtResource("8_wbb5j")
+script = ExtResource("8_8crxy")

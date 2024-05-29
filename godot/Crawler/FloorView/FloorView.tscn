@@ -42,7 +42,7 @@ item/1/shapes = []
 item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 item/1/navigation_layers = 1
 
-[node name="Floor" type="Node3D"]
+[node name="FloorView" type="Node3D"]
 script = ExtResource("1_7s6h2")
 metadata/_edit_lock_ = true
 
