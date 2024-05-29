@@ -60,10 +60,21 @@ pub struct Entity {
 
 impl Entity {
     pub fn get_actions(&self) -> Vec<UnaimedAction> {
-        vec![
-            UnaimedAction::Direction(Rc::new(DoubleHitAction {})),
-            UnaimedAction::None(Rc::new(EnterStanceAction {})),
-        ]
+        // We might add more states, so consider using match instead of if let.
+        if let EntityState::RestrictedActions {
+            restricted_actions, ..
+        } = &self.state
+        {
+            restricted_actions
+                .iter()
+                .map(|x| UnaimedAction::from(x.clone()))
+                .collect()
+        } else {
+            vec![
+                UnaimedAction::Direction(Rc::new(DoubleHitAction {})),
+                UnaimedAction::None(Rc::new(EnterStanceAction {})),
+            ]
+        }
     }
 
     pub fn get_next_turn(&self) -> Option<u32> {
