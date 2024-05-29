@@ -14,7 +14,7 @@ func _ready():
 	player_id = floor.add_entity_at(Vector2i.ZERO, true)
 	$Floor.id_to_node[player_id] = find_child("Entity")
 
-	#floor.add_entity_at(Vector2i(-3, 0), false)
+	floor.add_entity_at(Vector2i(3, 0), false)
 	#floor.add_entity_at(Vector2i(-3, -1), false)
 
 
@@ -63,11 +63,15 @@ func poll_input(delta):
 		if command:
 			floor.do_action(command)
 			$Floor.desynced_from_floor = true
+#
+	#if delta != 0:
+		#if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			#goto_mouse()
 
-	if delta != 0:
-		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+func _unhandled_input(event):
+	if event is InputEventMouseButton:
+		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			goto_mouse()
-
 
 func move_player(dir: Vector2i):
 	if $Floor.desynced_from_floor:

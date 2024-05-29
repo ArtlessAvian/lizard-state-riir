@@ -61,6 +61,7 @@ size = 16.0
 script = ExtResource("2_0g4sw")
 screen_pixels_per_pixel = 2
 metadata/_edit_lock_ = true
+metadata/_edit_group_ = true
 
 [node name="Dithering" type="MeshInstance3D" parent="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.745356, -0.666667, 0, 0.666667, 0.745356, 0, -7.45356, -26.6667)
@@ -90,6 +91,7 @@ line_spacing = 5.0
 editor_description = "Funky transformation that appears to rotate, but actually keeps \"up\" as Y+, so billboard sprites don't clip into vertical walls behind them. Set directly by ../Camera3D."
 rotation_edit_mode = 2
 metadata/_edit_lock_ = true
+metadata/_edit_group_ = true
 
 [node name="Map" type="GridMap" parent="WorldSkew"]
 transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)

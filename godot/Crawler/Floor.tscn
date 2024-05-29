@@ -15,16 +15,20 @@ script = ExtResource("1_kanw4")
 [node name="Floor" parent="." instance=ExtResource("1_bfdvb")]
 
 [node name="Cursor" type="Sprite3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.5, 0, 0.01, 0)
 pixel_size = 0.0417
 axis = 1
 texture_filter = 0
 texture = ExtResource("3_81e2d")
 
-[node name="MenuBar" type="PopupMenu" parent="."]
-mode = 3
-title = "Test"
-position = Vector2i(10, 10)
+[node name="Map" parent="." instance=ExtResource("5_6nonb")]
+
+[node name="Popup" type="Popup" parent="."]
+position = Vector2i(30, 30)
+visible = true
+
+[node name="MenuBar" type="PopupMenu" parent="Popup"]
+position = Vector2i(10, 30)
 size = Vector2i(200, 200)
 visible = true
 theme = SubResource("Theme_nvbww")
@@ -35,5 +39,3 @@ item_0/text = "Test Item"
 item_0/id = 0
 item_1/text = "Another Item"
 item_1/id = 1
-
-[node name="Map" parent="." instance=ExtResource("5_6nonb")]
