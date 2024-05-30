@@ -31,3 +31,22 @@ func _poll_input(floor_container: FloorContainer, delta: float) -> Variant:
 # so we are sure exactly one node is getting inputs.
 func _godot_input(floor_container: FloorContainer, event: InputEvent) -> Variant:
 	return FloorContainer.ExtraTransitions.NONE
+
+
+########## Shared Utilities ##########
+
+
+func project_mouse_to_xz(viewport: Viewport) -> Vector3:
+	# HACK: Assumes entire game is on the XZ plane.
+	# But this is also kind of expected.
+	var mouse = viewport.get_mouse_position()
+	var origin = viewport.get_camera_3d().project_ray_origin(mouse)
+	var direction = viewport.get_camera_3d().project_ray_normal(mouse)
+
+	var projected_xz: Vector3 = origin + (-origin.y / direction.y) * direction
+	return projected_xz
+
+
+func project_mouse_to_tile(viewport: Viewport) -> Vector2i:
+	var rounded = project_mouse_to_xz(viewport).round()
+	return Vector2i(rounded.x, rounded.z)

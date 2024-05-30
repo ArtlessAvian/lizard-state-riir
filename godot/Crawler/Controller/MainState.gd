@@ -36,20 +36,9 @@ func move_player(floor_container: FloorContainer, dir: Vector2i):
 
 
 func goto_mouse(floor_container: FloorContainer):
-	# HACK: Assumes entire game is on the XZ plane.
-	# But this is also kind of expected.
-	var viewport = floor_container.get_viewport()
-	var mouse = viewport.get_mouse_position()
-	var origin = viewport.get_camera_3d().project_ray_origin(mouse)
-	var direction = viewport.get_camera_3d().project_ray_normal(mouse)
+	var absolute_position = project_mouse_to_tile(floor_container.get_viewport())
 
-	var projected_xz: Vector3 = origin + (-origin.y / direction.y) * direction
-	var rounded = projected_xz.round()
-	var absolute_position = Vector2i(rounded.x, rounded.z)
-
-	floor_container.find_child("Cursor").position = rounded + Vector3.UP * 0.01
-
-	print("absolute position", absolute_position)
+	floor_container.find_child("Cursor").position = Vector3(absolute_position.x, 0, absolute_position.y) + Vector3.UP * 0.01
 
 	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
 	var action: TileAction = floor_container.floor.get_goto_action()
