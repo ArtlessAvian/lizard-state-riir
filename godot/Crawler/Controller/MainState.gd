@@ -1,35 +1,24 @@
 class_name MainState
 extends "StateInterface.gd"
 
+const ACTION_TO_DIRECTION = {
+	"move_left": Vector2i.LEFT,
+	"move_up": Vector2i.UP,
+	"move_down": Vector2i.DOWN,
+	"move_right": Vector2i.RIGHT,
+	"move_upleft": Vector2i.UP + Vector2i.LEFT,
+	"move_upright": Vector2i.UP + Vector2i.RIGHT,
+	"move_downleft": Vector2i.DOWN + Vector2i.LEFT,
+	"move_downright": Vector2i.DOWN + Vector2i.RIGHT,
+	"move_wait": Vector2i.ZERO
+}
+
 
 func _poll_input(floor_container: FloorContainer, delta: float):
-	if Input.is_action_pressed("move_left"):
-		move_player(floor_container, Vector2i.LEFT)
-		return FloorContainer.ExtraTransitions.NONE
-	if Input.is_action_pressed("move_up"):
-		move_player(floor_container, Vector2i.UP)
-		return FloorContainer.ExtraTransitions.NONE
-	if Input.is_action_pressed("move_down"):
-		move_player(floor_container, Vector2i.DOWN)
-		return FloorContainer.ExtraTransitions.NONE
-	if Input.is_action_pressed("move_right"):
-		move_player(floor_container, Vector2i.RIGHT)
-		return FloorContainer.ExtraTransitions.NONE
-	if Input.is_action_pressed("move_upleft"):
-		move_player(floor_container, Vector2i.UP + Vector2i.LEFT)
-		return FloorContainer.ExtraTransitions.NONE
-	if Input.is_action_pressed("move_upright"):
-		move_player(floor_container, Vector2i.UP + Vector2i.RIGHT)
-		return FloorContainer.ExtraTransitions.NONE
-	if Input.is_action_pressed("move_downleft"):
-		move_player(floor_container, Vector2i.DOWN + Vector2i.LEFT)
-		return FloorContainer.ExtraTransitions.NONE
-	if Input.is_action_pressed("move_downright"):
-		move_player(floor_container, Vector2i.DOWN + Vector2i.RIGHT)
-		return FloorContainer.ExtraTransitions.NONE
-	if Input.is_action_pressed("move_wait"):
-		move_player(floor_container, Vector2i.ZERO)
-		return FloorContainer.ExtraTransitions.NONE
+	for action in ACTION_TO_DIRECTION:
+		if Input.is_action_pressed(action):
+			move_player(floor_container, ACTION_TO_DIRECTION[action])
+			return FloorContainer.ExtraTransitions.NONE
 
 	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
 	var actions = player.get_actions()
