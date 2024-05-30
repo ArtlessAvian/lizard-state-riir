@@ -1,5 +1,17 @@
 extends RefCounted
 
+const ACTION_TO_DIRECTION = {
+	"move_left": Vector2i.LEFT,
+	"move_up": Vector2i.UP,
+	"move_down": Vector2i.DOWN,
+	"move_right": Vector2i.RIGHT,
+	"move_upleft": Vector2i.UP + Vector2i.LEFT,
+	"move_upright": Vector2i.UP + Vector2i.RIGHT,
+	"move_downleft": Vector2i.DOWN + Vector2i.LEFT,
+	"move_downright": Vector2i.DOWN + Vector2i.RIGHT,
+	"move_wait": Vector2i.ZERO
+}
+
 
 func _enter(floor_container: FloorContainer):
 	pass

@@ -1,18 +1,6 @@
 class_name MainState
 extends "StateInterface.gd"
 
-const ACTION_TO_DIRECTION = {
-	"move_left": Vector2i.LEFT,
-	"move_up": Vector2i.UP,
-	"move_down": Vector2i.DOWN,
-	"move_right": Vector2i.RIGHT,
-	"move_upleft": Vector2i.UP + Vector2i.LEFT,
-	"move_upright": Vector2i.UP + Vector2i.RIGHT,
-	"move_downleft": Vector2i.DOWN + Vector2i.LEFT,
-	"move_downright": Vector2i.DOWN + Vector2i.RIGHT,
-	"move_wait": Vector2i.ZERO
-}
-
 
 func _poll_input(floor_container: FloorContainer, delta: float):
 	for action in ACTION_TO_DIRECTION:
@@ -23,9 +11,9 @@ func _poll_input(floor_container: FloorContainer, delta: float):
 	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
 	var actions = player.get_actions()
 	if Input.is_key_pressed(KEY_Q) and len(actions) > 0:
-		return transition_to_action(actions[0])
+		return transition_to_action(floor_container, actions[0])
 	if Input.is_key_pressed(KEY_W) and len(actions) > 1:
-		return transition_to_action(actions[1])
+		return transition_to_action(floor_container, actions[1])
 
 	return FloorContainer.ExtraTransitions.NONE  # nothing was input
 
@@ -59,7 +47,7 @@ func goto_mouse(floor_container: FloorContainer):
 	var rounded = projected_xz.round()
 	var absolute_position = Vector2i(rounded.x, rounded.z)
 
-	#$Cursor.position = rounded + Vector3.UP * 0.01
+	floor_container.find_child("Cursor").position = rounded + Vector3.UP * 0.01
 
 	print("absolute position", absolute_position)
 
@@ -71,11 +59,15 @@ func goto_mouse(floor_container: FloorContainer):
 		floor_container.emit_signal("floor_dirtied")
 
 
-func transition_to_action(action: Variant):
+func transition_to_action(floor_container: FloorContainer, action: Variant):
 	if action is TileAction:
-		return preload("res://Crawler/Controller/AimTileActionState.gd").new(action)
+		return preload("res://Crawler/Controller/AimTileActionState.gd").new(
+			floor_container, action
+		)
 	if action is DirectionAction:
-		return preload("res://Crawler/Controller/AimDirectionActionState.gd").new(action)
+		return preload("res://Crawler/Controller/AimDirectionActionState.gd").new(
+			floor_container, action
+		)
 	if action is Action:
 		return preload("res://Crawler/Controller/AimUnaimedActionState.gd").new(action)
 
