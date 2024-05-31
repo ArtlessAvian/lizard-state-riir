@@ -15,10 +15,10 @@ func _init(floor_container: FloorContainer, action: DirectionAction):
 	)
 
 
-func _poll_input(floor_container: FloorContainer, delta: float) -> Variant:
-	poll_without_transition(floor_container, delta)
+func _godot_input(floor_container: FloorContainer, event: InputEvent) -> Variant:
+	godot_input_without_transition(floor_container, event)
 
-	if Input.is_action_just_pressed("ui_select"):
+	if event.is_action_pressed("ui_select"):
 		var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
 		var command = action.to_command(
 			floor_container.floor, player, absolute_position - player.get_pos()
@@ -31,9 +31,9 @@ func _poll_input(floor_container: FloorContainer, delta: float) -> Variant:
 	return FloorContainer.ExtraTransitions.NONE
 
 
-func poll_without_transition(floor_container: FloorContainer, delta: float):
+func godot_input_without_transition(floor_container: FloorContainer, event: InputEvent):
 	for action in ACTION_TO_DIRECTION:
-		if Input.is_action_just_pressed(action):
+		if event.is_action_pressed(action):
 			self.absolute_position += ACTION_TO_DIRECTION[action]
 
 			floor_container.find_child("Cursor").position = Vector3(
