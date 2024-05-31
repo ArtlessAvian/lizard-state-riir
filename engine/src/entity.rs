@@ -8,6 +8,8 @@ use std::rc::Rc;
 
 use crate::actions::example::DoubleHitAction;
 use crate::actions::example::EnterStanceAction;
+use crate::actions::upcast_indirection::Upcast;
+use crate::actions::CommandTrait;
 use crate::actions::SerializableAction;
 use crate::actions::SerializeCommandTrait;
 use crate::actions::UnaimedAction;
@@ -74,6 +76,14 @@ impl Entity {
                 UnaimedAction::Direction(Rc::new(DoubleHitAction {})),
                 UnaimedAction::None(Rc::new(EnterStanceAction {})),
             ]
+        }
+    }
+
+    pub fn get_command_to_confirm(&self) -> Option<Rc<dyn CommandTrait>> {
+        if let EntityState::ConfirmCommand { to_confirm, .. } = &self.state {
+            Some(Rc::new(Upcast::new(to_confirm.clone())))
+        } else {
+            None
         }
     }
 

@@ -276,6 +276,11 @@ impl Entity {
     }
 
     #[func]
+    fn get_command_to_confirm(&self) -> Option<Gd<Command>> {
+        self.entity.get_command_to_confirm().map(Command::new)
+    }
+
+    #[func]
     fn get_debug(&self) -> String {
         format!("{:?}", self.entity.state)
     }
@@ -302,7 +307,7 @@ impl Action {
         let verify_action = self
             .action
             .verify_action(&floor.bind().floor, subject_ref)?;
-        Some(Command::new(verify_action))
+        Some(Command::new(verify_action.into()))
     }
 }
 
@@ -332,7 +337,7 @@ impl TileAction {
         let verify_action =
             self.action
                 .verify_action(&floor.bind().floor, subject_ref, tile.into())?;
-        Some(Command::new(verify_action))
+        Some(Command::new(verify_action.into()))
     }
 }
 
@@ -362,7 +367,7 @@ impl DirectionAction {
         let verify_action =
             self.action
                 .verify_action(&floor.bind().floor, subject_ref, dir.into())?;
-        Some(Command::new(verify_action))
+        Some(Command::new(verify_action.into()))
     }
 }
 
@@ -387,12 +392,12 @@ impl DirectionAction {
 #[class(no_init)]
 pub struct Command {
     // Godot doesn't see this anyways.
-    command: Box<dyn CommandTrait>,
+    command: Rc<dyn CommandTrait>,
 }
 
 #[godot_api]
 impl Command {
-    fn new(command: Box<dyn CommandTrait>) -> Gd<Self> {
+    fn new(command: Rc<dyn CommandTrait>) -> Gd<Self> {
         Gd::from_object(Self { command })
     }
 }
