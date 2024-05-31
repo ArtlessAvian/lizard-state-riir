@@ -2,23 +2,11 @@ class_name MainState
 extends "StateInterface.gd"
 
 
-func _poll_input(floor_container: FloorContainer, delta: float):
-	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
-	var command = player.get_command_to_confirm()
-	if command:
-		floor_container.floor.do_action(command)
-		floor_container.emit_signal("floor_dirtied")
-		return FloorContainer.ExtraTransitions.NONE
-
-	return FloorContainer.ExtraTransitions.NONE
-
-			
 func _godot_input(floor_container: FloorContainer, event: InputEvent):
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			goto_mouse(floor_container)
-			return FloorContainer.ExtraTransitions.CLEAR
-
+			return preload("res://Crawler/Controller/AutoconfirmState.gd").new("goto")
 
 	for action in ACTION_TO_DIRECTION:
 		if event.is_action_pressed(action):
