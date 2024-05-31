@@ -28,6 +28,19 @@ func _godot_input(floor_container: FloorContainer, event: InputEvent) -> Variant
 			floor_container.emit_signal("floor_dirtied")
 			return FloorContainer.ExtraTransitions.CLEAR
 
+	if event is InputEventMouseButton:
+		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
+			var command = action.to_command(
+				floor_container.floor,
+				player,
+				project_mouse_to_tile(floor_container.get_viewport()) - player.get_pos()
+			)
+			if command:
+				floor_container.floor.do_action(command)
+				floor_container.emit_signal("floor_dirtied")
+				return FloorContainer.ExtraTransitions.CLEAR
+
 	return FloorContainer.ExtraTransitions.NONE
 
 
@@ -39,3 +52,9 @@ func godot_input_without_transition(floor_container: FloorContainer, event: Inpu
 			floor_container.find_child("Cursor").position = Vector3(
 				self.absolute_position.x, 0.01, self.absolute_position.y
 			)
+
+	if event is InputEventMouseMotion:
+		var projected = project_mouse_to_tile(floor_container.get_viewport())
+		floor_container.find_child("Cursor").position = Vector3(
+			projected.x, 0.01, projected.y
+		)
