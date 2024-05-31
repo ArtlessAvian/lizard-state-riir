@@ -2,6 +2,15 @@ class_name MainState
 extends "StateInterface.gd"
 
 
+func _poll_held_input(floor_container: FloorContainer):
+	for action in ACTION_TO_DIRECTION:
+		if Input.is_action_pressed(action):
+			move_player(floor_container, ACTION_TO_DIRECTION[action])
+			return FloorContainer.ExtraTransitions.CLEAR
+
+	return FloorContainer.ExtraTransitions.NONE
+
+
 func _godot_input(floor_container: FloorContainer, event: InputEvent):
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

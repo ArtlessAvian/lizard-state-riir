@@ -12,7 +12,7 @@ default_font = ExtResource("5_ueg1a")
 [node name="FloorContainer" type="Node3D"]
 script = ExtResource("1_6nk2a")
 
-[node name="Floor" parent="." instance=ExtResource("2_1cpv2")]
+[node name="FloorView" parent="." instance=ExtResource("2_1cpv2")]
 
 [node name="Cursor" type="Sprite3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.333, 0, 0.01, 0)
@@ -44,4 +44,5 @@ item_1/id = 1
 offset_right = 40.0
 offset_bottom = 23.0
 
-[connection signal="floor_dirtied" from="." to="Floor" method="_on_floor_container_floor_dirtied"]
+[connection signal="floor_dirtied" from="." to="FloorView" method="_on_floor_container_floor_dirtied"]
+[connection signal="done_animating" from="FloorView" to="." method="_on_floor_view_done_animating"]

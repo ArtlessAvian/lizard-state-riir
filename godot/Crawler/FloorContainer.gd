@@ -20,7 +20,7 @@ func _ready():
 	floor.set_map_2d($Map)
 
 	player_id = floor.add_entity_at(Vector2i.ZERO, true)
-	$Floor.id_to_node[player_id] = find_child("Entity")
+	$FloorView.id_to_node[player_id] = find_child("Entity")
 
 	floor.add_entity_at(Vector2i(3, 0), false)
 	#floor.add_entity_at(Vector2i(-3, -1), false)
@@ -47,12 +47,12 @@ func do_transition(transition: Variant):
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	if not $Floor.desynced_from_floor:
+	if not $FloorView.desynced_from_floor:
 		var transition = get_current_state()._poll_input(self, delta)
 		do_transition(transition)
 
 	floor.take_npc_turn()
-	$Floor._process_floor(delta, floor)
+	$FloorView._process_floor(delta, floor)
 
 	var debug_state_str = ""
 	for state in input_state_stack:
@@ -61,6 +61,11 @@ func _process(delta):
 
 
 func _unhandled_input(event):
-	if not $Floor.desynced_from_floor:
+	if not $FloorView.desynced_from_floor:
 		var transition = get_current_state()._godot_input(self, event)
 		do_transition(transition)
+
+
+func _on_floor_view_done_animating() -> void:
+	var transition = get_current_state()._poll_held_input(self)
+	do_transition(transition)

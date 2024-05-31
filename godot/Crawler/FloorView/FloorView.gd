@@ -1,5 +1,7 @@
 extends Node
 
+signal done_animating
+
 var id_to_node: Dictionary
 # TODO: Consider pop_front instead? So like a deque.
 var event_index = 0
@@ -13,7 +15,7 @@ var test_visions: Dictionary  # of EntityIds to their most recent vision.
 
 func _ready():
 	desynced_from_floor = true
-	
+
 	($WorldSkew/Map as GridMap).clear()
 	($WorldSkew/MapHistory as GridMap).clear()
 
@@ -33,7 +35,7 @@ func _process_floor(delta, floor: Floor):
 
 		desynced_from_floor = false
 		sync_with_engine(floor)
-		_process_floor(0, floor)  # repoll input for smooth movement.
+		emit_signal("done_animating")  # repoll input for smooth movement.
 
 
 func clear_queue(delta, floor: Floor):

@@ -26,6 +26,11 @@ func _poll_input(floor_container: FloorContainer, delta: float) -> Variant:
 	return FloorContainer.ExtraTransitions.NONE
 
 
+# Acts as a hold buffer, sort of.
+func _poll_held_input(floor_container: FloorContainer) -> Variant:
+	return FloorContainer.ExtraTransitions.NONE
+
+
 # _unhandled_input, except not explicitly turned on/off per node.
 # We want to avoid [Node].set_process_unhandled_input
 # so we are sure exactly one node is getting inputs.
