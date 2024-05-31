@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://26cefkj35wuf"]
+[gd_scene load_steps=10 format=3 uid="uid://26cefkj35wuf"]
 
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/DiscardBasis.gd" id="1_dh5rl"]
 [ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="2_sqxtn"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/DamagePopup.gd" id="3_vuf35"]
 [ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://Crawler/FloorView/Entity/tegu.png" id="4_w7ppg"]
+[ext_resource type="Script" path="res://Crawler/FloorView/Entity/UnclipTail.gd" id="5_1w3dl"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/EntitySprite.gd" id="5_jvxk3"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_31piw"]
@@ -58,10 +59,22 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 [node name="Sprite3D" type="Sprite3D" parent="DiscardBasis"]
 offset = Vector2(0, 15)
 pixel_size = 0.0417
-billboard = 1
 texture_filter = 0
 texture = SubResource("AtlasTexture_31piw")
 script = ExtResource("5_jvxk3")
 towards = SubResource("AtlasTexture_31piw")
 right = SubResource("AtlasTexture_pip4u")
 away = SubResource("AtlasTexture_er8p6")
+
+[node name="UnclipTail" type="Sprite3D" parent="DiscardBasis/Sprite3D"]
+editor_description = "Skews towards the camera. If the camera is orthographic this is completely invisible."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, -1.25, 1, 0, 0, 0)
+rotation_edit_mode = 2
+centered = false
+offset = Vector2(-20, -5)
+pixel_size = 0.0417
+texture_filter = 0
+texture = SubResource("AtlasTexture_31piw")
+region_enabled = true
+region_rect = Rect2(0, 35, 40, 5)
+script = ExtResource("5_1w3dl")
