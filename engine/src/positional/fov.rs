@@ -24,39 +24,6 @@ impl TrieNode {
             run: None,
         }
     }
-
-    fn extend<I: Iterator<Item = OctantRelative>>(
-        &mut self,
-        generator: OctantRelative,
-        mut iter: I,
-    ) {
-        let next = iter.next();
-        if let Some(tile) = next {
-            if tile.run == self.tile.run + 1 && tile.rise == self.tile.rise {
-                let subtree = match &mut self.run {
-                    Some(subtree) => subtree,
-                    None => {
-                        self.run = Some(Box::new(TrieNode::new(tile, generator)));
-                        self.run.as_mut().unwrap()
-                    }
-                };
-                subtree.extend(generator, iter);
-            } else if tile.run == self.tile.run + 1 && tile.rise == self.tile.rise + 1 {
-                let subtree = match &mut self.diag {
-                    Some(subtree) => subtree,
-                    None => {
-                        self.diag = Some(Box::new(TrieNode::new(tile, generator)));
-                        self.diag.as_mut().unwrap()
-                    }
-                };
-                subtree.extend(generator, iter);
-            } else if tile.run == self.tile.run && tile.rise == self.tile.rise + 1 {
-                unimplemented!("Segments aren't expected to step upwards.");
-            } else {
-                panic!("Segment is discontinuous!");
-            }
-        }
-    }
 }
 
 // TODO: Lenient FOV.
@@ -92,9 +59,42 @@ impl StrictFOV {
 
             let (a, b) = (Segment { target: generator }).calculate();
             // TODO: Don't skip, assert node matches next, then peek the next?
-            self.origin.extend(generator, a.into_iter().skip(1));
+            Self::extend(&mut self.origin, generator, a.into_iter().skip(1));
             if let Some(b) = b {
-                self.origin.extend(generator, b.into_iter().skip(1));
+                Self::extend(&mut self.origin, generator, b.into_iter().skip(1));
+            }
+        }
+    }
+
+    fn extend<I: Iterator<Item = OctantRelative>>(
+        node: &mut TrieNode,
+        generator: OctantRelative,
+        mut iter: I,
+    ) {
+        let next = iter.next();
+        if let Some(tile) = next {
+            if tile.run == node.tile.run + 1 && tile.rise == node.tile.rise {
+                let subtree = match &mut node.run {
+                    Some(subtree) => subtree,
+                    None => {
+                        node.run = Some(Box::new(TrieNode::new(tile, generator)));
+                        node.run.as_mut().unwrap()
+                    }
+                };
+                Self::extend(subtree, generator, iter);
+            } else if tile.run == node.tile.run + 1 && tile.rise == node.tile.rise + 1 {
+                let subtree = match &mut node.diag {
+                    Some(subtree) => subtree,
+                    None => {
+                        node.diag = Some(Box::new(TrieNode::new(tile, generator)));
+                        node.diag.as_mut().unwrap()
+                    }
+                };
+                Self::extend(subtree, generator, iter);
+            } else if tile.run == node.tile.run && tile.rise == node.tile.rise + 1 {
+                unimplemented!("Segments aren't expected to step upwards.");
+            } else {
+                panic!("Segment is discontinuous!");
             }
         }
     }
