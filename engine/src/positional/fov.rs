@@ -3,16 +3,14 @@ use super::AbsolutePosition;
 use super::OctantRelative;
 use super::RelativePosition;
 
-type TrieEdge = Option<Box<TrieNode>>;
-
 #[derive(Debug)]
 struct TrieNode {
     tile: OctantRelative,
     generator: OctantRelative,
 
     // up: FOVTrieEdge,
-    diag: TrieEdge,
-    run: TrieEdge,
+    diag: Option<usize>,
+    run: Option<usize>,
 }
 
 impl TrieNode {
@@ -31,17 +29,17 @@ impl TrieNode {
 #[derive(Debug)]
 pub struct StrictFOV {
     radius: u32,
-    origin: TrieNode,
+    nodes: Vec<TrieNode>,
 }
 
 impl StrictFOV {
     pub fn new(radius: u32) -> Self {
         let mut partial = StrictFOV {
             radius: 0,
-            origin: TrieNode::new(
+            nodes: vec![TrieNode::new(
                 OctantRelative::ignore_octant(0, 0),
                 OctantRelative::ignore_octant(0, 0),
-            ),
+            )],
         };
 
         for _ in 1..=radius {
@@ -59,39 +57,49 @@ impl StrictFOV {
 
             let (a, b) = (Segment { target: generator }).calculate();
             // TODO: Don't skip, assert node matches next, then peek the next?
-            Self::extend(&mut self.origin, generator, a.into_iter().skip(1));
+            self.extend(0, generator, a.into_iter().skip(1));
             if let Some(b) = b {
-                Self::extend(&mut self.origin, generator, b.into_iter().skip(1));
+                self.extend(0, generator, b.into_iter().skip(1));
             }
         }
     }
 
     fn extend<I: Iterator<Item = OctantRelative>>(
-        node: &mut TrieNode,
+        &mut self,
+        index: usize,
         generator: OctantRelative,
         mut iter: I,
     ) {
+        // indexing should never panic. 0 is valid from construction, and any index contained in a node must be a valid node.
         let next = iter.next();
         if let Some(tile) = next {
-            if tile.run == node.tile.run + 1 && tile.rise == node.tile.rise {
-                let subtree = match &mut node.run {
+            if tile.run == self.nodes[index].tile.run + 1
+                && tile.rise == self.nodes[index].tile.rise
+            {
+                let subtree = match self.nodes[index].run {
                     Some(subtree) => subtree,
                     None => {
-                        node.run = Some(Box::new(TrieNode::new(tile, generator)));
-                        node.run.as_mut().unwrap()
+                        self.nodes.push(TrieNode::new(tile, generator));
+                        self.nodes[index].run = Some(self.nodes.len() - 1);
+                        self.nodes.len() - 1
                     }
                 };
-                Self::extend(subtree, generator, iter);
-            } else if tile.run == node.tile.run + 1 && tile.rise == node.tile.rise + 1 {
-                let subtree = match &mut node.diag {
+                self.extend(subtree, generator, iter);
+            } else if tile.run == self.nodes[index].tile.run + 1
+                && tile.rise == self.nodes[index].tile.rise + 1
+            {
+                let subtree = match self.nodes[index].diag {
                     Some(subtree) => subtree,
                     None => {
-                        node.diag = Some(Box::new(TrieNode::new(tile, generator)));
-                        node.diag.as_mut().unwrap()
+                        self.nodes.push(TrieNode::new(tile, generator));
+                        self.nodes[index].diag = Some(self.nodes.len() - 1);
+                        self.nodes.len() - 1
                     }
                 };
-                Self::extend(subtree, generator, iter);
-            } else if tile.run == node.tile.run && tile.rise == node.tile.rise + 1 {
+                self.extend(subtree, generator, iter);
+            } else if tile.run == self.nodes[index].tile.run
+                && tile.rise == self.nodes[index].tile.rise + 1
+            {
                 unimplemented!("Segments aren't expected to step upwards.");
             } else {
                 panic!("Segment is discontinuous!");
@@ -128,31 +136,31 @@ impl StrictFOV {
         let mut out = Vec::new();
         for octant in 0..8 {
             // DFS through the trie. BFS would return tiles in order of radius, which is nice.
-            let mut frontier = vec![&self.origin];
+            let mut frontier: Vec<usize> = vec![0];
             while let Some(current) = frontier.pop() {
-                if current.generator.run > radius {
+                if self.nodes[current].generator.run > radius {
                     // In this subtree, we know that every tile we would output
                     // would be outside the radius. Rather than checking radius before outputting,
                     // we can just stop early.
                     continue;
                 }
 
-                let mut tile = current.tile;
+                let mut tile = self.nodes[current].tile;
                 tile.octant = octant;
                 let relative = RelativePosition::from(tile);
 
                 // This is what makes StrictFov "strict".
                 // This is equivalent to drawing a segment to the tile and checking everything in between.
                 // Without this, you are allowed to draw a segment *through* the tile and see it.
-                if current.generator == current.tile {
+                if self.nodes[current].generator == self.nodes[current].tile {
                     out.push(relative);
                 }
 
                 if !blocks_vision_relative(relative) {
-                    if let Some(diag) = &current.diag {
+                    if let Some(diag) = self.nodes[current].diag {
                         frontier.push(diag)
                     }
-                    if let Some(run) = &current.run {
+                    if let Some(run) = self.nodes[current].run {
                         frontier.push(run)
                     }
                 }
