@@ -1,7 +1,13 @@
+use std::ops::Index;
+use std::ops::IndexMut;
+
 use super::algorithms::Segment;
 use super::AbsolutePosition;
 use super::OctantRelative;
 use super::RelativePosition;
+
+#[derive(Debug, Clone, Copy)]
+struct TrieNodeIndex(usize);
 
 #[derive(Debug)]
 struct TrieNode {
@@ -9,8 +15,8 @@ struct TrieNode {
     generator: OctantRelative,
 
     // up: FOVTrieEdge,
-    diag: Option<usize>,
-    run: Option<usize>,
+    diag: Option<TrieNodeIndex>,
+    run: Option<TrieNodeIndex>,
 }
 
 impl TrieNode {
@@ -24,22 +30,48 @@ impl TrieNode {
     }
 }
 
+#[derive(Debug)]
+struct NodeArena(Vec<TrieNode>);
+
+impl NodeArena {
+    // Append/emplace only.
+    // Without removal, any TrieNodeIndex created by the arena will always be vali.
+    fn emplace(&mut self, node: TrieNode) -> TrieNodeIndex {
+        self.0.push(node);
+        TrieNodeIndex(self.0.len() - 1)
+    }
+}
+
+impl Index<TrieNodeIndex> for NodeArena {
+    type Output = TrieNode;
+
+    fn index(&self, index: TrieNodeIndex) -> &Self::Output {
+        &self.0[index.0]
+    }
+}
+
+impl IndexMut<TrieNodeIndex> for NodeArena {
+    fn index_mut(&mut self, index: TrieNodeIndex) -> &mut Self::Output {
+        &mut self.0[index.0]
+    }
+}
+
 // TODO: Lenient FOV.
 // TODO: Make a lazy-static? I also doubt you will need to increase radius much more than it is already.
 #[derive(Debug)]
 pub struct StrictFOV {
     radius: u32,
-    nodes: Vec<TrieNode>,
+    nodes: NodeArena,
 }
 
 impl StrictFOV {
     pub fn new(radius: u32) -> Self {
         let mut partial = StrictFOV {
             radius: 0,
-            nodes: vec![TrieNode::new(
+            nodes: NodeArena(vec![TrieNode::new(
                 OctantRelative::ignore_octant(0, 0),
                 OctantRelative::ignore_octant(0, 0),
-            )],
+            )]),
         };
 
         for _ in 1..=radius {
@@ -57,16 +89,16 @@ impl StrictFOV {
 
             let (a, b) = (Segment { target: generator }).calculate();
             // TODO: Don't skip, assert node matches next, then peek the next?
-            self.extend(0, generator, a.into_iter().skip(1));
+            self.extend(TrieNodeIndex(0), generator, a.into_iter().skip(1));
             if let Some(b) = b {
-                self.extend(0, generator, b.into_iter().skip(1));
+                self.extend(TrieNodeIndex(0), generator, b.into_iter().skip(1));
             }
         }
     }
 
     fn extend<I: Iterator<Item = OctantRelative>>(
         &mut self,
-        index: usize,
+        index: TrieNodeIndex,
         generator: OctantRelative,
         mut iter: I,
     ) {
@@ -79,9 +111,9 @@ impl StrictFOV {
                 let subtree = match self.nodes[index].run {
                     Some(subtree) => subtree,
                     None => {
-                        self.nodes.push(TrieNode::new(tile, generator));
-                        self.nodes[index].run = Some(self.nodes.len() - 1);
-                        self.nodes.len() - 1
+                        let subtree = self.nodes.emplace(TrieNode::new(tile, generator));
+                        self.nodes[index].run = Some(subtree);
+                        subtree
                     }
                 };
                 self.extend(subtree, generator, iter);
@@ -91,9 +123,9 @@ impl StrictFOV {
                 let subtree = match self.nodes[index].diag {
                     Some(subtree) => subtree,
                     None => {
-                        self.nodes.push(TrieNode::new(tile, generator));
-                        self.nodes[index].diag = Some(self.nodes.len() - 1);
-                        self.nodes.len() - 1
+                        let subtree = self.nodes.emplace(TrieNode::new(tile, generator));
+                        self.nodes[index].diag = Some(subtree);
+                        subtree
                     }
                 };
                 self.extend(subtree, generator, iter);
@@ -136,7 +168,7 @@ impl StrictFOV {
         let mut out = Vec::new();
         for octant in 0..8 {
             // DFS through the trie. BFS would return tiles in order of radius, which is nice.
-            let mut frontier: Vec<usize> = vec![0];
+            let mut frontier = vec![TrieNodeIndex(0)];
             while let Some(current) = frontier.pop() {
                 if self.nodes[current].generator.run > radius {
                     // In this subtree, we know that every tile we would output
