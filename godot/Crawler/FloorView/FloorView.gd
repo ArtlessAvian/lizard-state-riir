@@ -51,7 +51,7 @@ func clear_queue(delta, floor: Floor):
 		var subject = id_to_node[event.subject]
 		var tile = Vector3(event.tile.x, 0, event.tile.y)
 		if tile - subject.position != Vector3.ZERO:
-			subject.get_node("DiscardBasis/Sprite3D").look_at = tile - subject.position
+			subject.get_node("DiscardBasis/Sprite3D").look_dir = tile - subject.position
 
 		var tween = subject.create_tween()
 		tween.tween_property(subject, "position", tile, 10 / 60.0)
@@ -68,16 +68,19 @@ func clear_queue(delta, floor: Floor):
 		# TODO: Replace with actual animation player.
 		var subject = id_to_node[event.subject]
 		var target = Vector3(event.tile.x, 0, event.tile.y)
-		subject.get_node("DiscardBasis/Sprite3D").look_at = target - subject.position
+		subject.get_node("DiscardBasis/Sprite3D").look_dir = target - subject.position
 
 		var sprite = subject.get_node("DiscardBasis/Sprite3D")
+		sprite.look_dir_offset = 0
+		
 		var tween = sprite.create_tween()
-		tween.tween_property(
-			sprite, "position", sprite.position.lerp(target - subject.position, 0.5), 2 / 60.0
+		tween.tween_property(sprite, "look_dir_offset", 1, 8 / 60.0)
+		tween.parallel().tween_property(
+			sprite, "position", sprite.position.lerp(target - subject.position, 0.5), 4 / 60.0
 		)
-		tween.tween_property(sprite, "position", sprite.position, 2 / 60.0)
+		tween.tween_property(sprite, "position", sprite.position, 4 / 60.0)
 
-		test_event_delay += 2 / 60.0
+		test_event_delay += 4 / 60.0
 		event_index += 1
 		clear_queue(delta, floor)
 
@@ -86,7 +89,7 @@ func clear_queue(delta, floor: Floor):
 		target.get_node("DiscardBasis/DamagePopup").popup(-1)
 
 		var subject = id_to_node[event.subject]
-		target.get_node("DiscardBasis/Sprite3D").look_at = subject.position - target.position
+		target.get_node("DiscardBasis/Sprite3D").look_dir = subject.position - target.position
 
 		test_event_delay += 1
 		event_index += 1

@@ -6,7 +6,8 @@ extends Sprite3D
 @export var away: Texture
 
 # y is dropped for calculations.
-@export var look_at: Vector3 = Vector3.BACK
+@export var look_dir: Vector3 = Vector3.BACK
+@export var look_dir_offset: float = 0  # full rotations
 
 
 func _process(delta):
@@ -27,12 +28,13 @@ func spin_around(camera_direction):
 	if not self.get_parent() or not self.get_parent().get_parent():
 		return  # we need to yoink their global transform since we threw ours out.
 
-	var look_at_local = self.get_parent().get_parent().global_transform.basis * look_at
+	var look_dir_local = self.get_parent().get_parent().global_transform.basis * look_dir
+	look_dir_local = look_dir_local.rotated(Vector3.UP, look_dir_offset * 2 * PI)
 
 	var cam_dir_drop_y = camera_direction * Vector3(1, 0, 1)
-	var look_at_drop_y = look_at_local * Vector3(1, 0, 1)
+	var look_dir_drop_y = look_dir_local * Vector3(1, 0, 1)
 
-	var angle = rad_to_deg(cam_dir_drop_y.angle_to(look_at_drop_y))
+	var angle = rad_to_deg(cam_dir_drop_y.angle_to(look_dir_drop_y))
 	if angle < 30:
 		self.flip_h = false
 		self.texture = away
@@ -40,5 +42,5 @@ func spin_around(camera_direction):
 		self.flip_h = false
 		self.texture = towards
 	else:
-		self.flip_h = cam_dir_drop_y.cross(look_at_drop_y).y > 0
+		self.flip_h = cam_dir_drop_y.cross(look_dir_drop_y).y > 0
 		self.texture = right
