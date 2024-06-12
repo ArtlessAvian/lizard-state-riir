@@ -110,30 +110,35 @@ impl Sub for AbsolutePosition {
     }
 }
 
+/// Represents a position ignoring symmetry.
+/// Don't make public.
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+struct InsideOctant {
+    run: u32,
+    rise: u32, // rise <= run
+}
+
+impl InsideOctant {
+    fn new(rise: u32, run: u32) -> Self {
+        assert!(rise <= run);
+        Self { run, rise }
+    }
+}
+
 /// An alternate representation of a RelativePosition that hides direction.
 /// Not very useful outside of algorithms.
 /// Don't make public.
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
-struct OctantRelative {
-    run: u32,
-    rise: u32,  // rise < run
+struct RelativeOctantified {
+    inside: InsideOctant,
     octant: u8, // Treat as a black box.
 }
 
-impl OctantRelative {
-    fn ignore_octant(rise: u32, run: u32) -> Self {
-        Self {
-            run,
-            rise,
-            octant: 0,
-        }
-    }
-
+impl RelativeOctantified {
     // If you are working in an octant, you are not likely to exit the octant.
-    fn in_same_octant(&self, rise: u32, run: u32) -> Self {
+    fn in_same_octant(&self, inside: InsideOctant) -> Self {
         Self {
-            rise,
-            run,
+            inside,
             octant: self.octant,
         }
     }
@@ -144,7 +149,7 @@ impl OctantRelative {
     // }
 }
 
-impl From<RelativePosition> for OctantRelative {
+impl From<RelativePosition> for RelativeOctantified {
     fn from(value: RelativePosition) -> Self {
         // let mut octant = 0;
         // if value.dy < 0 {
@@ -160,8 +165,10 @@ impl From<RelativePosition> for OctantRelative {
         //     (value.dx, value.dy) = (value.dy, value.dx)
         // }
         Self {
-            run: u32::max(value.dx.unsigned_abs(), value.dy.unsigned_abs()),
-            rise: u32::min(value.dx.unsigned_abs(), value.dy.unsigned_abs()),
+            inside: InsideOctant {
+                run: u32::max(value.dx.unsigned_abs(), value.dy.unsigned_abs()),
+                rise: u32::min(value.dx.unsigned_abs(), value.dy.unsigned_abs()),
+            },
             octant: if value.dy < 0 { 0b100 } else { 0 }
                 + if value.dx < 0 { 0b010 } else { 0 }
                 + if value.dy.abs() > value.dx.abs() {
@@ -173,9 +180,9 @@ impl From<RelativePosition> for OctantRelative {
     }
 }
 
-impl From<OctantRelative> for RelativePosition {
-    fn from(value: OctantRelative) -> Self {
-        let (mut dx, mut dy) = (value.run as i32, value.rise as i32);
+impl From<RelativeOctantified> for RelativePosition {
+    fn from(value: RelativeOctantified) -> Self {
+        let (mut dx, mut dy) = (value.inside.run as i32, value.inside.rise as i32);
 
         if value.octant & 0b001 != 0 {
             (dx, dy) = (dy, dx);
@@ -195,7 +202,7 @@ fn test_octant_from_into() {
             let relative = RelativePosition { dx, dy };
             assert_eq!(
                 relative,
-                RelativePosition::from(OctantRelative::from(relative))
+                RelativePosition::from(RelativeOctantified::from(relative))
             );
         }
     }

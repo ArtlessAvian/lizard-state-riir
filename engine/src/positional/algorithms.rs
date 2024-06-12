@@ -5,7 +5,7 @@
 // (Currently the only gameplay value is revealing the map in a neat way.)
 // (There's no cover mechanics for example.)
 
-use super::{OctantRelative, RelativePosition};
+use super::{InsideOctant, RelativeOctantified, RelativePosition};
 
 /// A symmetric segment.
 ///
@@ -25,16 +25,16 @@ use super::{OctantRelative, RelativePosition};
 /// There isn't much of a use to an infinite ray that can't be solved with a long segment?
 /// If one were to be made anyways, maybe there could be a bias "up" and bias "down,"
 /// similar to the bias in the implementation for segments.
-pub struct Segment {
-    pub(super) target: OctantRelative,
-}
+pub struct Segment {}
 
 impl Segment {
-    pub(super) fn calculate(&self) -> (Vec<OctantRelative>, Option<Vec<OctantRelative>>) {
+    pub(super) fn calculate(
+        target: InsideOctant,
+    ) -> (Vec<InsideOctant>, Option<Vec<InsideOctant>>) {
         let mut tiles = Vec::new();
 
         let mut rise = 0;
-        for run in 0..self.target.run + 1 {
+        for run in 0..=target.run {
             // Reimplemented from myself at https://github.com/ArtlessAvian/lizard-state/blob/development/Engine/GridHelper.cs#L81-L87
             // Based on Tran Thong "A symmetric linear algorithm for line segment generation."
 
@@ -58,19 +58,19 @@ impl Segment {
 
             // Instead we can just do this simpler equivalent thing lol.
             // Thanks Rust for motivating this with annoying u32 conversions with `as i32`.
-            if 2 * run <= self.target.run {
-                if self.target.run * (2 * rise + 1) < self.target.rise * 2 * run {
+            if 2 * run <= target.run {
+                if target.run * (2 * rise + 1) < target.rise * 2 * run {
                     rise += 1;
                 }
-            } else if self.target.run * (2 * rise + 1) <= self.target.rise * 2 * run {
+            } else if target.run * (2 * rise + 1) <= target.rise * 2 * run {
                 rise += 1;
             }
 
-            tiles.push(self.target.in_same_octant(rise, run))
+            tiles.push(InsideOctant::new(rise, run))
         }
 
         let mut alt = None;
-        if self.target.rise % 2 != 0 && self.target.run % 2 == 0 {
+        if target.rise % 2 != 0 && target.run % 2 == 0 {
             let mut clone = tiles.clone();
             let mid = clone.len() / 2; // int division intentional.
             clone[mid].rise += 1;
@@ -80,10 +80,24 @@ impl Segment {
         (tiles, alt)
     }
 
-    pub fn calculate_relative(&self) -> (Vec<RelativePosition>, Option<Vec<RelativePosition>>) {
-        let (a, b) = self.calculate();
-        let a_relative = a.into_iter().map(RelativePosition::from).collect();
-        let b_relative = b.map(|x| x.into_iter().map(RelativePosition::from).collect());
+    pub fn calculate_relative(
+        target: RelativePosition,
+    ) -> (Vec<RelativePosition>, Option<Vec<RelativePosition>>) {
+        let target_octantified: RelativeOctantified = target.into();
+        let target_in_octant: InsideOctant = target_octantified.inside;
+
+        let (a, b) = Self::calculate(target_in_octant);
+        let a_relative = a
+            .into_iter()
+            .map(|x| target_octantified.in_same_octant(x))
+            .map(RelativePosition::from)
+            .collect();
+        let b_relative = b.map(|x| {
+            x.into_iter()
+                .map(|x| target_octantified.in_same_octant(x))
+                .map(RelativePosition::from)
+                .collect()
+        });
         (a_relative, b_relative)
     }
 }
@@ -91,12 +105,7 @@ impl Segment {
 #[cfg(test)]
 #[test]
 fn test_cardinal() {
-    use super::RelativePosition;
-
-    let seg = Segment {
-        target: OctantRelative::from(RelativePosition::new(10, 0)),
-    };
-    let (seg_octant, none) = seg.calculate();
+    let (seg_octant, none) = Segment::calculate(InsideOctant::new(0, 10));
     assert!(none.is_none());
 
     for (i, el) in seg_octant.iter().enumerate() {
@@ -108,12 +117,7 @@ fn test_cardinal() {
 #[cfg(test)]
 #[test]
 fn test_diagonal() {
-    use super::RelativePosition;
-
-    let seg = Segment {
-        target: OctantRelative::from(RelativePosition::new(10, 10)),
-    };
-    let (seg_octant, none) = seg.calculate();
+    let (seg_octant, none) = Segment::calculate(InsideOctant::new(10, 10));
     assert!(none.is_none());
 
     dbg!(seg_octant.clone());
@@ -126,12 +130,7 @@ fn test_diagonal() {
 #[cfg(test)]
 #[test]
 fn test_midpoint() {
-    use super::RelativePosition;
-
-    let seg = Segment {
-        target: OctantRelative::from(RelativePosition::new(2, 1)),
-    };
-    let (seg_octant, some) = seg.calculate();
+    let (seg_octant, some) = Segment::calculate(InsideOctant::new(1, 2));
     let alt = some.unwrap();
 
     assert_eq!(seg_octant[0], alt[0]);
@@ -142,15 +141,10 @@ fn test_midpoint() {
 #[cfg(test)]
 #[test]
 fn test_symmetry() {
-    use super::RelativePosition;
-
     let target = RelativePosition::new(23, 7);
-    let seg = Segment {
-        target: OctantRelative::from(target),
-    };
-
-    let (mut forwards, none) = seg.calculate_relative();
+    let (mut forwards, none) = Segment::calculate_relative(target);
     assert!(none.is_none());
+
     let mut backwards = forwards
         .iter()
         .map(|x| target + -1 * *x)
@@ -164,14 +158,9 @@ fn test_symmetry() {
 #[cfg(test)]
 #[test]
 fn test_symmetry_alt() {
-    use super::RelativePosition;
-
     let target = RelativePosition::new(24, 7);
-    let seg = Segment {
-        target: OctantRelative::from(target),
-    };
 
-    let (mut forwards, some) = seg.calculate_relative();
+    let (mut forwards, some) = Segment::calculate_relative(target);
     let mut backwards = some
         .unwrap()
         .into_iter()
@@ -186,15 +175,10 @@ fn test_symmetry_alt() {
 #[cfg(test)]
 #[test]
 fn test_annoying_slope() {
-    use super::RelativePosition;
-
     // Often passes through (x, y + 0.5) for some integers x and y.
     let target = RelativePosition::new(10, 5);
-    let seg = Segment {
-        target: OctantRelative::from(target),
-    };
 
-    let (mut forwards, some) = seg.calculate_relative();
+    let (mut forwards, some) = Segment::calculate_relative(target);
     let mut backwards = some
         .unwrap()
         .into_iter()
@@ -209,15 +193,10 @@ fn test_annoying_slope() {
 #[cfg(test)]
 #[test]
 fn test_octant() {
-    use super::RelativePosition;
-
     // Often passes through (x, y + 0.5) for some integers x and y.
     let target = RelativePosition::new(-5, -10);
 
-    let seg = Segment {
-        target: OctantRelative::from(target),
-    };
-    let (mut forwards, some) = seg.calculate_relative();
+    let (mut forwards, some) = Segment::calculate_relative(target);
     let mut backwards = some
         .unwrap()
         .into_iter()

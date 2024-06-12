@@ -3,7 +3,8 @@ use std::ops::IndexMut;
 
 use super::algorithms::Segment;
 use super::AbsolutePosition;
-use super::OctantRelative;
+use super::InsideOctant;
+use super::RelativeOctantified;
 use super::RelativePosition;
 
 #[derive(Debug, Clone, Copy)]
@@ -11,8 +12,8 @@ struct TrieNodeIndex(usize);
 
 #[derive(Debug)]
 struct TrieNode {
-    tile: OctantRelative,
-    generator: OctantRelative,
+    tile: InsideOctant,
+    generator: InsideOctant,
 
     // up: FOVTrieEdge,
     diag: Option<TrieNodeIndex>,
@@ -20,7 +21,7 @@ struct TrieNode {
 }
 
 impl TrieNode {
-    fn new(tile: OctantRelative, generator: OctantRelative) -> Self {
+    fn new(tile: InsideOctant, generator: InsideOctant) -> Self {
         Self {
             tile,
             generator,
@@ -69,8 +70,8 @@ impl StrictFOV {
         let mut partial = StrictFOV {
             radius: 0,
             nodes: NodeArena(vec![TrieNode::new(
-                OctantRelative::ignore_octant(0, 0),
-                OctantRelative::ignore_octant(0, 0),
+                InsideOctant::new(0, 0),
+                InsideOctant::new(0, 0),
             )]),
         };
 
@@ -85,9 +86,9 @@ impl StrictFOV {
         self.radius += 1;
         let run = self.radius;
         for rise in 0..=run {
-            let generator = OctantRelative::ignore_octant(rise, run);
+            let generator = InsideOctant::new(rise, run);
 
-            let (a, b) = (Segment { target: generator }).calculate();
+            let (a, b) = Segment::calculate(generator);
             // TODO: Don't skip, assert node matches next, then peek the next?
             self.extend(TrieNodeIndex(0), generator, a.into_iter().skip(1));
             if let Some(b) = b {
@@ -96,10 +97,10 @@ impl StrictFOV {
         }
     }
 
-    fn extend<I: Iterator<Item = OctantRelative>>(
+    fn extend<I: Iterator<Item = InsideOctant>>(
         &mut self,
         index: TrieNodeIndex,
-        generator: OctantRelative,
+        generator: InsideOctant,
         mut iter: I,
     ) {
         // indexing should never panic. 0 is valid from construction, and any index contained in a node must be a valid node.
@@ -177,9 +178,10 @@ impl StrictFOV {
                     continue;
                 }
 
-                let mut tile = self.nodes[current].tile;
-                tile.octant = octant;
-                let relative = RelativePosition::from(tile);
+                let relative = RelativePosition::from(RelativeOctantified {
+                    inside: self.nodes[current].tile,
+                    octant,
+                });
 
                 // This is what makes StrictFov "strict".
                 // This is equivalent to drawing a segment to the tile and checking everything in between.
