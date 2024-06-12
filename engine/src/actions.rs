@@ -1,3 +1,5 @@
+pub mod utils;
+
 pub mod example;
 
 pub mod upcast_indirection;

@@ -22,6 +22,7 @@ use crate::positional::RelativePosition;
 use super::events::AttackHitEvent;
 use super::events::MoveEvent;
 use super::events::StartAttackEvent;
+use super::utils::TakeKnockbackUtil;
 use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
@@ -152,8 +153,16 @@ impl CommandTrait for BumpCommand {
             damage: 1,
         }));
 
-        update.bind(|floor| {
+        let update = update.bind(|floor| {
             floor.update_entities(Vec::from([Rc::new(subject_clone), Rc::new(object_clone)]))
+        });
+
+        update.bind(|floor| {
+            TakeKnockbackUtil {
+                entity: object_index,
+                vector: self.dir,
+            }
+            .do_action(&floor)
         })
     }
 }
