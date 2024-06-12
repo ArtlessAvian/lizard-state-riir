@@ -4,6 +4,7 @@ use crate::entity::EntityId;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::positional::algorithms::Segment;
 use crate::positional::RelativePosition;
 
 use super::CommandTrait;
@@ -21,7 +22,17 @@ impl CommandTrait for TakeKnockbackUtil {
 
         writer.bind(|f| {
             let mut updated = (*f.entities[self.entity]).clone();
-            updated.pos = updated.pos + self.vector;
+
+            let mut last_valid_position = updated.pos;
+            for offset in Segment::calculate_relative(self.vector).0 {
+                if f.map.is_tile_floor(&(updated.pos + offset)) {
+                    last_valid_position = updated.pos + offset
+                } else {
+                    break;
+                }
+            }
+            updated.pos = last_valid_position;
+
             f.update_entity(Rc::new(updated))
         })
     }
