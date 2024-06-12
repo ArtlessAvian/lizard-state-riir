@@ -13,6 +13,7 @@ pub enum FloorEvent {
     StartAttack(StartAttackEvent),
     AttackHit(AttackHitEvent),
     SeeMap(SeeMapEvent),
+    KnockbackEvent(KnockbackEvent),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -47,4 +48,10 @@ impl std::fmt::Debug for SeeMapEvent {
             // .field("vision", &self.vision)
             .finish()
     }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct KnockbackEvent {
+    pub subject: EntityId,
+    pub tile: AbsolutePosition,
 }

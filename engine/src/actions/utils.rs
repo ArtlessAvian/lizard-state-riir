@@ -7,6 +7,8 @@ use crate::floor::FloorUpdate;
 use crate::positional::algorithms::Segment;
 use crate::positional::RelativePosition;
 
+use super::events::FloorEvent;
+use super::events::KnockbackEvent;
 use super::CommandTrait;
 
 #[derive(Debug)]
@@ -34,6 +36,10 @@ impl CommandTrait for TakeKnockbackUtil {
             updated.pos = last_valid_position;
 
             f.update_entity(Rc::new(updated))
+                .log(FloorEvent::KnockbackEvent(KnockbackEvent {
+                    subject: self.entity,
+                    tile: last_valid_position,
+                }))
         })
     }
 }

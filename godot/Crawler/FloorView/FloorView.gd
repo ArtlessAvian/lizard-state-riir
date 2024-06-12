@@ -72,7 +72,7 @@ func clear_queue(delta, floor: Floor):
 
 		var sprite = subject.get_node("DiscardBasis/Sprite3D")
 		sprite.look_dir_offset = 0
-		
+
 		var tween = sprite.create_tween()
 		tween.tween_property(sprite, "look_dir_offset", 1, 8 / 60.0)
 		tween.parallel().tween_property(
@@ -91,7 +91,6 @@ func clear_queue(delta, floor: Floor):
 		var subject = id_to_node[event.subject]
 		target.get_node("DiscardBasis/Sprite3D").look_dir = subject.position - target.position
 
-		test_event_delay += 1
 		event_index += 1
 		clear_queue(delta, floor)
 
@@ -108,6 +107,23 @@ func clear_queue(delta, floor: Floor):
 		for pos in event.vision:
 			history.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if event.vision[pos] else 1)
 
+		event_index += 1
+		clear_queue(delta, floor)
+
+	elif event is KnockbackEvent:
+		var subject = id_to_node[event.subject]
+		var tile = Vector3(event.tile.x, 0, event.tile.y)
+		if tile - subject.position != Vector3.ZERO:
+			subject.get_node("DiscardBasis/Sprite3D").look_dir = tile - subject.position
+
+		var tween = subject.create_tween()
+		tween.tween_property(subject, "position", tile, 10 / 60.0)
+
+		event_index += 1
+		clear_queue(delta, floor)
+
+	else:
+		printerr("Unknown Event! ", event)
 		event_index += 1
 		clear_queue(delta, floor)
 

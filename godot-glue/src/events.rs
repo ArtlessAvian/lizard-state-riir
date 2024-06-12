@@ -30,6 +30,7 @@ impl FloorEvent {
             FloorEventInternal::StartAttack(x) => StartAttackEvent::new(floor, x).to_variant(),
             FloorEventInternal::AttackHit(x) => AttackHitEvent::new(floor, x).to_variant(),
             FloorEventInternal::SeeMap(x) => SeeMapEvent::new(floor, x).to_variant(),
+            FloorEventInternal::KnockbackEvent(x) => KnockbackEvent::new(floor, x).to_variant(),
             // default => Variant::nil(),
         }
     }
@@ -115,6 +116,24 @@ impl SeeMapEvent {
                     )
                 })
                 .collect(),
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct KnockbackEvent {
+    #[var(get)]
+    subject: Gd<EntityId>,
+    #[var(get)]
+    tile: AbsolutePosition,
+}
+
+impl KnockbackEvent {
+    fn new(floor: &mut Floor, event: engine::actions::events::KnockbackEvent) -> Gd<Self> {
+        Gd::from_object(Self {
+            subject: EntityId::new(event.subject, &mut floor.id_bijection),
+            tile: event.tile.into(),
         })
     }
 }
