@@ -28,6 +28,9 @@ impl<T, Payload> Writer<T, Payload> {
         (self.contents, self.log)
     }
 
+    // Kind of a brute force tool.
+    // See if you can use Writer::map or Writer::zip to accomplish what you're doing.
+    // If not, here you go.
     pub fn split_contents(self) -> (T, Writer<(), Payload>) {
         let (contents, log) = self.into_both();
         (contents, Writer::new_with_log((), log))
@@ -78,6 +81,13 @@ impl<T, Payload> Writer<T, Payload> {
         (next.prepend_log(log), side)
     }
 
+    // Combines two writers. Appends the log of the second to the first.
+    // See Option::zip.
+    #[must_use]
+    pub fn zip<U>(self, other: Writer<U, Payload>) -> Writer<(T, U), Payload> {
+        self.bind(|t| other.map(|u| (t, u)))
+    }
+
     #[must_use]
     pub fn log(mut self, line: Payload) -> Self {
         self.log.push(line);
@@ -86,6 +96,8 @@ impl<T, Payload> Writer<T, Payload> {
 }
 
 impl<Payload> Writer<(), Payload> {
+    // Avoid using with split_contents, instead try map, or try zip then bind.
+    // (I don't remember writing this lmao.)
     pub fn adopt_contents<T>(self, contents: T) -> Writer<T, Payload> {
         let (_, log) = self.into_both();
         Writer::new_with_log(contents, log)

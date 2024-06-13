@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
 use crate::entity::EntityId;
-use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::algorithms::Segment;
@@ -20,26 +19,24 @@ pub struct TakeKnockbackUtil {
 impl CommandTrait for TakeKnockbackUtil {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         // intentionally incorrect, may panic due to invariant breaking lmao
-        let writer = BorrowedFloorUpdate::new(floor);
+        let mut updated = (*floor.entities[self.entity]).clone();
 
-        writer.bind(|f| {
-            let mut updated = (*f.entities[self.entity]).clone();
-
-            let mut last_valid_position = updated.pos;
-            for offset in Segment::calculate_relative(self.vector).0 {
-                if f.map.is_tile_floor(&(updated.pos + offset)) {
-                    last_valid_position = updated.pos + offset
-                } else {
-                    break;
-                }
+        let mut last_valid_position = updated.pos;
+        for offset in Segment::calculate_relative(self.vector).0 {
+            if floor.map.is_tile_floor(&(updated.pos + offset)) {
+                last_valid_position = updated.pos + offset
+                // TODO: Knockdown entities in the way.
+            } else {
+                break;
             }
-            updated.pos = last_valid_position;
+        }
+        updated.pos = last_valid_position;
 
-            f.update_entity(Rc::new(updated))
-                .log(FloorEvent::KnockbackEvent(KnockbackEvent {
-                    subject: self.entity,
-                    tile: last_valid_position,
-                }))
-        })
+        floor
+            .update_entity(Rc::new(updated))
+            .log(FloorEvent::KnockbackEvent(KnockbackEvent {
+                subject: self.entity,
+                tile: last_valid_position,
+            }))
     }
 }

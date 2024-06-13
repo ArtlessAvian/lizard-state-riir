@@ -95,16 +95,12 @@ impl Floor {
             "New entity occupies wall position."
         );
 
-        let update = Writer::new(&self.vision);
-        let update = update.bind(|option| {
-            option.as_ref().map_or(Writer::new(None), |x| {
-                x.add_entity(&next_entities[id], &self.map).map(Some)
-            })
+        let vision_update = self.vision.as_ref().map_or(Writer::new(None), |x| {
+            x.add_entity(&next_entities[id], &self.map).map(Some)
         });
-        let (next_vision, update) = update.split_contents();
 
         (
-            update.bind(|_| {
+            vision_update.bind(|next_vision| {
                 FloorUpdate::new(Floor {
                     entities: next_entities,
                     occupiers: next_occupiers,
@@ -154,15 +150,11 @@ impl Floor {
             "Updated entity occupies wall position."
         );
 
-        let update = Writer::new(&self.vision);
-        let update = update.bind(|option| {
-            option.as_ref().map_or(Writer::new(None), |x| {
-                x.update_entity(&new, &self.map).map(Some)
-            })
+        let vision_update = self.vision.as_ref().map_or(Writer::new(None), |x| {
+            x.update_entity(&new, &self.map).map(Some)
         });
-        let (next_vision, update) = update.split_contents();
 
-        update.bind(|_| {
+        vision_update.bind(|next_vision| {
             FloorUpdate::new(Floor {
                 entities: next_entities,
                 occupiers: next_occupiers,
@@ -204,15 +196,11 @@ impl Floor {
             );
         }
 
-        let update = Writer::new(&self.vision);
-        let update = update.bind(|option| {
-            option.as_ref().map_or(Writer::new(None), |x| {
-                x.update_entities(&new_set, &self.map).map(Some)
-            })
+        let vision_update = self.vision.as_ref().map_or(Writer::new(None), |x| {
+            x.update_entities(&new_set, &self.map).map(Some)
         });
-        let (next_vision, update) = update.split_contents();
 
-        update.bind(|_| {
+        vision_update.bind(|next_vision| {
             FloorUpdate::new(Floor {
                 entities: next_entities,
                 occupiers: next_occupiers,
