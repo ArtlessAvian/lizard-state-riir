@@ -4,6 +4,7 @@ use rkyv::Serialize;
 
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::sync::OnceLock;
 
 use crate::actions::events::FloorEvent;
 use crate::actions::events::SeeMapEvent;
@@ -14,6 +15,8 @@ use crate::floor::map::FloorTile;
 use crate::positional::fov::StrictFOV;
 use crate::positional::AbsolutePosition;
 use crate::writer::Writer;
+
+static STRICT_FOV: OnceLock<StrictFOV> = OnceLock::new();
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
@@ -111,8 +114,7 @@ impl FloorMapVision {
 
     fn get_vision(map: &FloorMap, pos: &AbsolutePosition) -> HashMap<AbsolutePosition, FloorTile> {
         // HACK: StrictFOV doesn't make sense for vision. You can *infer* extra data (what is/isn't a wall) from what is returned.
-        // HACK: Avoid expensive construction on every call!
-        let fov: StrictFOV = StrictFOV::new(8);
+        let fov = STRICT_FOV.get_or_init(|| StrictFOV::new(8));
         let mut tiles = fov.get_field_of_view_tiles(*pos, 8, |x| !map.is_tile_floor(&x));
         // honestly sorting and deduping probably makes this slower for small radius
         tiles.sort();
