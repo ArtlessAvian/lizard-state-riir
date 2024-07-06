@@ -30,6 +30,10 @@ func _godot_input(floor_container: FloorContainer, event: InputEvent):
 				return transition_to_action(floor_container, actions[0])
 			if event.physical_keycode == KEY_W and len(actions) > 1:
 				return transition_to_action(floor_container, actions[1])
+			if event.physical_keycode == KEY_E and len(actions) > 2:
+				return transition_to_action(floor_container, actions[2])
+			if event.physical_keycode == KEY_R and len(actions) > 3:
+				return transition_to_action(floor_container, actions[3])
 
 	return FloorContainer.ExtraTransitions.NONE
 

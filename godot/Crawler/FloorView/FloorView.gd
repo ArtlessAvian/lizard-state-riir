@@ -45,6 +45,10 @@ func clear_queue(delta, floor: Floor):
 	if event_index == len(floor.log):
 		return
 
+	# TEMPORARY
+	if test_tweens.any(func(t): return t.is_running()):
+		return
+
 	var event = floor.log[event_index]
 	print(event)
 	if event is MoveEvent:

@@ -6,6 +6,7 @@ use std::ops::Index;
 use std::ops::IndexMut;
 use std::rc::Rc;
 
+use crate::actions::characters::max_tegu::ForwardHeavyAction;
 use crate::actions::example::DoubleHitAction;
 use crate::actions::example::EnterStanceAction;
 use crate::actions::upcast_indirection::Upcast;
@@ -75,6 +76,7 @@ impl Entity {
             vec![
                 UnaimedAction::Direction(Rc::new(DoubleHitAction {})),
                 UnaimedAction::None(Rc::new(EnterStanceAction {})),
+                UnaimedAction::Direction(Rc::new(ForwardHeavyAction {})),
             ]
         }
     }

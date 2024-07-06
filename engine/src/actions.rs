@@ -10,6 +10,8 @@ pub mod events;
 /// Publicly exposed actions, free to construct.
 pub mod public;
 
+pub mod characters;
+
 use std::rc::Rc;
 
 use std::fmt::Debug;
