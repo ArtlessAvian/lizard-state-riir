@@ -50,13 +50,17 @@ func clear_queue(delta, floor: Floor):
 	if event is MoveEvent:
 		var subject = id_to_node[event.subject]
 		var tile = Vector3(event.tile.x, 0, event.tile.y)
-		if tile - subject.position != Vector3.ZERO:
+		if event.tile != subject.last_known_position:
 			subject.get_node("DiscardBasis/Sprite3D").look_dir = tile - subject.position
 
-		var tween = subject.create_tween()
-		tween.tween_property(subject, "position", tile, 10 / 60.0)
+		if event.tile != subject.last_known_position:
+			var tween = subject.create_tween()
+			tween.tween_property(subject, "position", tile, 10 / 60.0)
 
-		test_tweens.push_back(tween)
+			test_tweens.push_back(tween)
+
+		subject.last_known_position = event.tile
+
 		event_index += 1
 		clear_queue(delta, floor)
 
@@ -113,11 +117,17 @@ func clear_queue(delta, floor: Floor):
 	elif event is KnockbackEvent:
 		var subject = id_to_node[event.subject]
 		var tile = Vector3(event.tile.x, 0, event.tile.y)
-		if tile - subject.position != Vector3.ZERO:
-			subject.get_node("DiscardBasis/Sprite3D").look_dir = tile - subject.position
 
 		var tween = subject.create_tween()
-		tween.tween_property(subject, "position", tile, 10 / 60.0)
+		(
+			tween
+			. tween_property(subject, "position", tile, 20 / 60.0)
+			. set_trans(Tween.TRANS_EXPO)
+			. set_ease(Tween.EASE_OUT)
+		)
+		test_tweens.push_back(tween)
+
+		subject.last_known_position = event.tile
 
 		event_index += 1
 		clear_queue(delta, floor)
