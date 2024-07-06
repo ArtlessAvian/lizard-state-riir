@@ -259,6 +259,11 @@ impl Entity {
     }
 
     #[func]
+    fn get_health(&self) -> i8 {
+        self.entity.health
+    }
+
+    #[func]
     fn get_actions(&self) -> VariantArray {
         self.entity
             .get_actions()

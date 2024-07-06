@@ -136,8 +136,7 @@ func sync_with_engine(floor):
 			dup.name = id.petname
 			%Entity.add_sibling(dup)
 		var entity = floor.get_entity_by_id(id)
-		id_to_node[id].position = Vector3(entity.get_pos().x, 0, entity.get_pos().y)
-		id_to_node[id].find_child("Debug").text = entity.get_debug()
+		id_to_node[id].sync_with(floor.get_entity_by_id(id))
 
 	#print(floor.get_entity_by_id(player_id).get_actions())
 
