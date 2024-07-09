@@ -36,26 +36,23 @@ impl DirectionActionTrait for DoubleHitAction {
     fn verify_action(
         &self,
         floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains(subject_ref));
+        assert!(floor.entities.contains_id(&subject_id));
 
         if dir.length() > 1 {
             return None;
         }
 
-        Some(Box::new(DoubleHitCommand {
-            dir,
-            subject_ref: Rc::clone(subject_ref),
-        }))
+        Some(Box::new(DoubleHitCommand { dir, subject_id }))
     }
 }
 
 #[derive(Debug)]
 struct DoubleHitCommand {
     dir: RelativePosition,
-    subject_ref: Rc<Entity>,
+    subject_id: EntityId,
 }
 
 impl CommandTrait for DoubleHitCommand {
@@ -64,7 +61,7 @@ impl CommandTrait for DoubleHitCommand {
 
         let mut dirty = Vec::new();
 
-        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Committed {
             next_turn: floor.get_current_turn() + 1,
             queued_command: Rc::new(DoubleHitFollowup {
@@ -75,10 +72,13 @@ impl CommandTrait for DoubleHitCommand {
 
         update = update.log(FloorEvent::StartAttack(StartAttackEvent {
             subject: subject_clone.id,
-            tile: self.subject_ref.pos + self.dir,
+            tile: floor.entities[self.subject_id].pos + self.dir,
         }));
 
-        if let Some(&object_index) = floor.occupiers.get(&(self.subject_ref.pos + self.dir)) {
+        if let Some(&object_index) = floor
+            .occupiers
+            .get(&(floor.entities[self.subject_id].pos + self.dir))
+        {
             let object_ref = &floor.entities[object_index];
             let mut object_clone: Entity = (**object_ref).clone();
             object_clone.health -= 1;
@@ -103,7 +103,6 @@ impl CommandTrait for DoubleHitCommand {
 #[archive_attr(derive(Debug, TypeName))]
 struct DoubleHitFollowup {
     dir: RelativePosition,
-    // TODO: Either restore Rc<Entity>, or decide if EntityId everywhere else is preferable.
     subject_id: EntityId,
 }
 
@@ -156,21 +155,19 @@ impl CommandTrait for Archived<DoubleHitFollowup> {
 pub struct EnterStanceAction;
 
 impl ActionTrait for EnterStanceAction {
-    fn verify_action(&self, _: &Floor, subject_ref: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(EnterStanceCommand {
-            subject_ref: Rc::clone(subject_ref),
-        }))
+    fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+        Some(Box::new(EnterStanceCommand { subject_id }))
     }
 }
 
 #[derive(Debug)]
 pub struct EnterStanceCommand {
-    subject_ref: Rc<Entity>,
+    subject_id: EntityId,
 }
 
 impl CommandTrait for EnterStanceCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::RestrictedActions {
             next_turn: floor.get_current_turn() + 1,
             restricted_actions: vec![SerializableAction::None(Rc::new(ExitStanceAction))],
@@ -186,29 +183,25 @@ pub struct ExitStanceAction;
 
 #[archive_dyn(deserialize)]
 impl ActionTrait for ExitStanceAction {
-    fn verify_action(&self, _: &Floor, subject_ref: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(ExitStanceCommand {
-            subject_ref: Rc::clone(subject_ref),
-        }))
+    fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+        Some(Box::new(ExitStanceCommand { subject_id }))
     }
 }
 
 impl ActionTrait for Archived<ExitStanceAction> {
-    fn verify_action(&self, _: &Floor, subject_ref: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(ExitStanceCommand {
-            subject_ref: Rc::clone(subject_ref),
-        }))
+    fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+        Some(Box::new(ExitStanceCommand { subject_id }))
     }
 }
 
 #[derive(Debug)]
 pub struct ExitStanceCommand {
-    subject_ref: Rc<Entity>,
+    subject_id: EntityId,
 }
 
 impl CommandTrait for ExitStanceCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn(),
         };
@@ -249,11 +242,7 @@ fn double_hit() {
     });
     update = update.bind(|floor| {
         DoubleHitAction
-            .verify_action(
-                &floor,
-                &floor.entities[player_id],
-                RelativePosition::new(1, 0),
-            )
+            .verify_action(&floor, player_id, RelativePosition::new(1, 0))
             .unwrap()
             .do_action(&floor)
     });

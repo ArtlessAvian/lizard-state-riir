@@ -306,12 +306,10 @@ impl Action {
     }
 
     #[func]
-    fn to_command(&self, floor: Gd<Floor>, subject: Gd<Entity>) -> Option<Gd<Command>> {
+    fn to_command(&self, floor: Gd<Floor>, subject: Gd<EntityId>) -> Option<Gd<Command>> {
         let binding = subject.bind();
-        let subject_ref = &binding.entity;
-        let verify_action = self
-            .action
-            .verify_action(&floor.bind().floor, subject_ref)?;
+        let subject_id = binding.id;
+        let verify_action = self.action.verify_action(&floor.bind().floor, subject_id)?;
         Some(Command::new(verify_action.into()))
     }
 }
@@ -334,14 +332,14 @@ impl TileAction {
     fn to_command(
         &self,
         floor: Gd<Floor>,
-        subject: Gd<Entity>,
+        subject: Gd<EntityId>,
         tile: crate::positional::AbsolutePosition,
     ) -> Option<Gd<Command>> {
         let binding = subject.bind();
-        let subject_ref = &binding.entity;
+        let subject_id = binding.id;
         let verify_action =
             self.action
-                .verify_action(&floor.bind().floor, subject_ref, tile.into())?;
+                .verify_action(&floor.bind().floor, subject_id, tile.into())?;
         Some(Command::new(verify_action.into()))
     }
 }
@@ -364,14 +362,14 @@ impl DirectionAction {
     fn to_command(
         &self,
         floor: Gd<Floor>,
-        subject: Gd<Entity>,
+        subject: Gd<EntityId>,
         dir: crate::positional::RelativePosition,
     ) -> Option<Gd<Command>> {
         let binding = subject.bind();
-        let subject_ref = &binding.entity;
+        let subject_id = binding.id;
         let verify_action =
             self.action
-                .verify_action(&floor.bind().floor, subject_ref, dir.into())?;
+                .verify_action(&floor.bind().floor, subject_id, dir.into())?;
         Some(Command::new(verify_action.into()))
     }
 }

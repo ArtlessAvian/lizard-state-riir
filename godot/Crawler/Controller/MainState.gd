@@ -54,9 +54,10 @@ func goto_mouse(floor_container: FloorContainer):
 		Vector3(absolute_position.x, 0, absolute_position.y) + Vector3.UP * 0.01
 	)
 
-	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
 	var action: TileAction = floor_container.floor.get_goto_action()
-	var command = action.to_command(floor_container.floor, player, absolute_position)
+	var command = action.to_command(
+		floor_container.floor, floor_container.player_id, absolute_position
+	)
 	if command:
 		floor_container.floor.do_action(command)
 		floor_container.emit_signal("floor_dirtied")

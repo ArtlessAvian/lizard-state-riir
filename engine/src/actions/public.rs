@@ -36,16 +36,19 @@ impl DirectionActionTrait for StepAction {
     fn verify_action(
         &self,
         floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains(subject_ref));
+        assert!(floor.entities.contains_id(&subject_id));
 
         if dir.length() > 1 {
             return None;
         }
 
-        if !floor.map.is_tile_floor(&(subject_ref.pos + dir)) {
+        if !floor
+            .map
+            .is_tile_floor(&(floor.entities[subject_id].pos + dir))
+        {
             return None;
         }
 
@@ -53,30 +56,27 @@ impl DirectionActionTrait for StepAction {
         // or to waste a turn (check in command, no-op if occupied.)
         if floor
             .occupiers
-            .get(&(subject_ref.pos + dir))
-            .is_some_and(|x| x != &subject_ref.id)
+            .get(&(floor.entities[subject_id].pos + dir))
+            .is_some_and(|x| x != &floor.entities[subject_id].id)
         {
             return None;
         }
 
-        Some(Box::new(StepCommand {
-            dir,
-            subject_ref: Rc::clone(subject_ref),
-        }))
+        Some(Box::new(StepCommand { dir, subject_id }))
     }
 }
 
 #[derive(Debug)]
 struct StepCommand {
     dir: RelativePosition,
-    subject_ref: Rc<Entity>,
+    subject_id: EntityId,
 }
 
 impl CommandTrait for StepCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut update = BorrowedFloorUpdate::new(floor);
 
-        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn() + 1,
@@ -101,47 +101,47 @@ impl DirectionActionTrait for BumpAction {
     fn verify_action(
         &self,
         floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains(subject_ref));
+        assert!(floor.entities.contains_id(&subject_id));
 
         if dir.length() != 1 {
             return None;
         }
 
-        if !floor.occupiers.contains_key(&(subject_ref.pos + dir)) {
+        if !floor
+            .occupiers
+            .contains_key(&(floor.entities[subject_id].pos + dir))
+        {
             return None;
         }
 
-        Some(Box::new(BumpCommand {
-            dir,
-            subject_ref: Rc::clone(subject_ref),
-        }))
+        Some(Box::new(BumpCommand { dir, subject_id }))
     }
 }
 
 #[derive(Debug)]
 struct BumpCommand {
     dir: RelativePosition,
-    subject_ref: Rc<Entity>,
+    subject_id: EntityId,
 }
 
 impl CommandTrait for BumpCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut update = BorrowedFloorUpdate::new(floor);
 
-        let mut subject_clone: Entity = (*self.subject_ref).clone();
+        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn() + 1,
         };
 
         update = update.log(FloorEvent::StartAttack(StartAttackEvent {
             subject: subject_clone.id,
-            tile: self.subject_ref.pos + self.dir,
+            tile: subject_clone.pos + self.dir,
         }));
 
-        let object_index = floor.occupiers[&(self.subject_ref.pos + self.dir)];
+        let object_index = floor.occupiers[&(subject_clone.pos + self.dir)];
 
         let object_ref = &floor.entities[object_index];
         let mut object_clone: Entity = (**object_ref).clone();
@@ -177,16 +177,16 @@ impl DirectionActionTrait for StepMacroAction {
     fn verify_action(
         &self,
         floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
         let bump = BumpAction;
-        if let Some(command) = bump.verify_action(floor, subject_ref, dir) {
+        if let Some(command) = bump.verify_action(floor, subject_id, dir) {
             return Some(command);
         }
 
         let step = StepAction;
-        if let Some(command) = step.verify_action(floor, subject_ref, dir) {
+        if let Some(command) = step.verify_action(floor, subject_id, dir) {
             return Some(command);
         }
 
@@ -201,14 +201,11 @@ impl TileActionTrait for GotoAction {
     fn verify_action(
         &self,
         _floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Option<Box<dyn CommandTrait>> {
         // Pathfind to target.
-        Some(Box::new(GotoCommand {
-            tile,
-            subject_id: subject_ref.id,
-        }))
+        Some(Box::new(GotoCommand { tile, subject_id }))
     }
 }
 
@@ -226,7 +223,7 @@ impl CommandTrait for GotoCommand {
         let step_action = StepAction;
         let verify_action = step_action.verify_action(
             floor,
-            &floor.entities[self.subject_id],
+            self.subject_id,
             // TODO: Read from pathfinding.
             RelativePosition {
                 dx: (self.tile.x - subject_pos.x).clamp(-1, 1),
@@ -312,11 +309,7 @@ fn bump_test() {
     });
     update = update.bind(|floor| {
         BumpAction
-            .verify_action(
-                &floor,
-                &floor.entities[player_id],
-                RelativePosition::new(1, 0),
-            )
+            .verify_action(&floor, player_id, RelativePosition::new(1, 0))
             .unwrap()
             .do_action(&floor)
     });
@@ -362,11 +355,7 @@ fn goto_test() {
     });
     update = update.bind(|floor| {
         GotoAction {}
-            .verify_action(
-                &floor,
-                &floor.entities[player_id],
-                AbsolutePosition::new(5, 3),
-            )
+            .verify_action(&floor, player_id, AbsolutePosition::new(5, 3))
             .unwrap()
             .do_action(&floor)
     });

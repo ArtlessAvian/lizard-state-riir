@@ -23,7 +23,7 @@ use rkyv::Serialize;
 use rkyv_dyn::archive_dyn;
 use rkyv_typename::TypeName;
 
-use crate::entity::Entity;
+use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
@@ -71,8 +71,8 @@ impl From<SerializableAction> for UnaimedAction {
 /// use engine::actions::*;
 /// use engine::floor::*;
 /// use engine::entity::*;
-/// fn context(action: Box<dyn ActionTrait>, floor: &Floor, player_id: Rc<Entity>) -> FloorUpdate {
-///     let command = action.verify_action(floor, &player_id).unwrap();
+/// fn context(action: Box<dyn ActionTrait>, floor: &Floor, player_id: EntityId) -> FloorUpdate {
+///     let command = action.verify_action(floor, player_id).unwrap();
 ///     command.do_action(floor)
 /// }
 /// ```
@@ -91,11 +91,7 @@ impl From<SerializableAction> for UnaimedAction {
 
 #[archive_dyn(deserialize)]
 pub trait ActionTrait: Debug {
-    fn verify_action(
-        &self,
-        floor: &Floor,
-        subject_ref: &Rc<Entity>,
-    ) -> Option<Box<dyn CommandTrait>>;
+    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>>;
 }
 
 #[archive_dyn(deserialize)]
@@ -103,7 +99,7 @@ pub trait TileActionTrait: Debug {
     fn verify_action(
         &self,
         floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Option<Box<dyn CommandTrait>>;
 }
@@ -113,7 +109,7 @@ pub trait DirectionActionTrait: Debug {
     fn verify_action(
         &self,
         floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>>;
 }
@@ -145,13 +141,13 @@ pub struct NullAction {}
 
 #[archive_dyn(deserialize)]
 impl ActionTrait for NullAction {
-    fn verify_action(&self, _: &Floor, _: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
+    fn verify_action(&self, _: &Floor, _: EntityId) -> Option<Box<dyn CommandTrait>> {
         None
     }
 }
 
 impl ActionTrait for Archived<NullAction> {
-    fn verify_action(&self, _: &Floor, _: &Rc<Entity>) -> Option<Box<dyn CommandTrait>> {
+    fn verify_action(&self, _: &Floor, _: EntityId) -> Option<Box<dyn CommandTrait>> {
         None
     }
 }

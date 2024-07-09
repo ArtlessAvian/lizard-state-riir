@@ -257,11 +257,7 @@ impl Floor {
 
         // TODO: do something interesting
         let next_floor = StepAction
-            .verify_action(
-                self,
-                &self.entities[next_id],
-                RelativePosition { dx: 0, dy: 0 },
-            )
+            .verify_action(self, next_id, RelativePosition { dx: 0, dy: 0 })
             .expect("testing code")
             .do_action(self);
 

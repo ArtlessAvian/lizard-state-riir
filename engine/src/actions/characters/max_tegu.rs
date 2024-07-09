@@ -36,13 +36,13 @@ impl DirectionActionTrait for ForwardHeavyAction {
     fn verify_action(
         &self,
         floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
         Some(Box::new(ForwardHeavyCommand {
-            step: StepAction.verify_action(floor, subject_ref, dir)?,
+            step: StepAction.verify_action(floor, subject_id, dir)?,
             dir,
-            subject_ref: Rc::clone(subject_ref),
+            subject_id,
         }))
     }
 }
@@ -51,7 +51,7 @@ impl DirectionActionTrait for ForwardHeavyAction {
 struct ForwardHeavyCommand {
     step: Box<dyn CommandTrait>,
     dir: RelativePosition,
-    subject_ref: Rc<Entity>,
+    subject_id: EntityId,
 }
 
 impl CommandTrait for ForwardHeavyCommand {
@@ -59,7 +59,7 @@ impl CommandTrait for ForwardHeavyCommand {
         let update = self.step.do_action(floor);
 
         update.bind(|floor| {
-            let mut subject_clone: Entity = floor.entities[self.subject_ref.id].as_ref().clone();
+            let mut subject_clone: Entity = floor.entities[self.subject_id].as_ref().clone();
             subject_clone.state = EntityState::Committed {
                 next_turn: floor.get_current_turn(),
                 queued_command: Rc::new(ForwardHeavyFollowup {
@@ -76,7 +76,6 @@ impl CommandTrait for ForwardHeavyCommand {
 #[archive_attr(derive(Debug, TypeName))]
 struct ForwardHeavyFollowup {
     dir: RelativePosition,
-    // TODO: Either restore Rc<Entity>, or decide if EntityId everywhere else is preferable.
     subject_id: EntityId,
 }
 

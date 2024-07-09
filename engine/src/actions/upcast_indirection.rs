@@ -5,7 +5,7 @@
 
 use std::rc::Rc;
 
-use crate::entity::Entity;
+use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
@@ -30,12 +30,8 @@ impl<T: ?Sized> Upcast<T> {
 }
 
 impl ActionTrait for Upcast<dyn SerializeActionTrait> {
-    fn verify_action(
-        &self,
-        floor: &Floor,
-        subject_ref: &Rc<Entity>,
-    ) -> Option<Box<dyn CommandTrait>> {
-        self.0.verify_action(floor, subject_ref)
+    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+        self.0.verify_action(floor, subject_id)
     }
 }
 
@@ -43,10 +39,10 @@ impl TileActionTrait for Upcast<dyn SerializeTileActionTrait> {
     fn verify_action(
         &self,
         floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        self.0.verify_action(floor, subject_ref, tile)
+        self.0.verify_action(floor, subject_id, tile)
     }
 }
 
@@ -54,10 +50,10 @@ impl DirectionActionTrait for Upcast<dyn SerializeDirectionActionTrait> {
     fn verify_action(
         &self,
         floor: &Floor,
-        subject_ref: &Rc<Entity>,
+        subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        self.0.verify_action(floor, subject_ref, dir)
+        self.0.verify_action(floor, subject_id, dir)
     }
 }
 
