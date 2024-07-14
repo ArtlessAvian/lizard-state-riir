@@ -46,7 +46,7 @@ impl std::fmt::Debug for SeeMapEvent {
         f.debug_struct("SeeMapEvent")
             .field("subject", &self.subject)
             // .field("vision", &self.vision)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 

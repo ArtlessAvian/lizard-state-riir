@@ -110,25 +110,26 @@ impl StrictFOV {
             if tile.run == self.nodes[index].tile.run + 1
                 && tile.rise == self.nodes[index].tile.rise
             {
-                let subtree = match self.nodes[index].run {
-                    Some(subtree) => subtree,
-                    None => {
-                        let subtree = self.nodes.emplace(TrieNode::new(tile, generator));
-                        self.nodes[index].run = Some(subtree);
-                        subtree
-                    }
+                // let subtree = self.nodes[index]
+                //     .run
+                //     .get_or_insert_with(|| self.nodes.emplace(TrieNode::new(tile, generator)));
+                let subtree = if let Some(subtree) = self.nodes[index].run {
+                    subtree
+                } else {
+                    let subtree = self.nodes.emplace(TrieNode::new(tile, generator));
+                    self.nodes[index].run = Some(subtree);
+                    subtree
                 };
                 self.extend(subtree, generator, iter);
             } else if tile.run == self.nodes[index].tile.run + 1
                 && tile.rise == self.nodes[index].tile.rise + 1
             {
-                let subtree = match self.nodes[index].diag {
-                    Some(subtree) => subtree,
-                    None => {
-                        let subtree = self.nodes.emplace(TrieNode::new(tile, generator));
-                        self.nodes[index].diag = Some(subtree);
-                        subtree
-                    }
+                let subtree = if let Some(subtree) = self.nodes[index].diag {
+                    subtree
+                } else {
+                    let subtree = self.nodes.emplace(TrieNode::new(tile, generator));
+                    self.nodes[index].diag = Some(subtree);
+                    subtree
                 };
                 self.extend(subtree, generator, iter);
             } else if tile.run == self.nodes[index].tile.run
@@ -208,12 +209,12 @@ impl StrictFOV {
 #[cfg(test)]
 #[test]
 fn new_strict_fov() {
-    StrictFOV::new(5);
+    _ = StrictFOV::new(5);
 }
 
 #[cfg(test)]
 #[test]
-#[should_panic]
+#[should_panic(expected = "caller requested radius 1, we have precalculated radius 0")]
 fn get_fov_radius_too_large() {
     let fov = StrictFOV::new(0);
     fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 1, |_| true);

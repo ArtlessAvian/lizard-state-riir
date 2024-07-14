@@ -94,12 +94,12 @@ impl Entity {
     #[must_use]
     pub fn get_next_turn(&self) -> Option<u32> {
         match self.state {
-            EntityState::Ok { next_turn, .. } => Some(next_turn),
-            EntityState::Committed { next_turn, .. } => Some(next_turn),
-            EntityState::ConfirmCommand { next_turn, .. } => Some(next_turn),
-            EntityState::RestrictedActions { next_turn, .. } => Some(next_turn),
-            EntityState::Hitstun { next_turn, .. } => Some(next_turn),
-            EntityState::Knockdown { next_turn, .. } => Some(next_turn),
+            EntityState::Ok { next_turn, .. }
+            | EntityState::Committed { next_turn, .. }
+            | EntityState::ConfirmCommand { next_turn, .. }
+            | EntityState::RestrictedActions { next_turn, .. }
+            | EntityState::Hitstun { next_turn, .. }
+            | EntityState::Knockdown { next_turn, .. } => Some(next_turn),
             EntityState::Dead => None,
         }
     }

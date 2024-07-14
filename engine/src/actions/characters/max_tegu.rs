@@ -23,7 +23,6 @@ use crate::positional::RelativePosition;
 // Decide if super::super is good or not
 use super::super::events::AttackHitEvent;
 use super::super::events::StartAttackEvent;
-use super::super::ActionTrait;
 use super::super::CommandTrait;
 use super::super::DirectionActionTrait;
 use super::super::FloorEvent;

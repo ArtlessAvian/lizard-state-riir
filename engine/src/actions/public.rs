@@ -247,20 +247,18 @@ impl CommandTrait for GotoCommand {
                 let update = command.do_action(floor);
 
                 update.bind(|floor| {
-                    if floor.entities[self.subject_id].pos != self.tile {
-                        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
-                        subject_clone.state = EntityState::ConfirmCommand {
+                    let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+                    subject_clone.state = if floor.entities[self.subject_id].pos == self.tile {
+                        EntityState::Ok {
+                            next_turn: floor.get_current_turn(),
+                        }
+                    } else {
+                        EntityState::ConfirmCommand {
                             next_turn: floor.get_current_turn(),
                             to_confirm: Rc::new(self.clone()),
-                        };
-                        floor.update_entity(Rc::new(subject_clone))
-                    } else {
-                        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
-                        subject_clone.state = EntityState::Ok {
-                            next_turn: floor.get_current_turn(),
-                        };
-                        floor.update_entity(Rc::new(subject_clone))
-                    }
+                        }
+                    };
+                    floor.update_entity(Rc::new(subject_clone))
                 })
             }
         }

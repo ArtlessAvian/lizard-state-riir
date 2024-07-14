@@ -146,36 +146,18 @@ impl RelativeOctantified {
             octant: self.octant,
         }
     }
-
-    // TODO:
-    // fn make_all_octants(&self) -> [OctantRelative; 8] {
-    //     (0..8).map(|octant| OctantRelative { octant, ..*self })
-    // }
 }
 
 impl From<RelativePosition> for RelativeOctantified {
     fn from(value: RelativePosition) -> Self {
-        // let mut octant = 0;
-        // if value.dy < 0 {
-        //     octant += 4;
-        //     value.dy *= -1;
-        // }
-        // if value.dx < 0 {
-        //     octant += 2;
-        //     value.dx *= -1;
-        // }
-        // if value.dx < value.dy {
-        //     octant += 1;
-        //     (value.dx, value.dy) = (value.dy, value.dx)
-        // }
         Self {
             inside: InsideOctant {
                 run: u32::max(value.dx.unsigned_abs(), value.dy.unsigned_abs()),
                 rise: u32::min(value.dx.unsigned_abs(), value.dy.unsigned_abs()),
             },
-            octant: if value.dy < 0 { 0b100 } else { 0 }
-                + if value.dx < 0 { 0b010 } else { 0 }
-                + u8::from(value.dy.abs() > value.dx.abs()),
+            octant: u8::from(value.dy < 0) * 0b100
+                + u8::from(value.dx < 0) * 0b010
+                + u8::from(value.dy.abs() > value.dx.abs()), // * 0b001
         }
     }
 }

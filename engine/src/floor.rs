@@ -236,6 +236,10 @@ impl Floor {
             .unwrap_or(0)
     }
 
+    /// # Errors
+    ///
+    /// Will return `TurntakingError::NoTurntakers` if no entity can take a turn.
+    /// Will return `TurntakingError::PlayerTurn` if player turn.
     // TODO: Make an error enum. Figure out where to scope it lol.
     // Also this just generally feels bad/inconsistent as an API?
     // To make player turns (with no checking if its your turn???), you [do whatever and] get a CommandTrait, and execute it on the floor.

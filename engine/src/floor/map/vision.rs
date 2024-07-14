@@ -102,7 +102,7 @@ impl FloorMapVision {
         subject: &Entity,
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
-        let vision = Self::get_vision(map, &subject.pos);
+        let vision = Self::get_vision(map, subject.pos);
 
         self.entity_last_at.insert(subject.id, subject.pos);
         self.map_vision.insert(subject.id, vision.clone());
@@ -116,10 +116,10 @@ impl FloorMapVision {
         }))
     }
 
-    fn get_vision(map: &FloorMap, pos: &AbsolutePosition) -> HashMap<AbsolutePosition, FloorTile> {
+    fn get_vision(map: &FloorMap, pos: AbsolutePosition) -> HashMap<AbsolutePosition, FloorTile> {
         // HACK: StrictFOV doesn't make sense for vision. You can *infer* extra data (what is/isn't a wall) from what is returned.
         let fov = STRICT_FOV.get_or_init(|| StrictFOV::new(8));
-        let mut tiles = fov.get_field_of_view_tiles(*pos, 8, |x| !map.is_tile_floor(&x));
+        let mut tiles = fov.get_field_of_view_tiles(pos, 8, |x| !map.is_tile_floor(&x));
         // honestly sorting and deduping probably makes this slower for small radius
         tiles.sort();
         tiles.dedup();

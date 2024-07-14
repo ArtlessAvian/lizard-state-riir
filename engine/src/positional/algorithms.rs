@@ -109,7 +109,7 @@ fn test_cardinal() {
     assert!(none.is_none());
 
     for (i, el) in seg_octant.iter().enumerate() {
-        assert_eq!(el.run, i as u32);
+        assert_eq!(el.run as usize, i);
         assert_eq!(el.rise, 0);
     }
 }
@@ -122,8 +122,8 @@ fn test_diagonal() {
 
     dbg!(seg_octant.clone());
     for (i, el) in seg_octant.iter().enumerate() {
-        assert_eq!(el.run, i as u32);
-        assert_eq!(el.rise, i as u32);
+        assert_eq!(el.run as usize, i);
+        assert_eq!(el.rise as usize, i);
     }
 }
 
