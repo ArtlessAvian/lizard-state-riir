@@ -66,7 +66,7 @@ impl Segment {
                 rise += 1;
             }
 
-            tiles.push(InsideOctant::new(rise, run))
+            tiles.push(InsideOctant::new(rise, run));
         }
 
         let mut alt = None;

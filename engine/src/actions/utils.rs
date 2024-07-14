@@ -24,7 +24,7 @@ impl CommandTrait for TakeKnockbackUtil {
         let mut last_valid_position = updated.pos;
         for offset in Segment::calculate_relative(self.vector).0 {
             if floor.map.is_tile_floor(&(updated.pos + offset)) {
-                last_valid_position = updated.pos + offset
+                last_valid_position = updated.pos + offset;
                 // TODO: Knockdown entities in the way.
             } else {
                 break;

@@ -66,6 +66,7 @@ pub struct StrictFOV {
 }
 
 impl StrictFOV {
+    #[must_use]
     pub fn new(radius: u32) -> Self {
         let mut partial = StrictFOV {
             radius: 0,
@@ -76,7 +77,7 @@ impl StrictFOV {
         };
 
         for _ in 1..=radius {
-            partial.increase_radius()
+            partial.increase_radius();
         }
 
         partial
@@ -192,10 +193,10 @@ impl StrictFOV {
 
                 if !blocks_vision_relative(relative) {
                     if let Some(diag) = self.nodes[current].diag {
-                        frontier.push(diag)
+                        frontier.push(diag);
                     }
                     if let Some(run) = self.nodes[current].run {
-                        frontier.push(run)
+                        frontier.push(run);
                     }
                 }
             }
@@ -229,18 +230,15 @@ fn get_fov() {
         for y in -2..=2 {
             assert!(
                 tiles.contains(&AbsolutePosition::new(x, y)),
-                "{} {} {:?}",
-                x,
-                y,
-                tiles
-            )
+                "{x} {y} {tiles:?}"
+            );
         }
     }
 
     let mut tiles = tiles;
     tiles.sort_by_key(|pos| (pos.x, pos.y));
     tiles.dedup();
-    assert_eq!(tiles.len(), 5 * 5)
+    assert_eq!(tiles.len(), 5 * 5);
     // Because we checked 25 unique items, and the vec has length 25, we have set equality.
 }
 

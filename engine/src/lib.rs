@@ -23,6 +23,12 @@
 //!     * Story/file progress.
 //!     * Recurring characters.
 
+#![warn(clippy::pedantic)]
+// Personal taste.
+#![allow(clippy::module_name_repetitions)]
+// TODO: This is genuinely a problem, but we probably want to move to propogating Result eventually.
+#![allow(clippy::missing_panics_doc)]
+
 /// Defining action related traits, and implementations of that trait.
 pub mod actions;
 

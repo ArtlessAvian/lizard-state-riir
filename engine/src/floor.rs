@@ -68,6 +68,7 @@ pub struct Floor {
 }
 
 impl Floor {
+    #[must_use]
     pub fn new() -> Self {
         Floor {
             entities: EntitySet::new(),
@@ -78,6 +79,7 @@ impl Floor {
     }
 
     // TODO: Consider returning Writer<(Floor, EntityId), FloorEvent>
+    #[must_use]
     pub fn add_entity(&self, new: Entity) -> (FloorUpdate, EntityId) {
         let mut next_entities = self.entities.clone();
         let id = next_entities.add(new);
@@ -112,12 +114,13 @@ impl Floor {
         )
     }
 
+    #[must_use]
     pub fn set_map(&self, map: FloorMap) -> Self {
         for entity in &self.entities {
             assert!(
                 map.is_tile_floor(&entity.pos),
                 "Updated map has wall over existing entity."
-            )
+            );
         }
 
         Floor {
@@ -128,6 +131,7 @@ impl Floor {
         }
     }
 
+    #[must_use]
     pub fn update_entity(&self, new: Rc<Entity>) -> FloorUpdate {
         let old = &self.entities[new.id];
 
@@ -164,6 +168,7 @@ impl Floor {
         })
     }
 
+    #[must_use]
     pub fn update_entities(&self, new_set: Vec<Rc<Entity>>) -> FloorUpdate {
         let old_set = new_set
             .iter()
@@ -213,6 +218,7 @@ impl Floor {
     // TODO: Return set of entities?
     // Alternatively, add "pass turn to partner."
     // I don't think NPCs should *need* to reorder their turns, its cool if its in, its whatever if it isn't.
+    #[must_use]
     pub fn get_next_entity(&self) -> Option<EntityId> {
         return self
             .entities
@@ -223,6 +229,7 @@ impl Floor {
     }
 
     // If there are no turntaking entities, the next turn can safely be 0 without "going back in time".
+    #[must_use]
     pub fn get_current_turn(&self) -> u32 {
         self.get_next_entity()
             .and_then(|e| self.entities[e].get_next_turn())
@@ -320,8 +327,7 @@ fn serialize_deserialize() {
         out
     };
 
-    let (debug_deserialized, debug_original) =
-        (format!("{:?}", deserialized), format!("{:?}", floor));
+    let (debug_deserialized, debug_original) = (format!("{deserialized:?}"), format!("{floor:?}"));
     let (count_deserialized, count_original) = (count(&debug_deserialized), count(&debug_original));
 
     assert!(

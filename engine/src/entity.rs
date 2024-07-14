@@ -16,7 +16,7 @@ use crate::actions::SerializeCommandTrait;
 use crate::actions::UnaimedAction;
 use crate::positional::AbsolutePosition;
 
-/// An opaque index into an EntitySet.
+/// An opaque index into an `EntitySet`.
 //
 // TODO: Remove Default.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize, Default)]
@@ -62,6 +62,7 @@ pub struct Entity {
 }
 
 impl Entity {
+    #[must_use]
     pub fn get_actions(&self) -> Vec<UnaimedAction> {
         // We might add more states, so consider using match instead of if let.
         if let EntityState::RestrictedActions {
@@ -81,6 +82,7 @@ impl Entity {
         }
     }
 
+    #[must_use]
     pub fn get_command_to_confirm(&self) -> Option<Rc<dyn CommandTrait>> {
         if let EntityState::ConfirmCommand { to_confirm, .. } = &self.state {
             Some(Rc::new(Upcast::new(to_confirm.clone())))
@@ -89,6 +91,7 @@ impl Entity {
         }
     }
 
+    #[must_use]
     pub fn get_next_turn(&self) -> Option<u32> {
         match self.state {
             EntityState::Ok { next_turn, .. } => Some(next_turn),
@@ -112,6 +115,7 @@ impl Entity {
 pub struct EntitySet(Vec<Rc<Entity>>);
 
 impl EntitySet {
+    #[must_use]
     pub fn new() -> Self {
         Self(Vec::new())
     }
@@ -124,12 +128,14 @@ impl EntitySet {
     }
 
     // TODO: Think about what this is asking.
+    #[must_use]
     pub fn contains(&self, reference: &Rc<Entity>) -> bool {
         self.0
             .binary_search_by_key(&reference.id.0, |e| e.id.0)
             .is_ok()
     }
 
+    #[must_use]
     pub fn contains_id(&self, id: &EntityId) -> bool {
         self.0.binary_search_by_key(&id.0, |e| e.id.0).is_ok()
     }
@@ -221,7 +227,7 @@ pub enum EntityState {
 
     // Inactionable states below.
     /// On next turn, go into knockdown.
-    /// If hit in this state, next_turn gets extended.
+    /// If hit in this state, `next_turn` gets extended.
     /// If there are no more extensions, go into knockdown immediately.
     Hitstun {
         next_turn: u32,

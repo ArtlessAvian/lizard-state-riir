@@ -26,6 +26,7 @@ pub struct FloorMap {
 }
 
 impl FloorMap {
+    #[must_use]
     pub fn new() -> Self {
         FloorMap {
             tiles: Rc::new(HashMap::new()),
@@ -33,10 +34,12 @@ impl FloorMap {
         }
     }
 
+    #[must_use]
     pub fn get_tile(&self, pos: &AbsolutePosition) -> &FloorTile {
         self.tiles.get(pos).unwrap_or(&self.default)
     }
 
+    #[must_use]
     pub fn is_tile_floor(&self, pos: &AbsolutePosition) -> bool {
         // clean (and obvious) but more floors will be added ig.
         matches!(self.get_tile(pos), FloorTile::FLOOR)

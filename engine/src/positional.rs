@@ -6,7 +6,7 @@ use std::ops::{Add, Mul, Sub};
 use rkyv::{Archive, Deserialize, Serialize};
 
 /// An offset.
-/// A Vector2i, like AbsolutePosition.
+/// A Vector2i, like `AbsolutePosition`.
 #[derive(
     Clone,
     Copy,
@@ -50,10 +50,12 @@ impl Mul<RelativePosition> for i32 {
 }
 
 impl RelativePosition {
+    #[must_use]
     pub fn new(dx: i32, dy: i32) -> Self {
         Self { dx, dy }
     }
 
+    #[must_use]
     pub fn length(self) -> u32 {
         u32::max(self.dx.unsigned_abs(), self.dy.unsigned_abs())
     }
@@ -78,10 +80,12 @@ pub struct AbsolutePosition {
 }
 
 impl AbsolutePosition {
+    #[must_use]
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
     }
 
+    #[must_use]
     pub fn distance(self, other: AbsolutePosition) -> u32 {
         (self - other).length()
     }
@@ -125,7 +129,7 @@ impl InsideOctant {
     }
 }
 
-/// An alternate representation of a RelativePosition that hides direction.
+/// An alternate representation of a `RelativePosition` that hides direction.
 /// Not very useful outside of algorithms.
 /// Don't make public.
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
@@ -171,11 +175,7 @@ impl From<RelativePosition> for RelativeOctantified {
             },
             octant: if value.dy < 0 { 0b100 } else { 0 }
                 + if value.dx < 0 { 0b010 } else { 0 }
-                + if value.dy.abs() > value.dx.abs() {
-                    0b001
-                } else {
-                    0
-                },
+                + u8::from(value.dy.abs() > value.dx.abs()),
         }
     }
 }

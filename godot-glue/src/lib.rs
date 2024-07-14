@@ -1,3 +1,11 @@
+#![warn(clippy::pedantic)]
+// Clippy wants to pass `Gd<_>` by reference.
+// However, this would need a lifetime, and the bindings don't work with generics.
+#![allow(clippy::needless_pass_by_value)]
+// Functions will mostly be called from Godot, and must_use wouldn't enforce anything there.
+// I suppose it's fine though.
+// #![allow(clippy::must_use_candidate)]
+
 mod events;
 mod positional;
 
@@ -32,7 +40,7 @@ unsafe impl ExtensionLibrary for MyExtension {}
 /// From Godot, you can read the log, read game info, get actions, submit actions.
 /// Other than that, there should be no game logic, eg information hiding.
 ///
-/// Note that FloorInternal is entirely pure functions, but this wrapper does not the same.
+/// Note that `FloorInternal` is entirely pure functions, but this wrapper does not the same.
 #[derive(GodotClass)]
 #[class(init)]
 pub struct Floor {
@@ -47,6 +55,7 @@ impl Floor {
     /// Since Floor (in glue code) is not a pure class unlike the Floor (in engine),
     /// this is here to explicitly copy.
     #[func]
+    #[must_use]
     pub fn duplicate(&self) -> Gd<Floor> {
         Gd::from_object(Floor {
             floor: self.floor.clone(),
@@ -141,6 +150,7 @@ impl Floor {
     }
 
     #[func]
+    #[must_use]
     pub fn get_entity_by_id(&self, id: Gd<EntityId>) -> Gd<Entity> {
         Entity::new(Rc::clone(&self.floor.entities[id.bind().id]))
     }
@@ -169,33 +179,37 @@ impl Floor {
             .into_iter()
             .map(|ev| FloorEvent::to_variant(self, ev))
             .collect();
-        self.log.extend_array(temp)
+        self.log.extend_array(temp);
     }
 
     // engine::actions::public::* goes here.
 
     #[func]
+    #[must_use]
     pub fn get_step_action(&self) -> Gd<DirectionAction> {
         DirectionAction::new(Rc::new(StepAction))
     }
 
     #[func]
+    #[must_use]
     pub fn get_bump_action(&self) -> Gd<DirectionAction> {
         DirectionAction::new(Rc::new(BumpAction))
     }
 
     #[func]
+    #[must_use]
     pub fn get_step_macro_action(&self) -> Gd<DirectionAction> {
         DirectionAction::new(Rc::new(StepMacroAction))
     }
 
     #[func]
+    #[must_use]
     pub fn get_goto_action(&self) -> Gd<TileAction> {
         TileAction::new(Rc::new(GotoAction))
     }
 }
 
-/// An opaque EntityId.
+/// An opaque `EntityId`.
 ///
 /// An alternative was to map to an i32 for Godot to avoid allocation.
 /// This lets Godot try to convert random i32s *back* to internal ids, which is error prone.

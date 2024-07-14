@@ -27,6 +27,7 @@ pub struct FloorMapVision {
 }
 
 impl FloorMapVision {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             entity_last_at: HashMap::new(),
@@ -63,6 +64,7 @@ impl FloorMapVision {
 
     // I am a smug nerd.
 
+    #[must_use]
     pub fn add_entity(
         &self,
         new: &Rc<Entity>,
@@ -71,6 +73,7 @@ impl FloorMapVision {
         self.update_entity(new, map)
     }
 
+    #[must_use]
     pub fn update_entity(
         &self,
         new: &Rc<Entity>,
@@ -79,6 +82,7 @@ impl FloorMapVision {
         self.update_entities(&vec![new.clone()], map)
     }
 
+    #[must_use]
     pub fn update_entities(
         &self,
         new_set: &Vec<Rc<Entity>>,

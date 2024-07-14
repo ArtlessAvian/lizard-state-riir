@@ -99,7 +99,7 @@ impl<Payload> Writer<(), Payload> {
     // Avoid using with split_contents, instead try map, or try zip then bind.
     // (I don't remember writing this lmao.)
     pub fn adopt_contents<T>(self, contents: T) -> Writer<T, Payload> {
-        let (_, log) = self.into_both();
+        let ((), log) = self.into_both();
         Writer::new_with_log(contents, log)
     }
 }

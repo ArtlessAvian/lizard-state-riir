@@ -378,5 +378,5 @@ fn goto_test() {
         floor.entities[player_id].state,
         EntityState::Ok { next_turn: 5 }
     ));
-    assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 3))
+    assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 3));
 }
