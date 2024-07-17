@@ -164,6 +164,11 @@ impl From<RelativePosition> for RelativeOctantified {
 
 impl From<RelativeOctantified> for RelativePosition {
     fn from(value: RelativeOctantified) -> Self {
+        // If you imagine the game taking place on a very large donut, the wrapping cast becomes valid.
+        // The vector that wraps more than halfway around the donut is equivalent to the vector going the other way to the same point.
+        #[allow(clippy::cast_possible_wrap)]
+        // Ha. Take that Clippy. :face_holding_back_tears:
+        // (The segments along(?) those two vectors are different though. Actually now there are infinitely many segments between two points.)
         let (mut dx, mut dy) = (value.inside.run as i32, value.inside.rise as i32);
 
         if value.octant & 0b001 != 0 {
@@ -179,8 +184,8 @@ impl From<RelativeOctantified> for RelativePosition {
 #[cfg(test)]
 #[test]
 fn test_octant_from_into() {
-    for dx in -10..11 {
-        for dy in -10..11 {
+    for dx in -10..=10 {
+        for dy in -10..=10 {
             let relative = RelativePosition { dx, dy };
             assert_eq!(
                 relative,
@@ -188,4 +193,23 @@ fn test_octant_from_into() {
             );
         }
     }
+}
+
+#[cfg(test)]
+#[test]
+fn imig_wrapping_is_intentional() {
+    assert_eq!(
+        RelativePosition::from(RelativeOctantified {
+            inside: InsideOctant::new(0, u32::MAX),
+            octant: 0
+        }),
+        RelativePosition::new(-1, 0)
+    );
+    assert_eq!(
+        RelativePosition::from(RelativeOctantified {
+            inside: InsideOctant::new(u32::MAX, u32::MAX),
+            octant: 0b111
+        }),
+        RelativePosition::new(1, 1)
+    );
 }
