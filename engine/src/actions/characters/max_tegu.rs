@@ -71,7 +71,7 @@ impl CommandTrait for ForwardHeavyCommand {
                     subject_id: subject_clone.id,
                 }),
             };
-            floor.update_entity(Rc::new(subject_clone))
+            floor.update_entity(subject_clone)
         })
     }
 }
@@ -97,7 +97,7 @@ impl CommandTrait for ForwardHeavyFollowup {
                 subject: self.subject_id,
                 tile: subject_update.pos + self.dir,
             });
-            floor.update_entity(Rc::new(subject_update)).log(event)
+            floor.update_entity(subject_update).log(event)
         });
 
         update.bind(|floor| {
@@ -115,7 +115,7 @@ impl CommandTrait for ForwardHeavyFollowup {
                     damage: 1,
                 });
 
-                let updateee = floor.update_entity(Rc::new(object_clone)).log(event);
+                let updateee = floor.update_entity(object_clone).log(event);
                 updateee.bind(|floor| {
                     // TODO: Add wallbounce
                     TakeKnockbackUtil {
@@ -193,7 +193,7 @@ impl CommandTrait for TrackingCommand {
                     subject_id: subject_clone.id,
                 }),
             };
-            floor.update_entity(Rc::new(subject_clone))
+            floor.update_entity(subject_clone)
         })
     }
 }
@@ -215,7 +215,7 @@ impl CommandTrait for TrackingFollowup {
                 next_turn: floor.get_current_turn() + 2,
             };
             subject_update.energy -= 1;
-            floor.update_entity(Rc::new(subject_update))
+            floor.update_entity(subject_update)
         });
 
         update.bind(|floor| {
@@ -228,7 +228,7 @@ impl CommandTrait for TrackingFollowup {
                     target: object_clone.id,
                     damage: 1,
                 });
-                floor.update_entity(Rc::new(object_clone)).log(event)
+                floor.update_entity(object_clone).log(event)
             } else {
                 FloorUpdate::new(floor)
             }

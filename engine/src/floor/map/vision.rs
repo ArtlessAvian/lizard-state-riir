@@ -3,7 +3,6 @@ use rkyv::Deserialize;
 use rkyv::Serialize;
 
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::sync::OnceLock;
 
 use crate::actions::events::FloorEvent;
@@ -65,27 +64,23 @@ impl FloorMapVision {
     // I am a smug nerd.
 
     #[must_use]
-    pub fn add_entity(
-        &self,
-        new: &Rc<Entity>,
-        map: &FloorMap,
-    ) -> Writer<FloorMapVision, FloorEvent> {
+    pub fn add_entity(&self, new: &Entity, map: &FloorMap) -> Writer<FloorMapVision, FloorEvent> {
         self.update_entity(new, map)
     }
 
     #[must_use]
     pub fn update_entity(
         &self,
-        new: &Rc<Entity>,
+        new: &Entity,
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
-        self.update_entities(&vec![new.clone()], map)
+        self.update_entities(&vec![new], map)
     }
 
     #[must_use]
     pub fn update_entities(
         &self,
-        new_set: &Vec<Rc<Entity>>,
+        new_set: &Vec<&Entity>,
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
         let mut out = Writer::new(self.clone());

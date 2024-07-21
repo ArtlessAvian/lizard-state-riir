@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
@@ -33,7 +31,7 @@ impl CommandTrait for TakeKnockbackUtil {
         updated.pos = last_valid_position;
 
         floor
-            .update_entity(Rc::new(updated))
+            .update_entity(updated)
             .log(FloorEvent::KnockbackEvent(KnockbackEvent {
                 subject: self.entity,
                 tile: last_valid_position,

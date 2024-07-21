@@ -89,12 +89,12 @@ impl CommandTrait for DoubleHitCommand {
                 damage: 1,
             }));
 
-            dirty.push(Rc::new(object_clone));
+            dirty.push(object_clone);
         } else {
             println!("Hit no one.");
         }
 
-        dirty.push(Rc::new(subject_clone));
+        dirty.push(subject_clone);
         update.bind(|floor| floor.update_entities(dirty))
     }
 }
@@ -129,12 +129,12 @@ impl CommandTrait for DoubleHitFollowup {
                 damage: 1,
             }));
 
-            dirty.push(Rc::new(object_clone));
+            dirty.push(object_clone);
         } else {
             println!("Hit no one.");
         }
 
-        dirty.push(Rc::new(subject_clone));
+        dirty.push(subject_clone);
         update.bind(|floor| floor.update_entities(dirty))
     }
 }
@@ -173,7 +173,7 @@ impl CommandTrait for EnterStanceCommand {
             restricted_actions: vec![SerializableAction::None(Rc::new(ExitStanceAction))],
         };
 
-        floor.update_entity(Rc::new(subject_clone))
+        floor.update_entity(subject_clone)
     }
 }
 
@@ -206,7 +206,7 @@ impl CommandTrait for ExitStanceCommand {
             next_turn: floor.get_current_turn(),
         };
 
-        floor.update_entity(Rc::new(subject_clone))
+        floor.update_entity(subject_clone)
     }
 }
 

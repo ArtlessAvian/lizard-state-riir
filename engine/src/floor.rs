@@ -131,30 +131,31 @@ impl Floor {
     }
 
     #[must_use]
-    pub fn update_entity(&self, new: Rc<Entity>) -> FloorUpdate {
+    pub fn update_entity(&self, new: Entity) -> FloorUpdate {
         let old = &self.entities[new.id];
 
         let mut next_entities = self.entities.clone();
-        next_entities[new.id] = Rc::clone(&new);
+        next_entities[old.id] = Rc::new(new);
+        let new_ref = &next_entities[old.id];
 
         let mut next_occupiers = self.occupiers.clone();
         next_occupiers.remove_entry(&old.pos);
-        match next_occupiers.entry(new.pos) {
+        match next_occupiers.entry(new_ref.pos) {
             Entry::Occupied(_) => {
                 panic!("Updated entity occupies same position as existing entity.")
             }
             Entry::Vacant(vacancy) => {
-                vacancy.insert(new.id);
+                vacancy.insert(new_ref.id);
             }
         };
 
         assert!(
-            self.map.is_tile_floor(&new.pos),
+            self.map.is_tile_floor(&new_ref.pos),
             "Updated entity occupies wall position."
         );
 
         let vision_update = self.vision.as_ref().map_or(Writer::new(None), |x| {
-            x.update_entity(&new, &self.map).map(Some)
+            x.update_entity(new_ref, &self.map).map(Some)
         });
 
         vision_update.bind(|next_vision| {
@@ -168,23 +169,26 @@ impl Floor {
     }
 
     #[must_use]
-    pub fn update_entities(&self, new_set: Vec<Rc<Entity>>) -> FloorUpdate {
+    pub fn update_entities(&self, new_set: Vec<Entity>) -> FloorUpdate {
         let old_set = new_set
             .iter()
             .map(|x| &self.entities[x.id])
             .collect::<Vec<&Rc<Entity>>>();
 
         let mut next_entities = self.entities.clone();
-        for new in &new_set {
-            next_entities[new.id] = Rc::clone(new);
+        for new in new_set {
+            let id = new.id;
+            next_entities[id] = Rc::new(new);
         }
 
-        let mut next_occupiers = self.occupiers.clone();
+        let new_ref_set: Vec<&Entity> = old_set.iter().map(|x| &*next_entities[x.id]).collect();
+
+        let mut next_occupiers: HashMap<AbsolutePosition, EntityId> = self.occupiers.clone();
         for old in &old_set {
             let remove = next_occupiers.remove(&old.pos);
             assert!(remove.is_some());
         }
-        for new in &new_set {
+        for new in &new_ref_set {
             match next_occupiers.entry(new.pos) {
                 Entry::Occupied(_) => {
                     panic!("Updated entities occupy same position as another entity.")
@@ -200,9 +204,10 @@ impl Floor {
             );
         }
 
-        let vision_update = self.vision.as_ref().map_or(Writer::new(None), |x| {
-            x.update_entities(&new_set, &self.map).map(Some)
-        });
+        let vision_update: Writer<Option<FloorMapVision>, FloorEvent> =
+            self.vision.as_ref().map_or(Writer::new(None), |x| {
+                x.update_entities(&new_ref_set, &self.map).map(Some)
+            });
 
         vision_update.bind(|next_vision| {
             FloorUpdate::new(Floor {

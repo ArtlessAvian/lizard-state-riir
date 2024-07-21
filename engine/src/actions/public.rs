@@ -54,7 +54,7 @@ impl CommandTrait for WaitCommand {
         };
         subject_clone.energy = i8::min(subject_clone.energy + 1, subject_clone.max_energy);
 
-        floor.update_entity(Rc::new(subject_clone))
+        floor.update_entity(subject_clone)
     }
 }
 
@@ -119,7 +119,7 @@ impl CommandTrait for StepCommand {
             tile: subject_clone.pos,
         }));
 
-        update.bind(|floor| floor.update_entity(Rc::new(subject_clone)))
+        update.bind(|floor| floor.update_entity(subject_clone))
     }
 }
 
@@ -185,9 +185,8 @@ impl CommandTrait for BumpCommand {
             damage: 1,
         }));
 
-        let update = update.bind(|floor| {
-            floor.update_entities(Vec::from([Rc::new(subject_clone), Rc::new(object_clone)]))
-        });
+        let update =
+            update.bind(|floor| floor.update_entities(Vec::from([subject_clone, object_clone])));
 
         update.bind(|floor| {
             TakeKnockbackUtil {
@@ -273,7 +272,7 @@ impl CommandTrait for GotoCommand {
                 subject_clone.state = EntityState::Ok {
                     next_turn: floor.get_current_turn(),
                 };
-                floor.update_entity(Rc::new(subject_clone))
+                floor.update_entity(subject_clone)
             }
             Some(command) => {
                 let update = command.do_action(floor);
@@ -290,7 +289,7 @@ impl CommandTrait for GotoCommand {
                             to_confirm: Rc::new(self.clone()),
                         }
                     };
-                    floor.update_entity(Rc::new(subject_clone))
+                    floor.update_entity(subject_clone)
                 })
             }
         }
