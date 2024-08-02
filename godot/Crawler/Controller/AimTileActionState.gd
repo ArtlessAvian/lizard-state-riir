@@ -18,7 +18,7 @@ func _init(floor_container: FloorContainer, action: TileAction):
 func _godot_input(floor_container: FloorContainer, event: InputEvent) -> Variant:
 	godot_input_without_transition(floor_container, event)
 
-	if event.is_action_just_pressed("ui_select"):
+	if event.is_action_pressed("ui_select"):
 		var command = action.to_command(
 			floor_container.floor, floor_container.player_id, absolute_position
 		)
