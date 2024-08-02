@@ -18,6 +18,7 @@ use engine::actions::public::BumpAction;
 use engine::actions::public::GotoAction;
 use engine::actions::public::StepAction;
 use engine::actions::public::StepMacroAction;
+use engine::actions::public::WaitAction;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::DirectionActionTrait;
@@ -185,6 +186,12 @@ impl Floor {
     }
 
     // engine::actions::public::* goes here.
+
+    #[func]
+    #[must_use]
+    pub fn get_wait_action(&self) -> Gd<Action> {
+        Action::new(Rc::new(WaitAction))
+    }
 
     #[func]
     #[must_use]

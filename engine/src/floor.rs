@@ -9,15 +9,14 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::actions::events::FloorEvent;
-use crate::actions::public::StepAction;
-use crate::actions::DirectionActionTrait;
+use crate::actions::public::WaitAction;
+use crate::actions::ActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntitySet;
 use crate::floor::map::vision::FloorMapVision;
 use crate::floor::map::FloorMap;
 use crate::positional::AbsolutePosition;
-use crate::positional::RelativePosition;
 use crate::writer::Writer;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -267,8 +266,8 @@ impl Floor {
         }
 
         // TODO: do something interesting
-        let next_floor = StepAction
-            .verify_action(self, next_id, RelativePosition { dx: 0, dy: 0 })
+        let next_floor = WaitAction
+            .verify_action(self, next_id)
             .expect("testing code")
             .do_action(self);
 

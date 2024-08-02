@@ -23,10 +23,39 @@ use super::events::AttackHitEvent;
 use super::events::MoveEvent;
 use super::events::StartAttackEvent;
 use super::utils::TakeKnockbackUtil;
+use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
 use super::TileActionTrait;
+
+/// Moves one space.
+#[derive(Debug)]
+pub struct WaitAction;
+
+impl ActionTrait for WaitAction {
+    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+        assert!(floor.entities.contains_id(&subject_id));
+
+        Some(Box::new(WaitCommand { subject_id }))
+    }
+}
+
+#[derive(Debug)]
+struct WaitCommand {
+    subject_id: EntityId,
+}
+
+impl CommandTrait for WaitCommand {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+        subject_clone.state = EntityState::Ok {
+            next_turn: floor.get_current_turn() + 1,
+        };
+
+        floor.update_entity(Rc::new(subject_clone))
+    }
+}
 
 /// Moves one space.
 #[derive(Debug)]
@@ -41,7 +70,7 @@ impl DirectionActionTrait for StepAction {
     ) -> Option<Box<dyn CommandTrait>> {
         assert!(floor.entities.contains_id(&subject_id));
 
-        if dir.length() > 1 {
+        if dir.length() != 1 {
             return None;
         }
 
@@ -52,6 +81,8 @@ impl DirectionActionTrait for StepAction {
             return None;
         }
 
+        // It is impossible to step on yourself if dir.length() == 1, but I'm
+        // leaving the check in.
         // TODO: Decide whether to make impossible (leave code as is)
         // or to waste a turn (check in command, no-op if occupied.)
         if floor

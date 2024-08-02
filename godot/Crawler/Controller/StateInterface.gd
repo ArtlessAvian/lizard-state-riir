@@ -9,7 +9,6 @@ const ACTION_TO_DIRECTION = {
 	"move_upright": Vector2i.UP + Vector2i.RIGHT,
 	"move_downleft": Vector2i.DOWN + Vector2i.LEFT,
 	"move_downright": Vector2i.DOWN + Vector2i.RIGHT,
-	"move_wait": Vector2i.ZERO
 }
 
 
