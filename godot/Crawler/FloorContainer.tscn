@@ -25,12 +25,10 @@ texture = ExtResource("3_gvpdr")
 
 [node name="Popup" type="Popup" parent="."]
 position = Vector2i(30, 30)
-visible = true
 
 [node name="MenuBar" type="PopupMenu" parent="Popup"]
 position = Vector2i(10, 30)
 size = Vector2i(200, 200)
-visible = true
 theme = SubResource("Theme_nvbww")
 theme_override_constants/v_separation = 12
 theme_override_font_sizes/font_size = 16

@@ -41,7 +41,7 @@ func _godot_input(floor_container: FloorContainer, event: InputEvent):
 func move_player(floor_container: FloorContainer, dir: Vector2i):
 	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
 	var action: DirectionAction = floor_container.floor.get_step_macro_action()
-	var command = action.to_command(floor_container.floor, player, dir)
+	var command = action.to_command(floor_container.floor, floor_container.player_id, dir)
 	if command:
 		floor_container.floor.do_action(command)
 		floor_container.emit_signal("floor_dirtied")
