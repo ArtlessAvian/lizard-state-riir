@@ -228,6 +228,8 @@ fn double_hit() {
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
+            max_energy: 0,
+            energy: 0,
             is_player_controlled: true,
         })
     });
@@ -237,6 +239,8 @@ fn double_hit() {
             state: EntityState::Ok { next_turn: 100 },
             pos: AbsolutePosition::new(1, 0),
             health: 0,
+            max_energy: 0,
+            energy: 0,
             is_player_controlled: true,
         })
     });

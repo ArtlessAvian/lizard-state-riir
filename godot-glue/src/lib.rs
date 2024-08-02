@@ -127,6 +127,8 @@ impl Floor {
             },
             pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,
+            max_energy: 6,
+            energy: 6,
             is_player_controlled,
         });
 
@@ -284,6 +286,11 @@ impl Entity {
     #[func]
     fn get_health(&self) -> i8 {
         self.entity.health
+    }
+
+    #[func]
+    fn get_energy(&self) -> i8 {
+        self.entity.energy
     }
 
     #[func]

@@ -38,11 +38,15 @@ impl DirectionActionTrait for ForwardHeavyAction {
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(ForwardHeavyCommand {
-            step: StepAction.verify_action(floor, subject_id, dir)?,
-            dir,
-            subject_id,
-        }))
+        if floor.entities[subject_id].energy <= 0 {
+            None
+        } else {
+            Some(Box::new(ForwardHeavyCommand {
+                step: StepAction.verify_action(floor, subject_id, dir)?,
+                dir,
+                subject_id,
+            }))
+        }
     }
 }
 
@@ -87,6 +91,7 @@ impl CommandTrait for ForwardHeavyFollowup {
             subject_update.state = EntityState::Ok {
                 next_turn: floor.get_current_turn(),
             };
+            subject_update.energy -= 1;
             let event = FloorEvent::StartAttack(StartAttackEvent {
                 subject: self.subject_id,
                 tile: subject_update.pos + self.dir,

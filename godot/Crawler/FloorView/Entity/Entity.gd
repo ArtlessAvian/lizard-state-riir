@@ -8,4 +8,4 @@ func sync_with(entity: Entity):
 	last_known_position = entity.get_pos()
 
 	find_child("Debug").text = entity.get_debug()
-	find_child("DebugHealth").text = str(entity.get_health())
+	find_child("DebugHealth").text = str(entity.get_energy())

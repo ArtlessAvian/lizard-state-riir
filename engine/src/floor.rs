@@ -300,6 +300,8 @@ fn serialize_deserialize() {
             },
             pos: AbsolutePosition::new(101, 101),
             health: 103,
+            max_energy: 104,
+            energy: 105,
             is_player_controlled: false,
         })
         .0

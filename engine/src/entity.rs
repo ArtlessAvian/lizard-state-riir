@@ -53,6 +53,9 @@ pub struct Entity {
     pub pos: AbsolutePosition,
     pub health: i8,
 
+    pub max_energy: i8,
+    pub energy: i8,
+
     // TODO: AI. Roughly should be a type that tries a sequence of actions, and on success may mutate its own clone and return the FloorUpdate.
     // Should not be wrapped in Option. A "NullAI" should just wait in place forever.
 

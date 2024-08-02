@@ -52,6 +52,7 @@ impl CommandTrait for WaitCommand {
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn() + 1,
         };
+        subject_clone.energy = i8::min(subject_clone.energy + 1, subject_clone.max_energy);
 
         floor.update_entity(Rc::new(subject_clone))
     }
@@ -324,6 +325,8 @@ fn bump_test() {
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
+            max_energy: 0,
+            energy: 0,
             is_player_controlled: false,
         })
     });
@@ -333,6 +336,8 @@ fn bump_test() {
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(1, 0),
             health: 0,
+            max_energy: 0,
+            energy: 0,
             is_player_controlled: false,
         })
     });
@@ -379,6 +384,8 @@ fn goto_test() {
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
+            max_energy: 0,
+            energy: 0,
             is_player_controlled: true,
         })
     });
