@@ -17,7 +17,7 @@ pub struct TakeKnockbackUtil {
 impl CommandTrait for TakeKnockbackUtil {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         // intentionally incorrect, may panic due to invariant breaking lmao
-        let mut updated = (*floor.entities[self.entity]).clone();
+        let mut updated = (floor.entities[self.entity]).clone();
 
         let mut last_valid_position = updated.pos;
         for offset in Segment::calculate_relative(self.vector).0 {

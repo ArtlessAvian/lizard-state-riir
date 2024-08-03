@@ -63,7 +63,7 @@ impl CommandTrait for ForwardHeavyCommand {
         let update = self.step.do_action(floor);
 
         update.bind(|floor| {
-            let mut subject_clone: Entity = floor.entities[self.subject_id].as_ref().clone();
+            let mut subject_clone: Entity = floor.entities[self.subject_id].clone();
             subject_clone.state = EntityState::Committed {
                 next_turn: floor.get_current_turn(),
                 queued_command: Rc::new(ForwardHeavyFollowup {
@@ -88,7 +88,7 @@ impl CommandTrait for ForwardHeavyFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let update = BorrowedFloorUpdate::new(floor);
         let update = update.bind(|floor| {
-            let mut subject_update = floor.entities[self.subject_id].as_ref().clone();
+            let mut subject_update = floor.entities[self.subject_id].clone();
             subject_update.state = EntityState::Ok {
                 next_turn: floor.get_current_turn(),
             };
@@ -106,7 +106,7 @@ impl CommandTrait for ForwardHeavyFollowup {
                 .get(&(floor.entities[self.subject_id].pos + self.dir))
             {
                 let object_ref = &floor.entities[object_index];
-                let mut object_clone: Entity = (**object_ref).clone();
+                let mut object_clone: Entity = object_ref.clone();
                 object_clone.health -= 1;
 
                 let event = FloorEvent::AttackHit(AttackHitEvent {
@@ -185,7 +185,7 @@ impl CommandTrait for TrackingCommand {
         }));
 
         update.bind(|floor| {
-            let mut subject_clone: Entity = floor.entities[self.subject_id].as_ref().clone();
+            let mut subject_clone: Entity = floor.entities[self.subject_id].clone();
             subject_clone.state = EntityState::Committed {
                 next_turn: floor.get_current_turn(),
                 queued_command: Rc::new(TrackingFollowup {
@@ -210,7 +210,7 @@ impl CommandTrait for TrackingFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let update = BorrowedFloorUpdate::new(floor);
         let update = update.bind(|floor| {
-            let mut subject_update = floor.entities[self.subject_id].as_ref().clone();
+            let mut subject_update = floor.entities[self.subject_id].clone();
             subject_update.state = EntityState::Ok {
                 next_turn: floor.get_current_turn() + 2,
             };
@@ -221,7 +221,7 @@ impl CommandTrait for TrackingFollowup {
         update.bind(|floor| {
             let object_ref = &floor.entities[self.tracking_id];
             if object_ref.pos.distance(floor.entities[self.subject_id].pos) <= 2 {
-                let mut object_clone = (**object_ref).clone();
+                let mut object_clone = (object_ref).clone();
                 object_clone.health -= 1;
                 let event = FloorEvent::AttackHit(AttackHitEvent {
                     subject: self.subject_id,

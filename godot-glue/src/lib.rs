@@ -157,7 +157,7 @@ impl Floor {
     #[func]
     #[must_use]
     pub fn get_entity_by_id(&self, id: Gd<EntityId>) -> Gd<Entity> {
-        Entity::new(Rc::clone(&self.floor.entities[id.bind().id]))
+        Entity::new(Rc::clone(self.floor.entities.index_as_rc(id.bind().id)))
     }
 
     #[func]

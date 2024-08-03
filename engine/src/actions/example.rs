@@ -61,7 +61,7 @@ impl CommandTrait for DoubleHitCommand {
 
         let mut dirty = Vec::new();
 
-        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+        let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Committed {
             next_turn: floor.get_current_turn() + 1,
             queued_command: Rc::new(DoubleHitFollowup {
@@ -80,7 +80,7 @@ impl CommandTrait for DoubleHitCommand {
             .get(&(floor.entities[self.subject_id].pos + self.dir))
         {
             let object_ref = &floor.entities[object_index];
-            let mut object_clone: Entity = (**object_ref).clone();
+            let mut object_clone: Entity = object_ref.clone();
             object_clone.health -= 1;
 
             update = update.log(FloorEvent::AttackHit(AttackHitEvent {
@@ -113,14 +113,14 @@ impl CommandTrait for DoubleHitFollowup {
 
         let mut dirty = Vec::new();
 
-        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+        let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn() + 1,
         };
 
         if let Some(&object_index) = floor.occupiers.get(&(subject_clone.pos + self.dir)) {
             let object_ref = &floor.entities[object_index];
-            let mut object_clone: Entity = (**object_ref).clone();
+            let mut object_clone: Entity = object_ref.clone();
             object_clone.health -= 1;
 
             update = update.log(FloorEvent::AttackHit(AttackHitEvent {
@@ -167,7 +167,7 @@ pub struct EnterStanceCommand {
 
 impl CommandTrait for EnterStanceCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+        let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::RestrictedActions {
             next_turn: floor.get_current_turn() + 1,
             restricted_actions: vec![SerializableAction::None(Rc::new(ExitStanceAction))],
@@ -201,7 +201,7 @@ pub struct ExitStanceCommand {
 
 impl CommandTrait for ExitStanceCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = (*floor.entities[self.subject_id]).clone();
+        let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn(),
         };

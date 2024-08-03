@@ -6,7 +6,6 @@ use rkyv::Serialize;
 
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use crate::actions::events::FloorEvent;
 use crate::actions::public::WaitAction;
@@ -135,7 +134,7 @@ impl Floor {
         let old = &self.entities[new.id];
 
         let mut next_entities = self.entities.clone();
-        next_entities[old.id] = Rc::new(new);
+        next_entities.overwrite(new);
         let new_ref = &next_entities[old.id];
 
         let mut next_occupiers = self.occupiers.clone();
@@ -173,15 +172,14 @@ impl Floor {
         let old_set = new_set
             .iter()
             .map(|x| &self.entities[x.id])
-            .collect::<Vec<&Rc<Entity>>>();
+            .collect::<Vec<&Entity>>();
 
         let mut next_entities = self.entities.clone();
         for new in new_set {
-            let id = new.id;
-            next_entities[id] = Rc::new(new);
+            next_entities.overwrite(new);
         }
 
-        let new_ref_set: Vec<&Entity> = old_set.iter().map(|x| &*next_entities[x.id]).collect();
+        let new_ref_set: Vec<&Entity> = old_set.iter().map(|x| &next_entities[x.id]).collect();
 
         let mut next_occupiers: HashMap<AbsolutePosition, EntityId> = self.occupiers.clone();
         for old in &old_set {

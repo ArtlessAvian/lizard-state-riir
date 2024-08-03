@@ -3,7 +3,6 @@ use rkyv::Deserialize;
 use rkyv::Serialize;
 
 use std::ops::Index;
-use std::ops::IndexMut;
 use std::rc::Rc;
 
 use crate::actions::characters::max_tegu::ForwardHeavyAction;
@@ -132,17 +131,22 @@ impl EntitySet {
         id
     }
 
-    // TODO: Think about what this is asking.
-    #[must_use]
-    pub fn contains(&self, reference: &Rc<Entity>) -> bool {
-        self.0
-            .binary_search_by_key(&reference.id.0, |e| e.id.0)
-            .is_ok()
+    pub fn overwrite(&mut self, value: Entity) {
+        let id = value.id.0;
+        self.0[id] = Rc::new(value);
     }
 
     #[must_use]
     pub fn contains_id(&self, id: &EntityId) -> bool {
         self.0.binary_search_by_key(&id.0, |e| e.id.0).is_ok()
+    }
+
+    #[must_use]
+    // Leaky abstraction.
+    // TODO: Determine if this actually is needed, if you for some reason want to hold
+    // a reference to an entity ignoring lifetimes/scoping.
+    pub fn index_as_rc(&self, index: EntityId) -> &Rc<Entity> {
+        &self.0[index.0]
     }
 
     pub fn iter(&self) -> std::slice::Iter<Rc<Entity>> {
@@ -161,19 +165,13 @@ impl Default for EntitySet {
 }
 
 impl Index<EntityId> for EntitySet {
-    // Ideally this would be Entity, but then IndexMut would have to return &mut Entity.
-    // We could try to get_mut, but we would never get exclusive access.
-    // (Remember EntitySet is intended to be cloned heavily.)
-    type Output = Rc<Entity>;
+    // We cannot implement IndexMut, since that must return a &mut Entity, which is contained
+    // in the Rc. This makes sense, since they are intended to be immutable. Instead, clone
+    // and mutate the clone, then overwrite.
+    type Output = Entity;
 
     fn index(&self, index: EntityId) -> &Self::Output {
         &self.0[index.0]
-    }
-}
-
-impl IndexMut<EntityId> for EntitySet {
-    fn index_mut(&mut self, index: EntityId) -> &mut Self::Output {
-        &mut self.0[index.0]
     }
 }
 
