@@ -8,7 +8,18 @@ func _init(reason: String):
 	self.debug_reason = reason
 
 
+# TODO: Does not cancel while moving!
+# func _godot_input(floor_container: FloorContainer, event: InputEvent) -> Variant:
+# 	if event.is_action_pressed("ui_cancel"):
+# 		return FloorContainer.ExtraTransitions.EXIT
+# 	return FloorContainer.ExtraTransitions.NONE
+
+
 func _poll_input(floor_container: FloorContainer, delta: float):
+# 	# TODO: Does not cancel while moving!
+# 	if event.is_action_pressed("ui_cancel"):
+# 		return FloorContainer.ExtraTransitions.EXIT
+
 	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
 	var command = player.get_command_to_confirm()
 	if command:

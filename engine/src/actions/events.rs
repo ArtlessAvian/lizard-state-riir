@@ -7,6 +7,7 @@ use crate::positional::AbsolutePosition;
 /// A statement about something that happened in the game.
 ///
 /// Not necessary to understand the state of the game, but rather what happened between states.
+// TODO: Consider adding Rc<Entity> to events!
 #[derive(Debug, PartialEq, Eq)]
 pub enum FloorEvent {
     Move(MoveEvent),

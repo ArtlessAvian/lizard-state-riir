@@ -26,7 +26,9 @@ func _godot_input(floor_container: FloorContainer, event: InputEvent) -> Variant
 			floor_container.floor.do_action(command)
 			floor_container.emit_signal("floor_dirtied")
 			return FloorContainer.ExtraTransitions.CLEAR
-
+	if event.is_action_pressed("ui_cancel"):
+		return FloorContainer.ExtraTransitions.EXIT
+		
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			var command = action.to_command(
