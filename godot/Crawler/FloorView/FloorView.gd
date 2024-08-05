@@ -88,6 +88,8 @@ func clear_queue(delta, floor: Floor):
 		)
 		tween.tween_property(sprite, "position", sprite.position, 4 / 60.0)
 
+		test_tweens.push_back(tween)
+
 		test_event_delay += 4 / 60.0
 		event_index += 1
 		clear_queue(delta, floor)

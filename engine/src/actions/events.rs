@@ -8,7 +8,7 @@ use crate::positional::AbsolutePosition;
 ///
 /// Not necessary to understand the state of the game, but rather what happened between states.
 // TODO: Consider adding Rc<Entity> to events!
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FloorEvent {
     Move(MoveEvent),
     StartAttack(StartAttackEvent),
@@ -17,26 +17,26 @@ pub enum FloorEvent {
     KnockbackEvent(KnockbackEvent),
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct MoveEvent {
     pub subject: EntityId,
     pub tile: AbsolutePosition,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct StartAttackEvent {
     pub subject: EntityId,
     pub tile: AbsolutePosition,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct AttackHitEvent {
     pub subject: EntityId,
     pub target: EntityId,
     pub damage: i32,
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct SeeMapEvent {
     pub subject: EntityId,
     pub vision: HashMap<AbsolutePosition, FloorTile>,
@@ -51,7 +51,7 @@ impl std::fmt::Debug for SeeMapEvent {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct KnockbackEvent {
     pub subject: EntityId,
     pub tile: AbsolutePosition,

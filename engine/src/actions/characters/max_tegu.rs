@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use crate::actions::public::StepAction;
+use crate::actions::utils::DelayCommand;
 use crate::actions::utils::TakeKnockbackUtil;
 use crate::actions::DeserializeCommandTrait;
 use crate::actions::SerializeCommandTrait;
@@ -60,19 +61,20 @@ struct ForwardHeavyCommand {
 
 impl CommandTrait for ForwardHeavyCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let update = self.step.do_action(floor);
-
-        update.bind(|floor| {
-            let mut subject_clone: Entity = floor.entities[self.subject_id].clone();
-            subject_clone.state = EntityState::Committed {
-                next_turn: floor.get_current_turn(),
-                queued_command: Rc::new(ForwardHeavyFollowup {
-                    dir: self.dir,
-                    subject_id: subject_clone.id,
-                }),
-            };
-            floor.update_entity(subject_clone)
-        })
+        self.step
+            .do_action(floor) // (forcing indented formatting)
+            .bind(|floor| {
+                DelayCommand {
+                    subject_id: self.subject_id,
+                    queued_command: Rc::new(ForwardHeavyFollowup {
+                        dir: self.dir,
+                        subject_id: self.subject_id,
+                    }),
+                    turns: 0, // The step already takes a turn.
+                    event: None,
+                }
+                .do_action(&floor)
+            })
     }
 }
 
@@ -163,38 +165,18 @@ impl TileActionTrait for TrackingAction {
             return None;
         }
 
-        Some(Box::new(TrackingCommand {
-            tracking_id,
+        Some(Box::new(DelayCommand {
             subject_id,
+            queued_command: Rc::new(TrackingFollowup {
+                tracking_id,
+                subject_id,
+            }),
+            turns: 1,
+            event: Some(FloorEvent::StartAttack(StartAttackEvent {
+                subject: subject_id,
+                tile: floor.entities[tracking_id].pos,
+            })),
         }))
-    }
-}
-
-#[derive(Debug)]
-struct TrackingCommand {
-    tracking_id: EntityId,
-    subject_id: EntityId,
-}
-
-impl CommandTrait for TrackingCommand {
-    fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let mut update = BorrowedFloorUpdate::new(floor);
-        update = update.log(FloorEvent::StartAttack(StartAttackEvent {
-            subject: self.subject_id,
-            tile: floor.entities[self.tracking_id].pos,
-        }));
-
-        update.bind(|floor| {
-            let mut subject_clone: Entity = floor.entities[self.subject_id].clone();
-            subject_clone.state = EntityState::Committed {
-                next_turn: floor.get_current_turn(),
-                queued_command: Rc::new(TrackingFollowup {
-                    tracking_id: self.tracking_id,
-                    subject_id: subject_clone.id,
-                }),
-            };
-            floor.update_entity(subject_clone)
-        })
     }
 }
 

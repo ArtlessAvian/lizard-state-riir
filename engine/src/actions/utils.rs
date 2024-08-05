@@ -1,4 +1,8 @@
+use std::rc::Rc;
+
+use crate::entity::Entity;
 use crate::entity::EntityId;
+use crate::entity::EntityState;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::algorithms::Segment;
@@ -7,6 +11,7 @@ use crate::positional::RelativePosition;
 use super::events::FloorEvent;
 use super::events::KnockbackEvent;
 use super::CommandTrait;
+use super::SerializeCommandTrait;
 
 #[derive(Debug)]
 pub struct TakeKnockbackUtil {
@@ -36,5 +41,30 @@ impl CommandTrait for TakeKnockbackUtil {
                 subject: self.entity,
                 tile: last_valid_position,
             }))
+    }
+}
+
+#[derive(Debug)]
+pub struct DelayCommand {
+    pub subject_id: EntityId,
+    pub queued_command: Rc<dyn SerializeCommandTrait>,
+    pub turns: u32,
+    pub event: Option<FloorEvent>,
+}
+
+impl CommandTrait for DelayCommand {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        let mut subject_clone: Entity = floor.entities[self.subject_id].clone();
+        subject_clone.state = EntityState::Committed {
+            next_turn: floor.get_current_turn() + self.turns,
+            queued_command: Rc::clone(&self.queued_command),
+        };
+        let update = floor.update_entity(subject_clone);
+
+        if let Some(event) = self.event.clone() {
+            update.log(event)
+        } else {
+            update
+        }
     }
 }
