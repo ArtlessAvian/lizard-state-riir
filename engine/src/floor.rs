@@ -153,18 +153,19 @@ impl Floor {
             "Updated entity occupies wall position."
         );
 
-        let vision_update = self.vision.as_ref().map_or(Writer::new(None), |x| {
-            x.update_entity(new_ref, &self.map).map(Some)
-        });
-
-        vision_update.bind(|next_vision| {
-            FloorUpdate::new(Floor {
-                entities: next_entities,
-                occupiers: next_occupiers,
-                map: self.map.clone(),
-                vision: next_vision,
+        self.vision
+            .as_ref()
+            .map_or(Writer::new(None), |x| {
+                x.update_entity(new_ref, &self.map).map(Some)
             })
-        })
+            .bind(|next_vision| {
+                FloorUpdate::new(Floor {
+                    entities: next_entities,
+                    occupiers: next_occupiers,
+                    map: self.map.clone(),
+                    vision: next_vision,
+                })
+            })
     }
 
     #[must_use]
@@ -202,19 +203,19 @@ impl Floor {
             );
         }
 
-        let vision_update: Writer<Option<FloorMapVision>, FloorEvent> =
-            self.vision.as_ref().map_or(Writer::new(None), |x| {
+        self.vision
+            .as_ref()
+            .map_or(Writer::new(None), |x| {
                 x.update_entities(&new_ref_set, &self.map).map(Some)
-            });
-
-        vision_update.bind(|next_vision| {
-            FloorUpdate::new(Floor {
-                entities: next_entities,
-                occupiers: next_occupiers,
-                map: self.map.clone(),
-                vision: next_vision,
             })
-        })
+            .bind(|next_vision| {
+                FloorUpdate::new(Floor {
+                    entities: next_entities,
+                    occupiers: next_occupiers,
+                    map: self.map.clone(),
+                    vision: next_vision,
+                })
+            })
     }
 
     // TODO: Return set of entities?

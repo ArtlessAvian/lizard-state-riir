@@ -59,12 +59,13 @@ impl CommandTrait for DelayCommand {
             next_turn: floor.get_current_turn() + self.turns,
             queued_command: Rc::clone(&self.queued_command),
         };
-        let update = floor.update_entity(subject_clone);
 
-        if let Some(event) = self.event.clone() {
-            update.log(event)
-        } else {
-            update
-        }
+        floor.update_entity(subject_clone).bind(|floor| {
+            if let Some(event) = self.event.clone() {
+                FloorUpdate::new(floor).log(event)
+            } else {
+                FloorUpdate::new(floor)
+            }
+        })
     }
 }

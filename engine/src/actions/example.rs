@@ -58,45 +58,44 @@ struct DoubleHitCommand {
 
 impl CommandTrait for DoubleHitCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let update = BorrowedFloorUpdate::new(floor);
-
-        let update = update.log(FloorEvent::StartAttack(StartAttackEvent {
-            subject: self.subject_id,
-            tile: floor.entities[self.subject_id].pos + self.dir,
-        }));
-
-        let update = if let Some(&object_index) = floor
-            .occupiers
-            .get(&(floor.entities[self.subject_id].pos + self.dir))
-        {
-            let object_ref = &floor.entities[object_index];
-            let mut object_clone: Entity = object_ref.clone();
-            object_clone.health -= 1;
-
-            let update = update.log(FloorEvent::AttackHit(AttackHitEvent {
+        BorrowedFloorUpdate::new(floor)
+            .log(FloorEvent::StartAttack(StartAttackEvent {
                 subject: self.subject_id,
-                target: object_clone.id,
-                damage: 1,
-            }));
+                tile: floor.entities[self.subject_id].pos + self.dir,
+            }))
+            .bind(|floor| {
+                if let Some(&object_index) = floor
+                    .occupiers
+                    .get(&(floor.entities[self.subject_id].pos + self.dir))
+                {
+                    let object_ref = &floor.entities[object_index];
+                    let mut object_clone: Entity = object_ref.clone();
+                    object_clone.health -= 1;
 
-            update.bind(|floor| floor.update_entity(object_clone))
-        } else {
-            println!("Hit no one.");
-            update.map(Floor::clone)
-        };
-
-        update.bind(|floor| {
-            DelayCommand {
-                subject_id: self.subject_id,
-                queued_command: Rc::new(DoubleHitFollowup {
-                    dir: self.dir,
+                    floor
+                        .update_entity(object_clone)
+                        .log(FloorEvent::AttackHit(AttackHitEvent {
+                            subject: self.subject_id,
+                            target: object_index,
+                            damage: 1,
+                        }))
+                } else {
+                    println!("Hit no one.");
+                    FloorUpdate::new(floor.clone())
+                }
+            })
+            .bind(|floor| {
+                DelayCommand {
                     subject_id: self.subject_id,
-                }),
-                turns: 1,
-                event: None,
-            }
-            .do_action(&floor)
-        })
+                    queued_command: Rc::new(DoubleHitFollowup {
+                        dir: self.dir,
+                        subject_id: self.subject_id,
+                    }),
+                    turns: 1,
+                    event: None,
+                }
+                .do_action(&floor)
+            })
     }
 }
 
@@ -110,42 +109,39 @@ struct DoubleHitFollowup {
 #[archive_dyn(deserialize)]
 impl CommandTrait for DoubleHitFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let update = BorrowedFloorUpdate::new(floor);
-
-        let update = update.log(FloorEvent::StartAttack(StartAttackEvent {
-            subject: self.subject_id,
-            tile: floor.entities[self.subject_id].pos + self.dir,
-        }));
-
-        let update = update.bind(|floor| {
-            let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
-            subject_clone.state = EntityState::Ok {
-                next_turn: floor.get_current_turn() + 1,
-            };
-            floor.update_entity(subject_clone)
-        });
-
-        let update = if let Some(&object_index) = floor
-            .occupiers
-            .get(&(floor.entities[self.subject_id].pos + self.dir))
-        {
-            let object_ref = &floor.entities[object_index];
-            let mut object_clone: Entity = object_ref.clone();
-            object_clone.health -= 1;
-
-            let update = update.log(FloorEvent::AttackHit(AttackHitEvent {
+        BorrowedFloorUpdate::new(floor)
+            .log(FloorEvent::StartAttack(StartAttackEvent {
                 subject: self.subject_id,
-                target: object_clone.id,
-                damage: 1,
-            }));
+                tile: floor.entities[self.subject_id].pos + self.dir,
+            }))
+            .bind(|floor| {
+                if let Some(&object_index) = floor
+                    .occupiers
+                    .get(&(floor.entities[self.subject_id].pos + self.dir))
+                {
+                    let object_ref = &floor.entities[object_index];
+                    let mut object_clone: Entity = object_ref.clone();
+                    object_clone.health -= 1;
 
-            update.bind(|floor| floor.update_entity(object_clone))
-        } else {
-            println!("Hit no one.");
-            update.map(|x| x)
-        };
-
-        update
+                    floor
+                        .update_entity(object_clone)
+                        .log(FloorEvent::AttackHit(AttackHitEvent {
+                            subject: self.subject_id,
+                            target: object_index,
+                            damage: 1,
+                        }))
+                } else {
+                    println!("Hit no one.");
+                    FloorUpdate::new(floor.clone())
+                }
+            })
+            .bind(|floor| {
+                let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
+                subject_clone.state = EntityState::Ok {
+                    next_turn: floor.get_current_turn() + 1,
+                };
+                floor.update_entity(subject_clone)
+            })
     }
 }
 
@@ -254,13 +250,14 @@ fn double_hit() {
             is_player_controlled: true,
         })
     });
-    update = update.bind(|floor| {
-        DoubleHitAction
-            .verify_action(&floor, player_id, RelativePosition::new(1, 0))
-            .unwrap()
-            .do_action(&floor)
-    });
-    update = update.bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
+    update = update
+        .bind(|floor| {
+            DoubleHitAction
+                .verify_action(&floor, player_id, RelativePosition::new(1, 0))
+                .unwrap()
+                .do_action(&floor)
+        })
+        .bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
 
     assert_eq!(
         update.get_contents().take_npc_turn().err(),

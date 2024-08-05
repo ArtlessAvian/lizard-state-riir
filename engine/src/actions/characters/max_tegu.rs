@@ -88,48 +88,47 @@ struct ForwardHeavyFollowup {
 #[archive_dyn(deserialize)]
 impl CommandTrait for ForwardHeavyFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let update = BorrowedFloorUpdate::new(floor);
-        let update = update.bind(|floor| {
-            let mut subject_update = floor.entities[self.subject_id].clone();
-            subject_update.state = EntityState::Ok {
-                next_turn: floor.get_current_turn(),
-            };
-            subject_update.energy -= 1;
-            let event = FloorEvent::StartAttack(StartAttackEvent {
-                subject: self.subject_id,
-                tile: subject_update.pos + self.dir,
-            });
-            floor.update_entity(subject_update).log(event)
-        });
-
-        update.bind(|floor| {
-            if let Some(&object_index) = floor
-                .occupiers
-                .get(&(floor.entities[self.subject_id].pos + self.dir))
-            {
-                let object_ref = &floor.entities[object_index];
-                let mut object_clone: Entity = object_ref.clone();
-                object_clone.health -= 1;
-
-                let event = FloorEvent::AttackHit(AttackHitEvent {
+        BorrowedFloorUpdate::new(floor)
+            .bind(|floor| {
+                let mut subject_update = floor.entities[self.subject_id].clone();
+                subject_update.state = EntityState::Ok {
+                    next_turn: floor.get_current_turn(),
+                };
+                subject_update.energy -= 1;
+                let event = FloorEvent::StartAttack(StartAttackEvent {
                     subject: self.subject_id,
-                    target: object_clone.id,
-                    damage: 1,
+                    tile: subject_update.pos + self.dir,
                 });
+                floor.update_entity(subject_update).log(event)
+            })
+            .bind(|floor| {
+                if let Some(&object_index) = floor
+                    .occupiers
+                    .get(&(floor.entities[self.subject_id].pos + self.dir))
+                {
+                    let object_ref = &floor.entities[object_index];
+                    let mut object_clone: Entity = object_ref.clone();
+                    object_clone.health -= 1;
 
-                let updateee = floor.update_entity(object_clone).log(event);
-                updateee.bind(|floor| {
-                    // TODO: Add wallbounce
-                    TakeKnockbackUtil {
-                        entity: object_index,
-                        vector: 3 * self.dir,
-                    }
-                    .do_action(&floor)
-                })
-            } else {
-                FloorUpdate::new(floor)
-            }
-        })
+                    floor
+                        .update_entity(object_clone)
+                        .log(FloorEvent::AttackHit(AttackHitEvent {
+                            subject: self.subject_id,
+                            target: object_index,
+                            damage: 1,
+                        }))
+                        .bind(|floor| {
+                            // TODO: Add wallbounce
+                            TakeKnockbackUtil {
+                                entity: object_index,
+                                vector: 3 * self.dir,
+                            }
+                            .do_action(&floor)
+                        })
+                } else {
+                    FloorUpdate::new(floor)
+                }
+            })
     }
 }
 
@@ -190,31 +189,30 @@ struct TrackingFollowup {
 #[archive_dyn(deserialize)]
 impl CommandTrait for TrackingFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let update = BorrowedFloorUpdate::new(floor);
-        let update = update.bind(|floor| {
-            let mut subject_update = floor.entities[self.subject_id].clone();
-            subject_update.state = EntityState::Ok {
-                next_turn: floor.get_current_turn() + 2,
-            };
-            subject_update.energy -= 1;
-            floor.update_entity(subject_update)
-        });
-
-        update.bind(|floor| {
-            let object_ref = &floor.entities[self.tracking_id];
-            if object_ref.pos.distance(floor.entities[self.subject_id].pos) <= 2 {
-                let mut object_clone = (object_ref).clone();
-                object_clone.health -= 1;
-                let event = FloorEvent::AttackHit(AttackHitEvent {
-                    subject: self.subject_id,
-                    target: object_clone.id,
-                    damage: 1,
-                });
-                floor.update_entity(object_clone).log(event)
-            } else {
-                FloorUpdate::new(floor)
-            }
-        })
+        BorrowedFloorUpdate::new(floor)
+            .bind(|floor| {
+                let mut subject_update = floor.entities[self.subject_id].clone();
+                subject_update.state = EntityState::Ok {
+                    next_turn: floor.get_current_turn() + 2,
+                };
+                subject_update.energy -= 1;
+                floor.update_entity(subject_update)
+            })
+            .bind(|floor| {
+                let object_ref = &floor.entities[self.tracking_id];
+                if object_ref.pos.distance(floor.entities[self.subject_id].pos) <= 2 {
+                    let mut object_clone = (object_ref).clone();
+                    object_clone.health -= 1;
+                    let event = FloorEvent::AttackHit(AttackHitEvent {
+                        subject: self.subject_id,
+                        target: object_clone.id,
+                        damage: 1,
+                    });
+                    floor.update_entity(object_clone).log(event)
+                } else {
+                    FloorUpdate::new(floor)
+                }
+            })
     }
 }
 

@@ -106,20 +106,18 @@ struct StepCommand {
 
 impl CommandTrait for StepCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let mut update = BorrowedFloorUpdate::new(floor);
-
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn() + 1,
         };
 
-        update = update.log(FloorEvent::Move(MoveEvent {
-            subject: subject_clone.id,
-            tile: subject_clone.pos,
-        }));
-
-        update.bind(|floor| floor.update_entity(subject_clone))
+        BorrowedFloorUpdate::new(floor)
+            .log(FloorEvent::Move(MoveEvent {
+                subject: subject_clone.id,
+                tile: subject_clone.pos,
+            }))
+            .bind(|floor| floor.update_entity(subject_clone))
     }
 }
 
@@ -161,17 +159,10 @@ struct BumpCommand {
 
 impl CommandTrait for BumpCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let mut update = BorrowedFloorUpdate::new(floor);
-
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
             next_turn: floor.get_current_turn() + 1,
         };
-
-        update = update.log(FloorEvent::StartAttack(StartAttackEvent {
-            subject: subject_clone.id,
-            tile: subject_clone.pos + self.dir,
-        }));
 
         let object_index = floor.occupiers[&(subject_clone.pos + self.dir)];
 
@@ -179,22 +170,24 @@ impl CommandTrait for BumpCommand {
         let mut object_clone: Entity = object_ref.clone();
         object_clone.health -= 1;
 
-        update = update.log(FloorEvent::AttackHit(AttackHitEvent {
-            subject: subject_clone.id,
-            target: object_clone.id,
-            damage: 1,
-        }));
-
-        let update =
-            update.bind(|floor| floor.update_entities(Vec::from([subject_clone, object_clone])));
-
-        update.bind(|floor| {
-            TakeKnockbackUtil {
-                entity: object_index,
-                vector: self.dir,
-            }
-            .do_action(&floor)
-        })
+        BorrowedFloorUpdate::new(floor)
+            .log(FloorEvent::StartAttack(StartAttackEvent {
+                subject: subject_clone.id,
+                tile: subject_clone.pos + self.dir,
+            }))
+            .log(FloorEvent::AttackHit(AttackHitEvent {
+                subject: subject_clone.id,
+                target: object_clone.id,
+                damage: 1,
+            }))
+            .bind(|floor| floor.update_entities(Vec::from([subject_clone, object_clone])))
+            .bind(|floor| {
+                TakeKnockbackUtil {
+                    entity: object_index,
+                    vector: self.dir,
+                }
+                .do_action(&floor)
+            })
     }
 }
 
@@ -274,10 +267,9 @@ impl CommandTrait for GotoCommand {
                 };
                 floor.update_entity(subject_clone)
             }
-            Some(command) => {
-                let update = command.do_action(floor);
-
-                update.bind(|floor| {
+            Some(command) => command
+                .do_action(floor) // (force indent)
+                .bind(|floor| {
                     let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
                     subject_clone.state = if floor.entities[self.subject_id].pos == self.tile {
                         EntityState::Ok {
@@ -290,8 +282,7 @@ impl CommandTrait for GotoCommand {
                         }
                     };
                     floor.update_entity(subject_clone)
-                })
-            }
+                }),
         }
     }
 }
@@ -403,10 +394,11 @@ fn goto_test() {
         ),
     };
 
-    update = update.bind(confirm_command);
-    update = update.bind(confirm_command);
-    update = update.bind(confirm_command);
-    update = update.bind(confirm_command);
+    update = update
+        .bind(confirm_command)
+        .bind(confirm_command)
+        .bind(confirm_command)
+        .bind(confirm_command);
 
     let (floor, _) = update.into_both();
     assert!(matches!(
