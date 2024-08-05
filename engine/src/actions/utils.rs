@@ -60,12 +60,8 @@ impl CommandTrait for DelayCommand {
             queued_command: Rc::clone(&self.queued_command),
         };
 
-        floor.update_entity(subject_clone).bind(|floor| {
-            if let Some(event) = self.event.clone() {
-                FloorUpdate::new(floor).log(event)
-            } else {
-                FloorUpdate::new(floor)
-            }
-        })
+        floor
+            .update_entity(subject_clone)
+            .log_option(self.event.clone())
     }
 }

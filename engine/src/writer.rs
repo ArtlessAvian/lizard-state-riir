@@ -70,6 +70,17 @@ impl<T, Payload> Writer<T, Payload> {
         next.prepend_log(log)
     }
 
+    #[must_use]
+    pub fn bind_or_noop<F>(self, f: F) -> Writer<T, Payload>
+    where
+        F: FnOnce(&T) -> Option<Writer<T, Payload>>,
+    {
+        match f(self.get_contents()) {
+            Some(writer) => writer.prepend_log(self.log),
+            None => self,
+        }
+    }
+
     // Restricted functions to match F's signature. Not an ideal solution but it works.
     #[must_use]
     pub fn bind_with_side_output<U, F, SideOutput>(self, f: F) -> (Writer<U, Payload>, SideOutput)
@@ -91,6 +102,14 @@ impl<T, Payload> Writer<T, Payload> {
     #[must_use]
     pub fn log(mut self, line: Payload) -> Self {
         self.log.push(line);
+        self
+    }
+
+    #[must_use]
+    pub fn log_option(mut self, line: Option<Payload>) -> Self {
+        if let Some(line) = line {
+            self.log.push(line);
+        }
         self
     }
 }

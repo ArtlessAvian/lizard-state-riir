@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::rc::Rc;
 
 use crate::actions::DeserializeActionTrait;
@@ -59,19 +60,21 @@ struct DoubleHitCommand {
 impl CommandTrait for DoubleHitCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         BorrowedFloorUpdate::new(floor)
+            .map(Cow::Borrowed)
             .log(FloorEvent::StartAttack(StartAttackEvent {
                 subject: self.subject_id,
                 tile: floor.entities[self.subject_id].pos + self.dir,
             }))
-            .bind(|floor| {
-                if let Some(&object_index) = floor
+            .bind_or_noop(|floor| {
+                let &object_index = floor
                     .occupiers
-                    .get(&(floor.entities[self.subject_id].pos + self.dir))
-                {
-                    let object_ref = &floor.entities[object_index];
-                    let mut object_clone: Entity = object_ref.clone();
-                    object_clone.health -= 1;
+                    .get(&(floor.entities[self.subject_id].pos + self.dir))?;
 
+                let object_ref = &floor.entities[object_index];
+                let mut object_clone: Entity = object_ref.clone();
+                object_clone.health -= 1;
+
+                Some(
                     floor
                         .update_entity(object_clone)
                         .log(FloorEvent::AttackHit(AttackHitEvent {
@@ -79,10 +82,8 @@ impl CommandTrait for DoubleHitCommand {
                             target: object_index,
                             damage: 1,
                         }))
-                } else {
-                    println!("Hit no one.");
-                    FloorUpdate::new(floor.clone())
-                }
+                        .map(Cow::Owned),
+                )
             })
             .bind(|floor| {
                 DelayCommand {
@@ -110,19 +111,21 @@ struct DoubleHitFollowup {
 impl CommandTrait for DoubleHitFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         BorrowedFloorUpdate::new(floor)
+            .map(Cow::Borrowed)
             .log(FloorEvent::StartAttack(StartAttackEvent {
                 subject: self.subject_id,
                 tile: floor.entities[self.subject_id].pos + self.dir,
             }))
-            .bind(|floor| {
-                if let Some(&object_index) = floor
+            .bind_or_noop(|floor| {
+                let &object_index = floor
                     .occupiers
-                    .get(&(floor.entities[self.subject_id].pos + self.dir))
-                {
-                    let object_ref = &floor.entities[object_index];
-                    let mut object_clone: Entity = object_ref.clone();
-                    object_clone.health -= 1;
+                    .get(&(floor.entities[self.subject_id].pos + self.dir))?;
 
+                let object_ref = &floor.entities[object_index];
+                let mut object_clone: Entity = object_ref.clone();
+                object_clone.health -= 1;
+
+                Some(
                     floor
                         .update_entity(object_clone)
                         .log(FloorEvent::AttackHit(AttackHitEvent {
@@ -130,10 +133,8 @@ impl CommandTrait for DoubleHitFollowup {
                             target: object_index,
                             damage: 1,
                         }))
-                } else {
-                    println!("Hit no one.");
-                    FloorUpdate::new(floor.clone())
-                }
+                        .map(Cow::Owned),
+                )
             })
             .bind(|floor| {
                 let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
@@ -259,12 +260,11 @@ fn double_hit() {
         })
         .bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
 
+    let (contents, log) = update.into_both();
     assert_eq!(
-        update.get_contents().take_npc_turn().err(),
+        contents.take_npc_turn().err(),
         Some(TurntakingError::PlayerTurn { who: player_id })
     );
-
-    let (_, log) = update.into_both();
     assert_eq!(
         log.into_iter()
             .filter(|x| matches!(x, FloorEvent::StartAttack(_) | FloorEvent::AttackHit(_)))
