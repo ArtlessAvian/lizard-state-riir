@@ -39,6 +39,8 @@ pub mod floor;
 /// A bundle of data, usually in the a context of a floor.
 pub mod entity;
 
+pub mod strategy;
+
 /// Integer math and algorithms on a grid.
 ///
 /// TODO: Maybe rename to something grid related?

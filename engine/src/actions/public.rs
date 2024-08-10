@@ -304,6 +304,7 @@ fn bump_test() {
     use crate::{
         entity::{EntityId, EntityState},
         positional::AbsolutePosition,
+        strategy::Strategy,
     };
 
     let mut update = FloorUpdate::new(Floor::new());
@@ -317,6 +318,7 @@ fn bump_test() {
             health: 0,
             max_energy: 0,
             energy: 0,
+            strategy: Strategy {},
             is_player_controlled: false,
         })
     });
@@ -328,6 +330,7 @@ fn bump_test() {
             health: 0,
             max_energy: 0,
             energy: 0,
+            strategy: Strategy {},
             is_player_controlled: false,
         })
     });
@@ -364,6 +367,7 @@ fn goto_test() {
     use crate::{
         entity::{EntityId, EntityState},
         positional::AbsolutePosition,
+        strategy::Strategy,
     };
 
     let mut update = FloorUpdate::new(Floor::new());
@@ -376,6 +380,7 @@ fn goto_test() {
             health: 0,
             max_energy: 0,
             energy: 0,
+            strategy: Strategy {},
             is_player_controlled: true,
         })
     });

@@ -224,6 +224,7 @@ fn double_hit() {
         entity::{EntityId, EntityState},
         floor::TurntakingError,
         positional::AbsolutePosition,
+        strategy::Strategy,
     };
 
     let mut update = FloorUpdate::new(Floor::new());
@@ -237,6 +238,7 @@ fn double_hit() {
             health: 0,
             max_energy: 0,
             energy: 0,
+            strategy: Strategy {},
             is_player_controlled: true,
         })
     });
@@ -248,6 +250,7 @@ fn double_hit() {
             health: 0,
             max_energy: 0,
             energy: 0,
+            strategy: Strategy {},
             is_player_controlled: true,
         })
     });

@@ -15,6 +15,7 @@ use crate::actions::SerializableAction;
 use crate::actions::SerializeCommandTrait;
 use crate::actions::UnaimedAction;
 use crate::positional::AbsolutePosition;
+use crate::strategy::Strategy;
 
 /// An opaque index into an `EntitySet`.
 //
@@ -58,6 +59,7 @@ pub struct Entity {
 
     // TODO: AI. Roughly should be a type that tries a sequence of actions, and on success may mutate its own clone and return the FloorUpdate.
     // Should not be wrapped in Option. A "NullAI" should just wait in place forever.
+    pub strategy: Strategy,
 
     // Not mutually exclusive with AI.
     // Eg you might switch between controlling entities, or temporarily take control of one.

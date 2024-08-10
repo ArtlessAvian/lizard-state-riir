@@ -8,8 +8,6 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
 use crate::actions::events::FloorEvent;
-use crate::actions::public::WaitAction;
-use crate::actions::ActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntitySet;
@@ -270,12 +268,7 @@ impl Floor {
         }
 
         // TODO: do something interesting
-        let next_floor = WaitAction
-            .verify_action(self, next_id)
-            .expect("testing code")
-            .do_action(self);
-
-        Result::Ok(next_floor)
+        Result::Ok(self.entities[next_id].strategy.take_turn(self, next_id))
     }
 }
 
@@ -292,7 +285,7 @@ impl Default for Floor {
 fn serialize_deserialize() {
     use rkyv::ser::{serializers::AllocSerializer, Serializer};
 
-    use crate::entity::EntityState;
+    use crate::{entity::EntityState, strategy::Strategy};
 
     let floor = Floor::new();
     let floor = floor
@@ -306,6 +299,7 @@ fn serialize_deserialize() {
             health: 103,
             max_energy: 104,
             energy: 105,
+            strategy: Strategy {},
             is_player_controlled: false,
         })
         .0
