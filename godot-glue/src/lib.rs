@@ -189,6 +189,12 @@ impl Floor {
         self.log.extend_array(temp);
     }
 
+    #[func]
+    #[must_use]
+    pub fn get_time(&self) -> u32 {
+        self.floor.get_current_turn()
+    }
+
     // engine::actions::public::* goes here.
 
     #[func]

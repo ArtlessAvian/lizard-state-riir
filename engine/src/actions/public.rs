@@ -244,8 +244,7 @@ pub struct GotoCommand {
 impl CommandTrait for GotoCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let subject_pos = floor.entities[self.subject_id].pos;
-        let step_action = StepAction;
-        let verify_action = step_action.verify_action(
+        let verify_action = StepAction.verify_action(
             floor,
             self.subject_id,
             // TODO: Read from pathfinding.
@@ -273,11 +272,15 @@ impl CommandTrait for GotoCommand {
                     let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
                     subject_clone.state = if floor.entities[self.subject_id].pos == self.tile {
                         EntityState::Ok {
-                            next_turn: floor.get_current_turn(),
+                            next_turn: subject_clone
+                                .get_next_turn()
+                                .expect("This entity just took a step so it has a next turn."),
                         }
                     } else {
                         EntityState::ConfirmCommand {
-                            next_turn: floor.get_current_turn(),
+                            next_turn: subject_clone
+                                .get_next_turn()
+                                .expect("This entity just took a step so it has a next turn."),
                             to_confirm: Rc::new(self.clone()),
                         }
                     };

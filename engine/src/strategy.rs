@@ -44,6 +44,7 @@ impl StrategyTrait for WanderStrategy {
         if let Some(x) = StepAction.verify_action(
             original,
             subject_id,
+            #[allow(clippy::cast_possible_wrap)]
             RelativePosition::new(
                 original.get_current_turn() as i32 % 3 - 1,
                 (original.get_current_turn() as i32 + 1) % 3 - 1,

@@ -57,7 +57,7 @@ func _process(delta):
 	var debug_state_str = ""
 	for state in input_state_stack:
 		debug_state_str += state.get_script().get_path() + "\n"
-	$DEBUG.text = debug_state_str
+	$DEBUG.text = debug_state_str + " " + str(floor.get_time())
 
 
 func _unhandled_input(event):
