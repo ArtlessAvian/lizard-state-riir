@@ -238,7 +238,7 @@ fn double_hit() {
             health: 0,
             max_energy: 0,
             energy: 0,
-            strategy: Strategy {},
+            strategy: Strategy::Null,
             is_player_controlled: true,
         })
     });
@@ -250,7 +250,7 @@ fn double_hit() {
             health: 0,
             max_energy: 0,
             energy: 0,
-            strategy: Strategy {},
+            strategy: Strategy::Null,
             is_player_controlled: true,
         })
     });

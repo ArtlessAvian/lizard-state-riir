@@ -14,6 +14,7 @@ use crate::entity::EntitySet;
 use crate::floor::map::vision::FloorMapVision;
 use crate::floor::map::FloorMap;
 use crate::positional::AbsolutePosition;
+use crate::strategy::StrategyTrait;
 use crate::writer::Writer;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -299,7 +300,7 @@ fn serialize_deserialize() {
             health: 103,
             max_energy: 104,
             energy: 105,
-            strategy: Strategy {},
+            strategy: Strategy::Null,
             is_player_controlled: false,
         })
         .0

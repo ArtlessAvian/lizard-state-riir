@@ -318,7 +318,7 @@ fn bump_test() {
             health: 0,
             max_energy: 0,
             energy: 0,
-            strategy: Strategy {},
+            strategy: Strategy::Null,
             is_player_controlled: false,
         })
     });
@@ -330,7 +330,7 @@ fn bump_test() {
             health: 0,
             max_energy: 0,
             energy: 0,
-            strategy: Strategy {},
+            strategy: Strategy::Null,
             is_player_controlled: false,
         })
     });
@@ -380,7 +380,7 @@ fn goto_test() {
             health: 0,
             max_energy: 0,
             energy: 0,
-            strategy: Strategy {},
+            strategy: Strategy::Null,
             is_player_controlled: true,
         })
     });
