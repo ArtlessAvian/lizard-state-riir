@@ -89,7 +89,7 @@ impl Entity {
     #[must_use]
     pub fn get_command_to_confirm(&self) -> Option<Rc<dyn CommandTrait>> {
         if let EntityState::ConfirmCommand { to_confirm, .. } = &self.state {
-            Some(Rc::new(Upcast::new(to_confirm.clone())))
+            Some(Rc::new(Upcast::new(Rc::clone(to_confirm))))
         } else {
             None
         }

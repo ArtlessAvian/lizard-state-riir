@@ -23,7 +23,6 @@ use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::DirectionActionTrait;
 use engine::actions::TileActionTrait;
-use engine::entity;
 use engine::entity::Entity as EntityInternal;
 use engine::entity::EntityId as EntityIdInternal;
 use engine::entity::EntityState;
@@ -121,7 +120,7 @@ impl Floor {
     #[func]
     pub fn add_entity_at(&mut self, pos: Vector2i, is_player_controlled: bool) -> Gd<EntityId> {
         let (update, id) = self.floor.add_entity(EntityInternal {
-            id: entity::EntityId::default(),
+            id: EntityIdInternal::default(),
             state: EntityState::Ok {
                 next_turn: self.floor.get_current_turn(),
             },
