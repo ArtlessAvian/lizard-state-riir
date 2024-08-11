@@ -14,8 +14,7 @@ func _poll_held_input(floor_container: FloorContainer):
 func _godot_input(floor_container: FloorContainer, event: InputEvent):
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			goto_mouse(floor_container)
-			return preload("res://Crawler/Controller/AutoconfirmState.gd").new("goto")
+			return goto_mouse(floor_container)
 
 	for action in ACTION_TO_DIRECTION:
 		if event.is_action_pressed(action):
@@ -57,6 +56,31 @@ func move_player(floor_container: FloorContainer, dir: Vector2i):
 
 func goto_mouse(floor_container: FloorContainer):
 	var absolute_position = project_mouse_to_tile(floor_container.get_viewport())
+	var player_position = (
+		floor_container.floor.get_entity_by_id(floor_container.player_id).get_pos()
+	)
+
+	if absolute_position == player_position:
+		floor_container.floor.do_action(
+			floor_container.floor.get_wait_action().to_command(
+				floor_container.floor, floor_container.player_id
+			)
+		)
+		return FloorContainer.ExtraTransitions.CLEAR
+	elif (
+		(absolute_position - player_position).x <= 1
+		and (absolute_position - player_position).x >= -1
+		and (absolute_position - player_position).y <= 1
+		and (absolute_position - player_position).y >= -1
+	):
+		floor_container.floor.do_action(
+			floor_container.floor.get_step_macro_action().to_command(
+				floor_container.floor,
+				floor_container.player_id,
+				absolute_position - player_position
+			)
+		)
+		return FloorContainer.ExtraTransitions.CLEAR
 
 	floor_container.find_child("Cursor").position = (
 		Vector3(absolute_position.x, 0, absolute_position.y) + Vector3.UP * 0.01
@@ -69,6 +93,8 @@ func goto_mouse(floor_container: FloorContainer):
 	if command:
 		floor_container.floor.do_action(command)
 		floor_container.emit_signal("floor_dirtied")
+
+	return preload("res://Crawler/Controller/AutoconfirmState.gd").new("goto")
 
 
 func transition_to_action(floor_container: FloorContainer, action: Variant):
