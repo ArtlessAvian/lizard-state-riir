@@ -8,7 +8,7 @@ var event_index = 0
 var desynced_from_floor = false
 
 var test_event_delay = 0
-var test_tweens = []
+var test_tweens = Dictionary()  # Abuse of dictionary. Treat as Array[Pair<Tween, Variant>]
 
 var test_visions: Dictionary  # of EntityIds to their most recent vision.
 
@@ -25,11 +25,14 @@ func _process_floor(delta, floor: Floor):
 		desynced_from_floor = true
 		clear_queue(delta, floor)
 
+	for tween in test_tweens.keys().filter(func(t): return !t.is_running()):
+		test_tweens.erase(tween)
+
 	if desynced_from_floor and event_index == len(floor.log):
 		if test_event_delay > 0:
 			test_event_delay -= delta
 			return
-		if test_tweens.any(func(t): return t.is_running()):
+		if test_tweens.keys().any(func(t): return t.is_running()):
 			return
 		test_tweens.clear()
 
@@ -42,106 +45,94 @@ func clear_queue(delta, floor: Floor):
 	if test_event_delay > 0:
 		test_event_delay -= delta
 		return
-	if event_index == len(floor.log):
-		return
+	while event_index < len(floor.log):
+		var event = floor.log[event_index]
 
-	# TEMPORARY
-	if test_tweens.any(func(t): return t.is_running()):
-		return
+		if event is MoveEvent:
+			if test_tweens.values().any(func(x): return x != "Move"):
+				return
 
-	var event = floor.log[event_index]
-	print(event)
-	if event is MoveEvent:
-		var subject = id_to_node[event.subject]
-		var tile = Vector3(event.tile.x, 0, event.tile.y)
-		if event.tile != subject.last_known_position:
-			subject.get_node("DiscardBasis/Sprite3D").look_dir = tile - subject.position
+			var subject = id_to_node[event.subject]
+			var tile = Vector3(event.tile.x, 0, event.tile.y)
+			if event.tile != subject.last_known_position:
+				subject.get_node("DiscardBasis/Sprite3D").look_dir = tile - subject.position
 
-		if event.tile != subject.last_known_position:
+			if event.tile != subject.last_known_position:
+				var tween = subject.create_tween()
+				tween.tween_property(subject, "position", tile, 10 / 60.0)
+				test_tweens[tween] = "Move"
+
+			subject.last_known_position = event.tile
+			event_index += 1
+
+		elif event is StartAttackEvent:
+			if test_tweens.keys().any(func(t): return t.is_running()):
+				return
+
+			# TODO: Replace with actual animation player.
+			var subject = id_to_node[event.subject]
+			var target = Vector3(event.tile.x, 0, event.tile.y)
+			subject.get_node("DiscardBasis/Sprite3D").look_dir = target - subject.position
+
+			var sprite = subject.get_node("DiscardBasis/Sprite3D")
+			sprite.look_dir_offset = 0
+
+			var tween = sprite.create_tween()
+			tween.tween_property(sprite, "look_dir_offset", 1, 8 / 60.0)
+			tween.parallel().tween_property(
+				sprite, "position", sprite.position.lerp(target - subject.position, 0.5), 4 / 60.0
+			)
+			tween.tween_property(sprite, "position", sprite.position, 4 / 60.0)
+
+			test_tweens[tween] = "Start Attack"
+
+			test_event_delay += 4 / 60.0
+			event_index += 1
+
+		elif event is AttackHitEvent:
+			var target = id_to_node[event.target]
+			target.get_node("DiscardBasis/DamagePopup").popup(-1)
+
+			var subject = id_to_node[event.subject]
+			target.get_node("DiscardBasis/Sprite3D").look_dir = subject.position - target.position
+
+			event_index += 1
+
+		elif event is SeeMapEvent:
+			test_visions[event.subject] = event.vision
+
+			var map = $WorldSkew/Map as GridMap
+			map.clear()
+			for vision in test_visions.values():
+				for pos in vision:
+					map.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if vision[pos] else 1)
+
+			var history = $WorldSkew/MapHistory as GridMap
+			for pos in event.vision:
+				history.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if event.vision[pos] else 1)
+
+			event_index += 1
+
+		elif event is KnockbackEvent:
+			var subject = id_to_node[event.subject]
+			var tile = Vector3(event.tile.x, 0, event.tile.y)
+
 			var tween = subject.create_tween()
-			tween.tween_property(subject, "position", tile, 10 / 60.0)
+			(
+				tween
+				. tween_property(subject, "position", tile, 20 / 60.0)
+				. set_trans(Tween.TRANS_EXPO)
+				. set_ease(Tween.EASE_OUT)
+			)
+			test_tweens[tween] = "Knockback"
 
-			test_tweens.push_back(tween)
+			subject.last_known_position = event.tile
 
-		subject.last_known_position = event.tile
+			event_index += 1
 
-		event_index += 1
-		clear_queue(delta, floor)
-
-	elif event is StartAttackEvent:
-		if test_tweens.any(func(t): return t.is_running()):
-			return
-		test_tweens.clear()
-
-		# TODO: Replace with actual animation player.
-		var subject = id_to_node[event.subject]
-		var target = Vector3(event.tile.x, 0, event.tile.y)
-		subject.get_node("DiscardBasis/Sprite3D").look_dir = target - subject.position
-
-		var sprite = subject.get_node("DiscardBasis/Sprite3D")
-		sprite.look_dir_offset = 0
-
-		var tween = sprite.create_tween()
-		tween.tween_property(sprite, "look_dir_offset", 1, 8 / 60.0)
-		tween.parallel().tween_property(
-			sprite, "position", sprite.position.lerp(target - subject.position, 0.5), 4 / 60.0
-		)
-		tween.tween_property(sprite, "position", sprite.position, 4 / 60.0)
-
-		test_tweens.push_back(tween)
-
-		test_event_delay += 4 / 60.0
-		event_index += 1
-		clear_queue(delta, floor)
-
-	elif event is AttackHitEvent:
-		var target = id_to_node[event.target]
-		target.get_node("DiscardBasis/DamagePopup").popup(-1)
-
-		var subject = id_to_node[event.subject]
-		target.get_node("DiscardBasis/Sprite3D").look_dir = subject.position - target.position
-
-		event_index += 1
-		clear_queue(delta, floor)
-
-	elif event is SeeMapEvent:
-		test_visions[event.subject] = event.vision
-
-		var map = $WorldSkew/Map as GridMap
-		map.clear()
-		for vision in test_visions.values():
-			for pos in vision:
-				map.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if vision[pos] else 1)
-
-		var history = $WorldSkew/MapHistory as GridMap
-		for pos in event.vision:
-			history.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if event.vision[pos] else 1)
-
-		event_index += 1
-		clear_queue(delta, floor)
-
-	elif event is KnockbackEvent:
-		var subject = id_to_node[event.subject]
-		var tile = Vector3(event.tile.x, 0, event.tile.y)
-
-		var tween = subject.create_tween()
-		(
-			tween
-			. tween_property(subject, "position", tile, 20 / 60.0)
-			. set_trans(Tween.TRANS_EXPO)
-			. set_ease(Tween.EASE_OUT)
-		)
-		test_tweens.push_back(tween)
-
-		subject.last_known_position = event.tile
-
-		event_index += 1
-		clear_queue(delta, floor)
-
-	else:
-		printerr("Unknown Event! ", event)
-		event_index += 1
-		clear_queue(delta, floor)
+		else:
+			printerr("Unknown Event! ", event)
+			event_index += 1
 
 
 func sync_with_engine(floor):
