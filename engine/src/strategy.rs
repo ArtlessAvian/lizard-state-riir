@@ -20,6 +20,7 @@ pub trait StrategyTrait {
 pub enum Strategy {
     Null,
     Wander(WanderStrategy),
+    StandAndFight(StandAndFightStrategy),
 }
 
 impl StrategyTrait for Strategy {
@@ -31,6 +32,7 @@ impl StrategyTrait for Strategy {
                 .expect("Wait should never fail")
                 .do_action(original),
             Strategy::Wander(x) => x.take_turn(original, subject_id),
+            Strategy::StandAndFight(x) => x.take_turn(original, subject_id),
         }
     }
 }
@@ -51,6 +53,37 @@ impl StrategyTrait for WanderStrategy {
             ),
         ) {
             return x.do_action(original);
+        }
+
+        WaitAction {}
+            .verify_action(original, subject_id)
+            .expect("Wait should never fail")
+            .do_action(original)
+    }
+}
+
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
+pub struct StandAndFightStrategy;
+
+impl StrategyTrait for StandAndFightStrategy {
+    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+        let in_range = original
+            .entities
+            .iter()
+            .find(|x| x.pos.distance(original.entities[subject_id].pos) <= 2 && x.id != subject_id);
+
+        if let Some(other) = in_range {
+            let unaimed_action = &original.entities[subject_id].get_actions()[3];
+            let lmao = match unaimed_action {
+                crate::actions::UnaimedAction::Tile(hi_this_is_temporary) => {
+                    hi_this_is_temporary.verify_action(original, subject_id, other.pos)
+                }
+                _ => None,
+            };
+            if let Some(command) = lmao {
+                return command.do_action(original);
+            }
         }
 
         WaitAction {}

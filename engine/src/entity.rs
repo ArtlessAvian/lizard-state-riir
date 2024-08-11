@@ -68,6 +68,7 @@ pub struct Entity {
 
 impl Entity {
     #[must_use]
+    // TODO: Change return type to slice or ref.
     pub fn get_actions(&self) -> Vec<UnaimedAction> {
         // We might add more states, so consider using match instead of if let.
         if let EntityState::RestrictedActions {

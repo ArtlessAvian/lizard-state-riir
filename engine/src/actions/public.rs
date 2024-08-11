@@ -170,6 +170,13 @@ impl CommandTrait for BumpCommand {
         let mut object_clone: Entity = object_ref.clone();
         object_clone.health -= 1;
 
+        object_clone.state = EntityState::Ok {
+            next_turn: subject_clone
+                .get_next_turn()
+                .expect("bump command subject just took their turn")
+                + 1,
+        };
+
         BorrowedFloorUpdate::new(floor)
             .log(FloorEvent::StartAttack(StartAttackEvent {
                 subject: subject_clone.id,
