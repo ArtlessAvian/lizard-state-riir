@@ -46,5 +46,7 @@ pub mod strategy;
 /// TODO: Maybe rename to something grid related?
 pub mod positional;
 
+pub mod pathfinding;
+
 /// Functional Magic.
 mod writer;
