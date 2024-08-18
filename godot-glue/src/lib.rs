@@ -90,10 +90,7 @@ impl Floor {
             })
             .collect();
 
-        let map = engine::floor::map::FloorMap {
-            tiles: Rc::new(tiles),
-            default: engine::floor::map::FloorTile::FLOOR,
-        };
+        let map = engine::floor::map::FloorMap::new_with_tiles(tiles);
 
         self.floor = self.floor.set_map(map);
     }
@@ -113,10 +110,7 @@ impl Floor {
             })
             .collect();
 
-        let map = engine::floor::map::FloorMap {
-            tiles: Rc::new(tiles),
-            default: engine::floor::map::FloorTile::WALL,
-        };
+        let map = engine::floor::map::FloorMap::new_with_tiles(tiles);
 
         self.floor = self.floor.set_map(map);
     }

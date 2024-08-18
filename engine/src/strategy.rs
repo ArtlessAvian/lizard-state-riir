@@ -103,7 +103,7 @@ pub struct FollowStrategy;
 
 impl StrategyTrait for FollowStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
-        // TODO: Add teams to the game.
+        // TODO: Add teams/friendliness to the game.
         let in_range = original
             .entities
             .iter()
@@ -113,18 +113,11 @@ impl StrategyTrait for FollowStrategy {
 
         if let Some(other) = in_range {
             if subject.pos.distance(other.pos) > 2 {
-                let map_clone_lmao = original.map.clone();
-                let mut pathfinder: PathfindingContext = PathfindingContext::new(
-                    Box::new(move |pos| !map_clone_lmao.is_tile_floor(&pos)),
-                    Box::new(AbsolutePosition::distance),
-                );
-                if pathfinder.find_path(subject.pos, other.pos) {
-                    if let Some(step_to) = pathfinder.get_step(subject.pos, other.pos) {
-                        if let Some(x) =
-                            StepAction.verify_action(original, subject_id, step_to - subject.pos)
-                        {
-                            return x.do_action(original);
-                        }
+                if let Some(step_to) = original.map.get_step(subject.pos, other.pos) {
+                    if let Some(x) =
+                        StepAction.verify_action(original, subject_id, step_to - subject.pos)
+                    {
+                        return x.do_action(original);
                     }
                 }
             }

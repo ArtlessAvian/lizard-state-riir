@@ -1,11 +1,13 @@
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::hash::Hash;
 
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
+#[derive(Debug)]
 struct SymmetricMatrix<K, V>(HashMap<(K, K), V>);
 
 impl<K: Hash + Ord + Copy, V: Copy> SymmetricMatrix<K, V> {
@@ -130,15 +132,13 @@ impl PathfindingContext {
             });
         }
 
-        if frontier.is_empty() {
-            // Begin a new search.
-            frontier.push(PartialPath {
-                tile: start,
-                previous: None,
-                known_cost_so_far: 0,
-                estimated_cost: (self.heuristic)(start, destination),
-            });
-        }
+        // Begin a new search.
+        frontier.push(PartialPath {
+            tile: start,
+            previous: None,
+            known_cost_so_far: 0,
+            estimated_cost: (self.heuristic)(start, destination),
+        });
 
         // Traverse and discover new facts.
         while let Some(partial_path) = frontier.pop() {
@@ -166,26 +166,39 @@ impl PathfindingContext {
 
             // Add known paths as extensions.
             for (path, cost) in self.known_distance.iter_row(partial_path.tile) {
-                if !self.known_distance.contains_key((start, path.1)) {
-                    frontier.push(PartialPath {
-                        tile: path.1,
-                        previous: Some(path.0),
-                        known_cost_so_far: partial_path.known_cost_so_far + cost,
-                        estimated_cost: partial_path.known_cost_so_far
-                            + cost
-                            + (self.heuristic)(path.1, destination),
-                    });
+                if self.known_distance.contains_key((start, path.1)) {
+                    // We would have already added this to the frontier before the search began.
+                    continue;
                 }
+                frontier.push(PartialPath {
+                    tile: path.1,
+                    previous: Some(path.0),
+                    known_cost_so_far: partial_path.known_cost_so_far + cost,
+                    estimated_cost: partial_path.known_cost_so_far
+                        + cost
+                        + (self.heuristic)(path.1, destination),
+                });
             }
 
             // Add direct neighbors.
             for delta in RelativePosition::list_all_length(1) {
                 let neighbor = partial_path.tile + delta;
                 if self.known_distance.contains_key((start, neighbor)) {
+                    // We would have already added this to the frontier before the search began.
                     continue;
                 }
                 if (self.blocked)(neighbor) {
                     continue;
+                }
+
+                // These two are given facts.
+                self.known_distance.insert((partial_path.tile, neighbor), 1);
+                if !self
+                    .step_between
+                    .contains_key((partial_path.tile, neighbor))
+                {
+                    self.step_between
+                        .insert((partial_path.tile, neighbor), partial_path.tile);
                 }
 
                 frontier.push(PartialPath {
@@ -218,6 +231,15 @@ impl PathfindingContext {
         } else {
             None
         }
+    }
+}
+
+impl Debug for PathfindingContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PathfindingContext")
+            .field("known_distance", &self.known_distance)
+            .field("step_between", &self.step_between)
+            .finish_non_exhaustive()
     }
 }
 
@@ -316,6 +338,72 @@ fn resume_run() {
         assert_eq!(
             context.get_step(start, destination),
             Some(AbsolutePosition::new(1, 1))
+        );
+    }
+}
+
+#[test]
+fn resume_run_from_middle() {
+    let mut context = PathfindingContext {
+        blocked: Box::new(|_| false),
+        heuristic: Box::new(AbsolutePosition::distance),
+        known_distance: SymmetricMatrix::default(),
+        step_between: SymmetricMatrix::default(),
+    };
+
+    let destination = AbsolutePosition::new(3, 3);
+    {
+        let start: AbsolutePosition = AbsolutePosition::new(0, 0);
+        context.find_path(start, destination);
+
+        assert_eq!(context.known_distance.get((start, destination)), Some(&3));
+        assert_eq!(
+            context.get_step(start, destination),
+            Some(AbsolutePosition::new(1, 1))
+        );
+    }
+
+    {
+        let start: AbsolutePosition = AbsolutePosition::new(1, 1);
+        context.find_path(start, destination);
+
+        assert_eq!(context.known_distance.get((start, destination)), Some(&2));
+        assert_eq!(
+            context.get_step(start, destination),
+            Some(AbsolutePosition::new(2, 2))
+        );
+    }
+}
+
+#[test]
+fn resume_run_unrelated_destination() {
+    let mut context = PathfindingContext {
+        blocked: Box::new(|_| false),
+        heuristic: Box::new(AbsolutePosition::distance),
+        known_distance: SymmetricMatrix::default(),
+        step_between: SymmetricMatrix::default(),
+    };
+
+    let start: AbsolutePosition = AbsolutePosition::new(0, 0);
+    {
+        let destination = AbsolutePosition::new(3, 3);
+        context.find_path(start, destination);
+
+        assert_eq!(context.known_distance.get((start, destination)), Some(&3));
+        assert_eq!(
+            context.get_step(start, destination),
+            Some(AbsolutePosition::new(1, 1))
+        );
+    }
+
+    {
+        let destination = AbsolutePosition::new(-3, -3);
+        context.find_path(start, destination);
+
+        assert_eq!(context.known_distance.get((start, destination)), Some(&3));
+        assert_eq!(
+            context.get_step(start, destination),
+            Some(AbsolutePosition::new(-1, -1))
         );
     }
 }
