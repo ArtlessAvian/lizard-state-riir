@@ -9,6 +9,8 @@ use crate::actions::DirectionActionTrait;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::pathfinding::PathfindingContext;
+use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 pub trait StrategyTrait {
@@ -21,6 +23,7 @@ pub enum Strategy {
     Null,
     Wander(WanderStrategy),
     StandAndFight(StandAndFightStrategy),
+    Follow(FollowStrategy),
 }
 
 impl StrategyTrait for Strategy {
@@ -33,6 +36,7 @@ impl StrategyTrait for Strategy {
                 .do_action(original),
             Strategy::Wander(x) => x.take_turn(original, subject_id),
             Strategy::StandAndFight(x) => x.take_turn(original, subject_id),
+            Strategy::Follow(x) => x.take_turn(original, subject_id),
         }
     }
 }
@@ -83,6 +87,46 @@ impl StrategyTrait for StandAndFightStrategy {
             };
             if let Some(command) = lmao {
                 return command.do_action(original);
+            }
+        }
+
+        WaitAction {}
+            .verify_action(original, subject_id)
+            .expect("Wait should never fail")
+            .do_action(original)
+    }
+}
+
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
+pub struct FollowStrategy;
+
+impl StrategyTrait for FollowStrategy {
+    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+        // TODO: Add teams to the game.
+        let in_range = original
+            .entities
+            .iter()
+            .find(|x| x.pos.distance(original.entities[subject_id].pos) <= 6 && x.id != subject_id);
+
+        let subject = &original.entities[subject_id];
+
+        if let Some(other) = in_range {
+            if subject.pos.distance(other.pos) > 2 {
+                let map_clone_lmao = original.map.clone();
+                let mut pathfinder: PathfindingContext = PathfindingContext::new(
+                    Box::new(move |pos| !map_clone_lmao.is_tile_floor(&pos)),
+                    Box::new(AbsolutePosition::distance),
+                );
+                if pathfinder.find_path(subject.pos, other.pos) {
+                    if let Some(step_to) = pathfinder.get_step(subject.pos, other.pos) {
+                        if let Some(x) =
+                            StepAction.verify_action(original, subject_id, step_to - subject.pos)
+                        {
+                            return x.do_action(original);
+                        }
+                    }
+                }
             }
         }
 

@@ -28,6 +28,7 @@ use engine::entity::EntityId as EntityIdInternal;
 use engine::entity::EntityState;
 use engine::floor::Floor as FloorInternal;
 use engine::positional::AbsolutePosition;
+use engine::strategy::FollowStrategy;
 use engine::strategy::StandAndFightStrategy;
 use engine::strategy::Strategy;
 use engine::strategy::WanderStrategy;
@@ -131,7 +132,7 @@ impl Floor {
             health: 10,
             max_energy: 6,
             energy: 6,
-            strategy: Strategy::Wander(WanderStrategy {}),
+            strategy: Strategy::Follow(FollowStrategy {}),
             is_player_controlled,
         });
 

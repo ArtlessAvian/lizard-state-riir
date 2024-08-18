@@ -88,7 +88,7 @@ impl PartialEq for PartialPath {
     }
 }
 
-struct PathfindingContext {
+pub struct PathfindingContext {
     // Config stuff. Don't mess with this after construction.
     blocked: Box<dyn FnMut(AbsolutePosition) -> bool>,
     heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32>,
@@ -102,7 +102,19 @@ struct PathfindingContext {
 }
 
 impl PathfindingContext {
-    fn find_path(&mut self, start: AbsolutePosition, destination: AbsolutePosition) -> bool {
+    pub fn new(
+        blocked: Box<dyn FnMut(AbsolutePosition) -> bool>,
+        heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32>,
+    ) -> Self {
+        Self {
+            blocked,
+            heuristic,
+            known_distance: Default::default(),
+            step_between: Default::default(),
+        }
+    }
+
+    pub fn find_path(&mut self, start: AbsolutePosition, destination: AbsolutePosition) -> bool {
         if self.known_distance.contains_key((start, destination)) {
             return true;
         }
@@ -189,7 +201,7 @@ impl PathfindingContext {
         false
     }
 
-    fn get_step(
+    pub fn get_step(
         &self,
         start: AbsolutePosition,
         destination: AbsolutePosition,
