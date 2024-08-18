@@ -1,51 +1,56 @@
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
+use std::hash::Hash;
 
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
-struct SymmetricMatrix<V>(HashMap<(AbsolutePosition, AbsolutePosition), V>);
+struct SymmetricMatrix<K, V>(HashMap<(K, K), V>);
 
-impl<V: Clone> SymmetricMatrix<V> {
-    fn normalize_key(
-        key: (AbsolutePosition, AbsolutePosition),
-    ) -> (AbsolutePosition, AbsolutePosition) {
-        if key.0 < key.1 {
+impl<K: Hash + Ord + Copy, V: Copy> SymmetricMatrix<K, V> {
+    fn normalize_key(key: (K, K)) -> (K, K) {
+        if key.0 <= key.1 {
             key
         } else {
             (key.1, key.0)
         }
     }
 
-    fn contains_key(&self, key: (AbsolutePosition, AbsolutePosition)) -> bool {
+    fn contains_key(&self, key: (K, K)) -> bool {
         self.0.contains_key(&Self::normalize_key(key))
     }
 
-    fn iter(&self) -> std::collections::hash_map::Iter<(AbsolutePosition, AbsolutePosition), V> {
-        self.0.iter()
+    fn iter(&self) -> impl Iterator<Item = ((K, K), V)> + '_ {
+        self.0.iter().map(|(k, v)| (*k, *v))
     }
 
-    fn iter_symmetric_pairs(
-        &self,
-    ) -> impl Iterator<Item = ((&AbsolutePosition, &AbsolutePosition), &V)> + '_ {
-        self.0
-            .iter()
-            .filter(|(k, _)| k.0 != k.1)
-            .map(|(k, v)| ((&k.0, &k.1), v))
-            .chain(self.0.iter().map(|(k, v)| ((&k.1, &k.0), v)))
+    fn iter_symmetric_pairs(&self) -> impl Iterator<Item = ((K, K), V)> + '_ {
+        self.iter().chain(
+            self.iter()
+                .filter(|(k, _)| k.0 != k.1)
+                .map(|(k, v)| ((k.1, k.0), v)),
+        )
     }
 
-    fn insert(&mut self, k: (AbsolutePosition, AbsolutePosition), v: V) -> Option<V> {
+    fn iter_row(&self, half_key: K) -> impl Iterator<Item = ((K, K), V)> + '_ {
+        self.iter().filter(move |(k, _)| k.0 == half_key).chain(
+            self.iter()
+                .filter(move |(k, _)| k.1 == half_key)
+                .map(|(k, v)| ((k.1, k.0), v)),
+        )
+    }
+
+    fn insert(&mut self, k: (K, K), v: V) -> Option<V> {
         self.0.insert(Self::normalize_key(k), v)
     }
 
-    fn get(&self, k: (AbsolutePosition, AbsolutePosition)) -> Option<&V> {
+    fn get(&self, k: (K, K)) -> Option<&V> {
         self.0.get(&Self::normalize_key(k))
     }
 }
 
-impl<V> Default for SymmetricMatrix<V> {
+impl<K, V> Default for SymmetricMatrix<K, V> {
     fn default() -> Self {
         Self(HashMap::default())
     }
@@ -89,11 +94,11 @@ struct PathfindingContext {
     heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32>,
     // Partial information that gets filled out over calls.
     // Imagine the Floyd-Warshall algorithm's matrix.
-    known_distance: SymmetricMatrix<u32>,
+    known_distance: SymmetricMatrix<AbsolutePosition, u32>,
     // Some position on the path between the key.
     // If you're wondering how to get there, ask for a position on the path between here and there.
     // Don't read directly.
-    step_between: SymmetricMatrix<AbsolutePosition>,
+    step_between: SymmetricMatrix<AbsolutePosition, AbsolutePosition>,
 }
 
 impl PathfindingContext {
@@ -104,15 +109,13 @@ impl PathfindingContext {
 
         let mut frontier = BinaryHeap::<PartialPath>::new();
         // Resume a previous search.
-        for (path, cost) in self.known_distance.iter_symmetric_pairs() {
-            if *path.0 == start {
-                frontier.push(PartialPath {
-                    tile: *path.1,
-                    previous: None, // do not overwrite step since we already know this.
-                    known_cost_so_far: *cost,
-                    estimated_cost: cost + (self.heuristic)(*path.1, destination),
-                });
-            }
+        for (path, cost) in self.known_distance.iter_row(start) {
+            frontier.push(PartialPath {
+                tile: path.1,
+                previous: None, // do not overwrite step since we already know this.
+                known_cost_so_far: cost,
+                estimated_cost: cost + (self.heuristic)(path.1, destination),
+            });
         }
 
         if frontier.is_empty() {
@@ -150,45 +153,37 @@ impl PathfindingContext {
             }
 
             // Add known paths as extensions.
-            for (path, cost) in self.known_distance.iter_symmetric_pairs() {
-                if *path.0 == partial_path.tile
-                    && !self.known_distance.contains_key((start, *path.1))
-                {
+            for (path, cost) in self.known_distance.iter_row(partial_path.tile) {
+                if !self.known_distance.contains_key((start, path.1)) {
                     frontier.push(PartialPath {
-                        tile: *path.1,
-                        previous: Some(*path.0),
+                        tile: path.1,
+                        previous: Some(path.0),
                         known_cost_so_far: partial_path.known_cost_so_far + cost,
                         estimated_cost: partial_path.known_cost_so_far
                             + cost
-                            + (self.heuristic)(*path.1, destination),
+                            + (self.heuristic)(path.1, destination),
                     });
                 }
             }
 
             // Add direct neighbors.
-            for dx in -1..=1 {
-                for dy in -1..=1 {
-                    if dx == 0 && dy == 0 {
-                        continue;
-                    }
-
-                    let neighbor = partial_path.tile + RelativePosition::new(dx, dy);
-                    if self.known_distance.contains_key((start, neighbor)) {
-                        continue;
-                    }
-                    if (self.blocked)(neighbor) {
-                        continue;
-                    }
-
-                    frontier.push(PartialPath {
-                        tile: neighbor,
-                        previous: Some(partial_path.tile),
-                        known_cost_so_far: partial_path.known_cost_so_far + 1,
-                        estimated_cost: partial_path.known_cost_so_far
-                            + 1
-                            + (self.heuristic)(neighbor, destination),
-                    });
+            for delta in RelativePosition::list_all_length(1) {
+                let neighbor = partial_path.tile + delta;
+                if self.known_distance.contains_key((start, neighbor)) {
+                    continue;
                 }
+                if (self.blocked)(neighbor) {
+                    continue;
+                }
+
+                frontier.push(PartialPath {
+                    tile: neighbor,
+                    previous: Some(partial_path.tile),
+                    known_cost_so_far: partial_path.known_cost_so_far + 1,
+                    estimated_cost: partial_path.known_cost_so_far
+                        + 1
+                        + (self.heuristic)(neighbor, destination),
+                });
             }
         }
         false
@@ -338,8 +333,6 @@ fn resume_run_backwards() {
         let start = AbsolutePosition::new(5, 5);
         let destination = AbsolutePosition::new(-2, -2);
         context.find_path(start, destination);
-
-        dbg!(context.step_between.iter());
 
         assert_eq!(context.known_distance.get((start, destination)), Some(&7));
         assert_eq!(

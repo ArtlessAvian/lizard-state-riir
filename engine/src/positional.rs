@@ -1,7 +1,10 @@
 pub mod algorithms;
 pub mod fov;
 
-use std::ops::{Add, Mul, Sub};
+use std::{
+    collections::HashSet,
+    ops::{Add, Mul, Sub},
+};
 
 use rkyv::{Archive, Deserialize, Serialize};
 
@@ -58,6 +61,21 @@ impl RelativePosition {
     #[must_use]
     pub fn length(self) -> u32 {
         u32::max(self.dx.unsigned_abs(), self.dy.unsigned_abs())
+    }
+
+    #[must_use]
+    pub fn list_all_length(len: u32) -> HashSet<Self> {
+        (0..8)
+            .flat_map(|octant| {
+                (0..=len).map(move |rise| {
+                    RelativeOctantified {
+                        inside: InsideOctant { run: len, rise },
+                        octant,
+                    }
+                    .into()
+                })
+            })
+            .collect::<HashSet<RelativePosition>>()
     }
 }
 
@@ -212,4 +230,17 @@ fn imig_wrapping_is_intentional() {
         }),
         RelativePosition::new(1, 1)
     );
+}
+
+#[cfg(test)]
+#[test]
+fn list_all_length() {
+    let list = RelativePosition::list_all_length(2);
+    assert_eq!(list.len(), 16);
+    for dx in -3..=3 {
+        for dy in -3..=3 {
+            let delta = RelativePosition::new(dx, dy);
+            assert_eq!(list.contains(&delta), delta.length() == 2);
+        }
+    }
 }
