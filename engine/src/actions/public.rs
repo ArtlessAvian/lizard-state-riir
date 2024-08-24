@@ -251,17 +251,19 @@ pub struct GotoCommand {
 impl CommandTrait for GotoCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let subject_pos = floor.entities[self.subject_id].pos;
-        let verify_action = StepAction.verify_action(
-            floor,
-            self.subject_id,
-            // TODO: Read from pathfinding.
-            RelativePosition {
-                dx: (self.tile.x - subject_pos.x).clamp(-1, 1),
-                dy: (self.tile.y - subject_pos.y).clamp(-1, 1),
-            },
-        );
-
-        // HACK: this should go to EntityState::OK.extra_actions or something idk
+        let verify_action = floor
+            .map
+            .get_step(subject_pos, self.tile)
+            .and_then(|target| {
+                StepAction.verify_action(
+                    floor,
+                    self.subject_id,
+                    RelativePosition {
+                        dx: (target.x - subject_pos.x).clamp(-1, 1),
+                        dy: (target.y - subject_pos.y).clamp(-1, 1),
+                    },
+                )
+            });
 
         match verify_action {
             None => {
