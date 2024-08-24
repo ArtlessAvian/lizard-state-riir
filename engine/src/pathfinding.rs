@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
 
@@ -27,18 +28,11 @@ impl<K: Hash + Ord + Copy, V: Copy> SymmetricMatrix<K, V> {
         self.0.iter().map(|(k, v)| (*k, *v))
     }
 
-    fn iter_symmetric_pairs(&self) -> impl Iterator<Item = ((K, K), V)> + '_ {
-        self.iter().chain(
-            self.iter()
-                .filter(|(k, _)| k.0 != k.1)
-                .map(|(k, v)| ((k.1, k.0), v)),
-        )
-    }
-
+    // `key.0` will always be the half_key passed in.
     fn iter_row(&self, half_key: K) -> impl Iterator<Item = ((K, K), V)> + '_ {
         self.iter().filter(move |(k, _)| k.0 == half_key).chain(
             self.iter()
-                .filter(move |(k, _)| k.1 == half_key)
+                .filter(move |(k, _)| k.1 == half_key && k.0 != k.1)
                 .map(|(k, v)| ((k.1, k.0), v)),
         )
     }
@@ -62,7 +56,7 @@ impl<K, V> Default for SymmetricMatrix<K, V> {
 struct PartialPath {
     tile: AbsolutePosition,
     // Only populated if this is not resumed from a previous run.
-    previous: Option<AbsolutePosition>,
+    previous: AbsolutePosition,
     known_cost_so_far: u32,
     estimated_cost: u32,
 }
@@ -87,6 +81,7 @@ impl PartialOrd for PartialPath {
 impl PartialEq for PartialPath {
     fn eq(&self, other: &Self) -> bool {
         self.estimated_cost == other.estimated_cost
+            && self.known_cost_so_far == other.known_cost_so_far
     }
 }
 
@@ -104,6 +99,7 @@ pub struct PathfindingContext {
 }
 
 impl PathfindingContext {
+    #[must_use]
     pub fn new(
         blocked: Box<dyn FnMut(AbsolutePosition) -> bool>,
         heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32>,
@@ -111,47 +107,47 @@ impl PathfindingContext {
         Self {
             blocked,
             heuristic,
-            known_distance: Default::default(),
-            step_between: Default::default(),
+            known_distance: SymmetricMatrix::default(),
+            step_between: SymmetricMatrix::default(),
         }
     }
 
+    #[must_use]
     pub fn find_path(&mut self, start: AbsolutePosition, destination: AbsolutePosition) -> bool {
         if self.known_distance.contains_key((start, destination)) {
             return true;
         }
 
-        let mut frontier = BinaryHeap::<PartialPath>::new();
-        // Resume a previous search.
-        for (path, cost) in self.known_distance.iter_row(start) {
-            frontier.push(PartialPath {
-                tile: path.1,
-                previous: None, // do not overwrite step since we already know this.
-                known_cost_so_far: cost,
-                estimated_cost: cost + (self.heuristic)(path.1, destination),
-            });
-        }
+        let optimistic_estimate = (self.heuristic)(start, destination);
+        // Keep the frontier small.
+        let within_limit =
+            |partial: &PartialPath| partial.estimated_cost <= 5 + optimistic_estimate;
 
-        // Begin a new search.
+        // Note to programmer: don't be clever and try to reuse self.known_distance.
+        let mut visited = HashSet::<AbsolutePosition>::new();
+
+        let mut frontier = BinaryHeap::<PartialPath>::new();
         frontier.push(PartialPath {
             tile: start,
-            previous: None,
+            previous: start,
             known_cost_so_far: 0,
             estimated_cost: (self.heuristic)(start, destination),
         });
 
-        // Traverse and discover new facts.
         while let Some(partial_path) = frontier.pop() {
-            // If the item was popped, we know we have the shortest path. This may rewrite info from a resumed search.
+            if visited.contains(&partial_path.tile) {
+                continue;
+            }
+            visited.insert(partial_path.tile);
+
+            // If the item was popped, we know we have the shortest path.
             self.known_distance
                 .insert((start, partial_path.tile), partial_path.known_cost_so_far);
-            // Avoid overwriting data from resuming. The previous is guaranteed to be between start and destination.
-            partial_path.previous.inspect(|intermediate| {
-                if !self.step_between.contains_key((start, partial_path.tile)) {
-                    self.step_between
-                        .insert((start, partial_path.tile), *intermediate);
-                }
-            });
+            // The previous is guaranteed to be between start and destination.
+            if !self.step_between.contains_key((start, partial_path.tile)) {
+                self.step_between
+                    .insert((start, partial_path.tile), partial_path.previous);
+            }
 
             // Equivalently since we just inserted,
             // `self.known_distance.contains_key(&(start, destination))`
@@ -159,67 +155,50 @@ impl PathfindingContext {
                 return true;
             }
 
-            // Give up. Magic number tbh.
-            if partial_path.estimated_cost > 5 + (self.heuristic)(start, destination) {
+            if !within_limit(&partial_path) {
+                // Ideally this should never run, since everything in the frontier is within_limit.
+                // The frontier should run out of elements instead.
+                // If this does run, everything else in the frontier is known to be worse.
                 return false;
             }
 
-            // Add known paths as extensions.
-            for (path, cost) in self.known_distance.iter_row(partial_path.tile) {
-                if self.known_distance.contains_key((start, path.1)) {
-                    // We would have already added this to the frontier before the search began.
-                    continue;
-                }
-                frontier.push(PartialPath {
-                    tile: path.1,
-                    previous: Some(path.0),
-                    known_cost_so_far: partial_path.known_cost_so_far + cost,
-                    estimated_cost: partial_path.known_cost_so_far
-                        + cost
-                        + (self.heuristic)(path.1, destination),
-                });
-            }
-
-            // Add direct neighbors.
-            for delta in RelativePosition::list_all_length(1) {
-                let neighbor = partial_path.tile + delta;
-                if self.known_distance.contains_key((start, neighbor)) {
-                    // We would have already added this to the frontier before the search began.
-                    continue;
-                }
-                if (self.blocked)(neighbor) {
-                    continue;
-                }
-
-                // These two are given facts.
+            // Direct neighbors have a known cost.
+            // This also lets us path backwards later.
+            for neighbor in RelativePosition::list_all_length(1)
+                .into_iter()
+                .map(|delta| partial_path.tile + delta)
+                .filter(|x| !(self.blocked)(*x))
+            {
                 self.known_distance.insert((partial_path.tile, neighbor), 1);
-                if !self
-                    .step_between
-                    .contains_key((partial_path.tile, neighbor))
-                {
-                    self.step_between
-                        .insert((partial_path.tile, neighbor), partial_path.tile);
-                }
-
-                frontier.push(PartialPath {
-                    tile: neighbor,
-                    previous: Some(partial_path.tile),
-                    known_cost_so_far: partial_path.known_cost_so_far + 1,
-                    estimated_cost: partial_path.known_cost_so_far
-                        + 1
-                        + (self.heuristic)(neighbor, destination),
-                });
+                self.step_between
+                    .insert((partial_path.tile, neighbor), partial_path.tile);
             }
+
+            // Add known paths.
+            frontier.extend(
+                self.known_distance
+                    .iter_row(partial_path.tile)
+                    .filter(|(path, _)| !visited.contains(&path.1))
+                    .map(|(path, cost)| PartialPath {
+                        tile: path.1,
+                        previous: path.0, // path.0 is betweeen start and path.1.
+                        known_cost_so_far: partial_path.known_cost_so_far + cost,
+                        estimated_cost: partial_path.known_cost_so_far
+                            + cost
+                            + (self.heuristic)(path.1, destination),
+                    })
+                    .filter(within_limit),
+            );
         }
         false
     }
 
+    #[must_use]
     pub fn get_step(
         &self,
         start: AbsolutePosition,
         destination: AbsolutePosition,
     ) -> Option<AbsolutePosition> {
-        dbg!((start, destination));
         if start == destination {
             Some(destination)
         } else if let Some(&intermediate) = self.step_between.get((start, destination)) {
@@ -254,7 +233,7 @@ fn permissive_diagonal() {
 
     let start = AbsolutePosition::new(0, 0);
     let destination = AbsolutePosition::new(5, 5);
-    context.find_path(start, destination);
+    assert!(context.find_path(start, destination));
 
     assert_eq!(context.known_distance.get((start, destination)), Some(&5));
     assert_eq!(
@@ -275,10 +254,10 @@ fn permissive_bad_heuristic() {
     };
 
     let start = AbsolutePosition::new(0, 0);
-    let destination = AbsolutePosition::new(5, 5);
-    context.find_path(start, destination);
+    let destination = AbsolutePosition::new(3, 3);
+    assert!(context.find_path(start, destination));
 
-    assert_eq!(context.known_distance.get((start, destination)), Some(&5));
+    assert_eq!(context.known_distance.get((start, destination)), Some(&3));
     assert_eq!(
         context.get_step(start, destination),
         Some(AbsolutePosition::new(1, 1))
@@ -321,7 +300,7 @@ fn resume_run() {
     let start = AbsolutePosition::new(0, 0);
     {
         let destination = AbsolutePosition::new(3, 3);
-        context.find_path(start, destination);
+        assert!(context.find_path(start, destination));
 
         assert_eq!(context.known_distance.get((start, destination)), Some(&3));
         assert_eq!(
@@ -332,7 +311,7 @@ fn resume_run() {
 
     {
         let destination = AbsolutePosition::new(5, 5);
-        context.find_path(start, destination);
+        assert!(context.find_path(start, destination));
 
         assert_eq!(context.known_distance.get((start, destination)), Some(&5));
         assert_eq!(
@@ -354,7 +333,7 @@ fn resume_run_from_middle() {
     let destination = AbsolutePosition::new(3, 3);
     {
         let start: AbsolutePosition = AbsolutePosition::new(0, 0);
-        context.find_path(start, destination);
+        assert!(context.find_path(start, destination));
 
         assert_eq!(context.known_distance.get((start, destination)), Some(&3));
         assert_eq!(
@@ -365,7 +344,7 @@ fn resume_run_from_middle() {
 
     {
         let start: AbsolutePosition = AbsolutePosition::new(1, 1);
-        context.find_path(start, destination);
+        assert!(context.find_path(start, destination));
 
         assert_eq!(context.known_distance.get((start, destination)), Some(&2));
         assert_eq!(
@@ -387,7 +366,7 @@ fn resume_run_unrelated_destination() {
     let start: AbsolutePosition = AbsolutePosition::new(0, 0);
     {
         let destination = AbsolutePosition::new(3, 3);
-        context.find_path(start, destination);
+        assert!(context.find_path(start, destination));
 
         assert_eq!(context.known_distance.get((start, destination)), Some(&3));
         assert_eq!(
@@ -398,7 +377,7 @@ fn resume_run_unrelated_destination() {
 
     {
         let destination = AbsolutePosition::new(-3, -3);
-        context.find_path(start, destination);
+        assert!(context.find_path(start, destination));
 
         assert_eq!(context.known_distance.get((start, destination)), Some(&3));
         assert_eq!(
@@ -420,7 +399,7 @@ fn resume_run_backwards() {
     {
         let start = AbsolutePosition::new(0, 0);
         let destination = AbsolutePosition::new(3, 3);
-        context.find_path(start, destination);
+        assert!(context.find_path(start, destination));
 
         assert_eq!(context.known_distance.get((start, destination)), Some(&3));
         assert_eq!(
@@ -432,7 +411,7 @@ fn resume_run_backwards() {
     {
         let start = AbsolutePosition::new(5, 5);
         let destination = AbsolutePosition::new(-2, -2);
-        context.find_path(start, destination);
+        assert!(context.find_path(start, destination));
 
         assert_eq!(context.known_distance.get((start, destination)), Some(&7));
         assert_eq!(
@@ -474,7 +453,7 @@ fn solve_maze() {
 
     let start = AbsolutePosition::new(0, 0);
     let destination = AbsolutePosition::new(6, 6);
-    context.find_path(start, destination);
+    assert!(context.find_path(start, destination));
 
     assert_eq!(context.known_distance.get((start, destination)), Some(&11));
     assert_eq!(

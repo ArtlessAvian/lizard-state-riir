@@ -29,9 +29,7 @@ use engine::entity::EntityState;
 use engine::floor::Floor as FloorInternal;
 use engine::positional::AbsolutePosition;
 use engine::strategy::FollowStrategy;
-use engine::strategy::StandAndFightStrategy;
 use engine::strategy::Strategy;
-use engine::strategy::WanderStrategy;
 use events::FloorEvent;
 use godot::prelude::*;
 

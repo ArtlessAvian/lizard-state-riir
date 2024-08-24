@@ -9,8 +9,6 @@ use crate::actions::DirectionActionTrait;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
-use crate::pathfinding::PathfindingContext;
-use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 pub trait StrategyTrait {
