@@ -59,16 +59,24 @@ struct PartialPath {
     previous: AbsolutePosition,
     known_cost_so_far: u32,
     estimated_cost: u32,
+    // Stabilize paths.
+    known_diagonal: u32,
+    estimated_diagonal: u32,
 }
 
 impl Ord for PartialPath {
     fn cmp(&self, other: &Self) -> Ordering {
-        let cost_comparison = self.estimated_cost.cmp(&other.estimated_cost).reverse();
-        if cost_comparison != Ordering::Equal {
-            return cost_comparison;
-        }
-        // In an estimate tie, we want to try the path is further along the path.
-        self.known_cost_so_far.cmp(&other.known_cost_so_far)
+        self.estimated_cost
+            .cmp(&other.estimated_cost)
+            .reverse()
+            .then_with(|| {
+                self.estimated_diagonal
+                    .cmp(&other.estimated_diagonal)
+                    .reverse()
+            })
+            .then_with(||
+            // In an estimate tie, we want to try the path is further along the path.
+            self.known_cost_so_far.cmp(&other.known_cost_so_far))
     }
 }
 
@@ -81,6 +89,7 @@ impl PartialOrd for PartialPath {
 impl PartialEq for PartialPath {
     fn eq(&self, other: &Self) -> bool {
         self.estimated_cost == other.estimated_cost
+            && self.estimated_diagonal == other.estimated_diagonal
             && self.known_cost_so_far == other.known_cost_so_far
     }
 }
@@ -92,6 +101,7 @@ pub struct PathfindingContext {
     // Partial information that gets filled out over calls.
     // Imagine the Floyd-Warshall algorithm's matrix.
     known_distance: SymmetricMatrix<AbsolutePosition, u32>,
+    diagonal_steps: SymmetricMatrix<AbsolutePosition, u32>,
     // Some position on the path between the key.
     // If you're wondering how to get there, ask for a position on the path between here and there.
     // Don't read directly.
@@ -108,6 +118,7 @@ impl PathfindingContext {
             blocked,
             heuristic,
             known_distance: SymmetricMatrix::default(),
+            diagonal_steps: SymmetricMatrix::default(),
             step_between: SymmetricMatrix::default(),
         }
     }
@@ -131,7 +142,9 @@ impl PathfindingContext {
             tile: start,
             previous: start,
             known_cost_so_far: 0,
+            known_diagonal: 0,
             estimated_cost: (self.heuristic)(start, destination),
+            estimated_diagonal: 0,
         });
 
         while let Some(partial_path) = frontier.pop() {
@@ -143,6 +156,8 @@ impl PathfindingContext {
             // If the item was popped, we know we have the shortest path.
             self.known_distance
                 .insert((start, partial_path.tile), partial_path.known_cost_so_far);
+            self.diagonal_steps
+                .insert((start, partial_path.tile), partial_path.known_diagonal);
             // The previous is guaranteed to be between start and destination.
             if !self.step_between.contains_key((start, partial_path.tile)) {
                 self.step_between
@@ -169,7 +184,12 @@ impl PathfindingContext {
                 .map(|delta| partial_path.tile + delta)
                 .filter(|x| !(self.blocked)(*x))
             {
+                let delta = neighbor - partial_path.tile;
                 self.known_distance.insert((partial_path.tile, neighbor), 1);
+                self.diagonal_steps.insert(
+                    (partial_path.tile, neighbor),
+                    u32::from(delta.dx != 0 && delta.dy != 0),
+                );
                 self.step_between
                     .insert((partial_path.tile, neighbor), partial_path.tile);
             }
@@ -183,9 +203,15 @@ impl PathfindingContext {
                         tile: path.1,
                         previous: path.0, // path.0 is betweeen start and path.1.
                         known_cost_so_far: partial_path.known_cost_so_far + cost,
+                        known_diagonal: partial_path.known_diagonal
+                            + self.diagonal_steps.get(path).unwrap(),
                         estimated_cost: partial_path.known_cost_so_far
                             + cost
                             + (self.heuristic)(path.1, destination),
+                        estimated_diagonal: partial_path.known_diagonal
+                            + self.diagonal_steps.get(path).unwrap()
+                            + (destination - path.1).dx.unsigned_abs()
+                            + (destination - path.1).dy.unsigned_abs(),
                     })
                     .filter(within_limit),
             );
@@ -235,6 +261,22 @@ fn permissive_diagonal() {
     assert_eq!(
         context.get_step(start, destination),
         Some(AbsolutePosition::new(1, 1))
+    );
+}
+
+#[test]
+fn permissive_minimize_diagonals() {
+    let mut context =
+        PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+
+    let start = AbsolutePosition::new(0, 0);
+    let destination = AbsolutePosition::new(5, 0);
+    assert!(context.find_path(start, destination));
+
+    assert_eq!(context.known_distance.get((start, destination)), Some(&5));
+    assert_eq!(
+        context.get_step(start, destination),
+        Some(AbsolutePosition::new(1, 0))
     );
 }
 
