@@ -5,6 +5,7 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
+use std::cell::OnceCell;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -36,7 +37,7 @@ pub struct FloorMap {
     // TODO: Link tiles' lifetime to pathfinder's lifetime.
     // TODO: Figure out rkyv interaction with pathfinder.
     #[with(Skip)]
-    pub pathfinder: Option<Rc<RefCell<PathfindingContext>>>,
+    pub pathfinder: Rc<OnceCell<RefCell<PathfindingContext>>>,
     pub default: FloorTile,
 }
 
@@ -46,23 +47,16 @@ impl FloorMap {
         FloorMap {
             tiles: Rc::new(HashMap::new()),
             default: FloorTile::FLOOR, // "outdoors" map.
-            pathfinder: Some(Rc::new(RefCell::new(PathfindingContext::new(
-                Box::new(|_| true),
-                Box::new(AbsolutePosition::distance),
-            )))),
+            pathfinder: Rc::new(OnceCell::new()),
         }
     }
 
     #[must_use]
     pub fn new_with_tiles(tiles: HashMap<AbsolutePosition, FloorTile>) -> Self {
-        let tiles = Rc::new(tiles);
         FloorMap {
-            tiles: Rc::clone(&tiles),
+            tiles: Rc::new(tiles),
             default: FloorTile::WALL, // "indoors" map.
-            pathfinder: Some(Rc::new(RefCell::new(PathfindingContext::new(
-                Box::new(move |pos| !tiles.get(&pos).unwrap_or(&FloorTile::WALL).is_tile_floor()),
-                Box::new(AbsolutePosition::distance),
-            )))),
+            pathfinder: Rc::new(OnceCell::new()),
         }
     }
 
@@ -83,10 +77,17 @@ impl FloorMap {
         start: AbsolutePosition,
         destination: AbsolutePosition,
     ) -> Option<AbsolutePosition> {
-        if let Some(pathfinder) = &self.pathfinder {
-            if pathfinder.borrow_mut().find_path(start, destination) {
-                return pathfinder.borrow().get_step(start, destination);
-            }
+        let lazy = self.pathfinder.get_or_init(|| {
+            let tiles = Rc::clone(&self.tiles);
+            let default = self.default.clone();
+            RefCell::new(PathfindingContext::new(
+                Box::new(move |pos| !tiles.get(&pos).unwrap_or(&default).is_tile_floor()),
+                Box::new(AbsolutePosition::distance),
+            ))
+        });
+
+        if lazy.borrow_mut().find_path(start, destination) {
+            return lazy.borrow().get_step(start, destination);
         }
         None
     }
