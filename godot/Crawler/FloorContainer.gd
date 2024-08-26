@@ -58,6 +58,15 @@ func do_transition(transition: Variant):
 		input_state_stack.push_back(transition)
 
 
+func run_engine(frame_start: int):
+	while true:
+		if not floor.take_npc_turn():
+			break
+		#if Time.get_ticks_usec() - frame_start > 1000000/30:
+			#print("Engine taking too long!")
+			#break
+
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	var frame_start = Time.get_ticks_usec()
@@ -66,13 +75,8 @@ func _process(delta):
 		var transition = get_current_state()._poll_input(self, delta)
 		do_transition(transition)
 
-	while true:
-		if not floor.take_npc_turn():
-			break
-		#if Time.get_ticks_usec() - frame_start > 1000000/30:
-		#print("Engine taking too long!")
-		#break
-
+	run_engine(frame_start)
+	# May emit done_animating.
 	$FloorView._process_floor(delta, floor)
 
 	var debug_state_str = ""
@@ -98,3 +102,7 @@ func _unhandled_input(event):
 func _on_floor_view_done_animating() -> void:
 	var transition = get_current_state()._poll_held_input(self)
 	do_transition(transition)
+
+	run_engine(Time.get_ticks_usec())
+	# May emit done_animating. Recurring is possible, but not infinite.
+	$FloorView._process_floor(0, floor)

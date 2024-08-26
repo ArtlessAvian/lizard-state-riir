@@ -21,36 +21,35 @@ func _ready():
 
 
 func _process_floor(delta, floor: Floor):
+	if test_event_delay > 0:
+		test_event_delay -= delta
+		return
+
 	if event_index < len(floor.log):
 		desynced_from_floor = true
 		clear_queue(delta, floor)
 
-	$Control/Label.text = "hi"
-	for key in test_tweens.keys():
-		$Control/Label.text += (
-			"\n" + str(key) + ": " + str(test_tweens[key]) + " " + str(key.is_running())
-		)
-
-	for tween in test_tweens.keys().filter(func(t): return !t.is_running()):
+	for tween in test_tweens.keys().filter(func(t): return !t.is_valid()):
 		test_tweens.erase(tween)
 
-	if desynced_from_floor and event_index == len(floor.log):
-		if test_event_delay > 0:
-			test_event_delay -= delta
-			return
-		if test_tweens.keys().any(func(t): return t.is_running()):
-			return
-		test_tweens.clear()
-
+	if (
+		desynced_from_floor
+		and event_index == len(floor.log)
+		and test_event_delay <= 0
+		and test_tweens.is_empty()
+	):
 		desynced_from_floor = false
 		sync_with_engine(floor)
 		emit_signal("done_animating")  # repoll input for smooth movement.
 
+	$Control/Label.text = "hi"
+	for key in test_tweens.keys():
+		$Control/Label.text += (
+			"\n" + str(key) + ": " + str(test_tweens[key]) + " " + str(key.is_valid())
+		)
+
 
 func clear_queue(delta, floor: Floor):
-	if test_event_delay > 0:
-		test_event_delay -= delta
-		return
 	while event_index < len(floor.log):
 		var event = floor.log[event_index]
 
@@ -67,12 +66,16 @@ func clear_queue(delta, floor: Floor):
 				var tween = subject.create_tween()
 				tween.tween_property(subject, "position", tile, 10 / 60.0)
 				test_tweens[tween] = "Move"
+				# HACK: For smoothness at very low fps. The best thing to do would be to pass
+				# a residual delta from done_animating, and pass that back into floor_sync.
+				# Then use delta here.
+				tween.custom_step(1.0 / max(Engine.get_frames_per_second(), 144))
 
 			subject.last_known_position = event.tile
 			event_index += 1
 
 		elif event is StartAttackEvent:
-			if test_tweens.keys().any(func(t): return t.is_running()):
+			if test_tweens.keys().any(func(t): return t.is_valid()):
 				return
 
 			# TODO: Replace with actual animation player.
