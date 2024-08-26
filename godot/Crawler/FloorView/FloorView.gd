@@ -25,6 +25,12 @@ func _process_floor(delta, floor: Floor):
 		desynced_from_floor = true
 		clear_queue(delta, floor)
 
+	$Control/Label.text = "hi"
+	for key in test_tweens.keys():
+		$Control/Label.text += (
+			"\n" + str(key) + ": " + str(test_tweens[key]) + " " + str(key.is_running())
+		)
+
 	for tween in test_tweens.keys().filter(func(t): return !t.is_running()):
 		test_tweens.erase(tween)
 

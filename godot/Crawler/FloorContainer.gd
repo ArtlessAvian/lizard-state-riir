@@ -12,6 +12,8 @@ var player_id: EntityId
 
 var input_state_stack: Array = []
 
+var debug_frame_times: Array = [0, 0, 0, 0, 0]
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -58,17 +60,33 @@ func do_transition(transition: Variant):
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
+	var frame_start = Time.get_ticks_usec()
+
 	if not $FloorView.desynced_from_floor:
 		var transition = get_current_state()._poll_input(self, delta)
 		do_transition(transition)
 
-	floor.take_npc_turn()
+	while true:
+		if not floor.take_npc_turn():
+			break
+		#if Time.get_ticks_usec() - frame_start > 1000000/30:
+		#print("Engine taking too long!")
+		#break
+
 	$FloorView._process_floor(delta, floor)
 
 	var debug_state_str = ""
 	for state in input_state_stack:
 		debug_state_str += state.get_script().get_path() + "\n"
-	$DEBUG.text = debug_state_str + " " + str(floor.get_time())
+
+	var frame_time = Time.get_ticks_usec() - frame_start
+	if frame_time > debug_frame_times[0]:
+		debug_frame_times.insert(debug_frame_times.bsearch(frame_time), frame_time)
+		debug_frame_times.pop_front()
+
+	$DEBUG.text = ""
+	$DEBUG.text += "worst engine times (us): " + str(debug_frame_times) + "\n"
+	$DEBUG.text += "turn count: " + str(floor.get_time()) + "\n"
 
 
 func _unhandled_input(event):

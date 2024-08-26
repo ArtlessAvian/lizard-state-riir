@@ -163,7 +163,7 @@ impl Floor {
     }
 
     #[func]
-    pub fn take_npc_turn(&mut self) {
+    pub fn take_npc_turn(&mut self) -> bool {
         // TODO: handle err.
         let result = self.floor.take_npc_turn();
         if let Ok(update) = result {
@@ -174,7 +174,10 @@ impl Floor {
                 .map(|ev| FloorEvent::to_variant(self, ev))
                 .collect();
             self.log.extend_array(temp);
+
+            return true;
         }
+        false
     }
 
     #[func]
