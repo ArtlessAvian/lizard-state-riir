@@ -19,11 +19,22 @@ func _ready():
 	# HACK: Temporary.
 	floor.set_map_2d($Map)
 
-	player_id = floor.add_entity_at(Vector2i.ZERO, true)
+	player_id = floor.add_entity_at(Vector2i.ZERO, true, true)
 	$FloorView.id_to_node[player_id] = find_child("Entity")
 
-	floor.add_entity_at(Vector2i(3, 0), false)
-	#floor.add_entity_at(Vector2i(-3, -1), false)
+	floor.add_entity_at(Vector2i(3, 0), false, true)
+
+	# Entities from old game.
+	floor.add_entity_at(Vector2i(21, 10), false, false)  # enemy
+	floor.add_entity_at(Vector2i(8, 34), false, false)  # enemy3
+	# out of bounds enemy omitted.
+	floor.add_entity_at(Vector2i(-11, -5), false, false)  # enemy
+	floor.add_entity_at(Vector2i(35, 4), false, false)  # enemy
+	floor.add_entity_at(Vector2i(17, -29), false, false)  # enemy2
+	floor.add_entity_at(Vector2i(-18, -12), false, false)  # enemy2
+	floor.add_entity_at(Vector2i(23, -17), false, false)  # enemy2
+	floor.add_entity_at(Vector2i(9, -25), false, false)  # enemy2
+	floor.add_entity_at(Vector2i(16, 16), false, false)  # enemy2
 
 
 func get_current_state() -> RefCounted:

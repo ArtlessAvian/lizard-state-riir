@@ -64,6 +64,8 @@ pub struct Entity {
     // Not mutually exclusive with AI.
     // Eg you might switch between controlling entities, or temporarily take control of one.
     pub is_player_controlled: bool,
+
+    pub is_player_friendly: bool,
 }
 
 impl Entity {
@@ -109,6 +111,11 @@ impl Entity {
             | EntityState::Knockdown { next_turn, .. } => Some(next_turn),
             EntityState::Dead => None,
         }
+    }
+
+    #[must_use]
+    pub fn is_allied(&self, other: &Entity) -> bool {
+        self.is_player_friendly == other.is_player_friendly
     }
 }
 

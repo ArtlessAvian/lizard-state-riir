@@ -114,7 +114,12 @@ impl Floor {
     }
 
     #[func]
-    pub fn add_entity_at(&mut self, pos: Vector2i, is_player_controlled: bool) -> Gd<EntityId> {
+    pub fn add_entity_at(
+        &mut self,
+        pos: Vector2i,
+        is_player_controlled: bool,
+        is_player_friendly: bool,
+    ) -> Gd<EntityId> {
         let (update, id) = self.floor.add_entity(EntityInternal {
             id: EntityIdInternal::default(),
             state: EntityState::Ok {
@@ -126,6 +131,7 @@ impl Floor {
             energy: 6,
             strategy: Strategy::Follow(FollowStrategy {}),
             is_player_controlled,
+            is_player_friendly,
         });
 
         let (next, log) = update.into_both();
