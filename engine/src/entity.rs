@@ -65,6 +65,7 @@ pub struct Entity {
     // Eg you might switch between controlling entities, or temporarily take control of one.
     pub is_player_controlled: bool,
 
+    // Controls aggression. Also controls vision.
     pub is_player_friendly: bool,
 }
 

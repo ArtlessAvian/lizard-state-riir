@@ -1,8 +1,10 @@
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
+use tracing::instrument;
 
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::sync::OnceLock;
 
 use crate::actions::events::FloorEvent;
@@ -85,7 +87,9 @@ impl FloorMapVision {
     ) -> Writer<FloorMapVision, FloorEvent> {
         let mut out = Writer::new(self.clone());
         for new in new_set {
-            if out.get_contents().entity_last_at.get(&new.id) != Some(&new.pos) {
+            if out.get_contents().entity_last_at.get(&new.id) != Some(&new.pos)
+                && new.is_player_friendly
+            {
                 out = out.bind(|vision| vision.update_and_emit_event(new, map));
             }
         }
@@ -111,19 +115,17 @@ impl FloorMapVision {
         }))
     }
 
+    #[instrument(skip_all)]
     fn get_vision(map: &FloorMap, pos: AbsolutePosition) -> HashMap<AbsolutePosition, FloorTile> {
         // HACK: StrictFOV doesn't make sense for vision. You can *infer* extra data (what is/isn't a wall) from what is returned.
         let fov = STRICT_FOV.get_or_init(|| StrictFOV::new(8));
-        let mut tiles = fov.get_field_of_view_tiles(pos, 8, |x| !map.is_tile_floor(&x));
-        // honestly sorting and deduping probably makes this slower for small radius
-        tiles.sort();
-        tiles.dedup();
 
-        let mut out: HashMap<AbsolutePosition, FloorTile> = HashMap::new();
-        for tile in tiles {
-            out.insert(tile, map.get_tile(&tile).clone());
-        }
-        out
+        fov.get_field_of_view_tiles(pos, 8, |x| !map.is_tile_floor(&x))
+            .into_iter()
+            .collect::<HashSet<AbsolutePosition>>() // To dedup given Hash.
+            .into_iter()
+            .map(|key| (key, map.get_tile(&key).clone()))
+            .collect()
     }
 }
 
