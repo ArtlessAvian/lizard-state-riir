@@ -1,6 +1,8 @@
 use std::ops::Index;
 use std::ops::IndexMut;
 
+use tracing::instrument;
+
 use super::algorithms::Segment;
 use super::AbsolutePosition;
 use super::InsideOctant;
@@ -156,6 +158,7 @@ impl StrictFOV {
             .collect()
     }
 
+    #[instrument(skip_all)]
     fn get_field_of_view_tiles_relative<F: Fn(RelativePosition) -> bool>(
         &self,
         radius: u32,

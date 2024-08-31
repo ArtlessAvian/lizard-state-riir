@@ -32,11 +32,27 @@ use engine::strategy::FollowStrategy;
 use engine::strategy::Strategy;
 use events::FloorEvent;
 use godot::prelude::*;
+use tracing::instrument;
 
 struct MyExtension;
 
 #[gdextension]
-unsafe impl ExtensionLibrary for MyExtension {}
+unsafe impl ExtensionLibrary for MyExtension {
+    fn on_level_init(level: InitLevel) {
+        if matches!(level, InitLevel::Scene) {
+            // TODO: Find a better entrypoint(?), since this also needlessly runs on the editor.
+            use tracing_subscriber::layer::SubscriberExt;
+
+            println!("subscribing to tracy!");
+            let ignore_result = tracing::subscriber::set_global_default(
+                tracing_subscriber::registry().with(tracing_tracy::TracyLayer::default()),
+            );
+            if ignore_result.is_err() {
+                println!("already subscribed!");
+            }
+        }
+    }
+}
 
 /// The game.
 ///
@@ -181,6 +197,7 @@ impl Floor {
     }
 
     #[func]
+    #[instrument(skip_all)]
     pub fn do_action(&mut self, command: Gd<Command>) {
         let (next, log) = command.bind().command.do_action(&self.floor).into_both();
         self.floor = next;

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
+use tracing::instrument;
 
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
@@ -124,6 +125,7 @@ impl PathfindingContext {
     }
 
     #[must_use]
+    #[instrument(skip_all)]
     pub fn find_path(&mut self, start: AbsolutePosition, destination: AbsolutePosition) -> bool {
         if self.known_distance.contains_key((start, destination)) {
             return true;
