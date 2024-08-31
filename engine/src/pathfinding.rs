@@ -10,40 +10,45 @@ use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 #[derive(Debug)]
-struct SymmetricMatrix<K, V>(HashMap<(K, K), V>);
+struct SymmetricMatrix<K, V>(HashMap<K, HashMap<K, V>>);
 
 impl<K: Hash + Ord + Copy, V: Copy> SymmetricMatrix<K, V> {
-    fn normalize_key(key: (K, K)) -> (K, K) {
-        if key.0 <= key.1 {
-            key
-        } else {
-            (key.1, key.0)
-        }
-    }
-
     fn contains_key(&self, key: (K, K)) -> bool {
-        self.0.contains_key(&Self::normalize_key(key))
-    }
-
-    fn iter(&self) -> impl Iterator<Item = ((K, K), V)> + '_ {
-        self.0.iter().map(|(k, v)| (*k, *v))
+        self.0
+            .get(&key.0)
+            .is_some_and(|inner| inner.contains_key(&key.1))
     }
 
     // `key.0` will always be the half_key passed in.
-    fn iter_row(&self, half_key: K) -> impl Iterator<Item = ((K, K), V)> + '_ {
-        self.iter().filter(move |(k, _)| k.0 == half_key).chain(
-            self.iter()
-                .filter(move |(k, _)| k.1 == half_key && k.0 != k.1)
-                .map(|(k, v)| ((k.1, k.0), v)),
-        )
+    fn iter_row(&'_ self, half_key: K) -> impl Iterator<Item = ((K, K), V)> + '_ {
+        self.0
+            .get(&half_key)
+            .into_iter()
+            .flat_map(move |inner| inner.iter().map(move |(k, v)| ((half_key, *k), *v)))
     }
 
     fn insert(&mut self, k: (K, K), v: V) -> Option<V> {
-        self.0.insert(Self::normalize_key(k), v)
+        match self.0.entry(k.0) {
+            std::collections::hash_map::Entry::Occupied(mut entry) => {
+                entry.get_mut().insert(k.1, v);
+            }
+            std::collections::hash_map::Entry::Vacant(entry) => {
+                entry.insert(HashMap::new()).insert(k.1, v);
+            }
+        }
+
+        match self.0.entry(k.1) {
+            std::collections::hash_map::Entry::Occupied(mut entry) => {
+                entry.get_mut().insert(k.0, v)
+            }
+            std::collections::hash_map::Entry::Vacant(entry) => {
+                entry.insert(HashMap::new()).insert(k.0, v)
+            }
+        }
     }
 
     fn get(&self, k: (K, K)) -> Option<&V> {
-        self.0.get(&Self::normalize_key(k))
+        self.0.get(&k.0).and_then(|inner| inner.get(&k.1))
     }
 }
 
