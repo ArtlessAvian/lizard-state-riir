@@ -20,7 +20,7 @@ func _ready():
 	($WorldSkew/MapHistory as GridMap).clear()
 
 
-func _process_floor(delta, floor: Floor):
+func _process_floor(delta, floor: ActiveFloor):
 	if test_event_delay > 0:
 		test_event_delay -= delta
 		return
@@ -49,7 +49,7 @@ func _process_floor(delta, floor: Floor):
 		)
 
 
-func clear_queue(delta, floor: Floor):
+func clear_queue(delta, floor: ActiveFloor):
 	while event_index < len(floor.log):
 		var event = floor.log[event_index]
 

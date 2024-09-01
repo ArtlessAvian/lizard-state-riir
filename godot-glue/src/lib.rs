@@ -1,4 +1,6 @@
 #![warn(clippy::pedantic)]
+// Personal taste.
+#![allow(clippy::module_name_repetitions)]
 // Clippy wants to pass `Gd<_>` by reference.
 // However, this would need a lifetime, and the bindings don't work with generics.
 #![allow(clippy::needless_pass_by_value)]
@@ -6,10 +8,10 @@
 // I suppose it's fine though.
 // #![allow(clippy::must_use_candidate)]
 
-mod actions;
-mod events;
-mod floor;
-mod positional;
+pub mod actions;
+pub mod events;
+pub mod floor;
+pub mod positional;
 
 use std::default::Default;
 

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use engine::entity::Entity as EntityInternal;
+use engine::entity::Entity;
 use godot::prelude::*;
 
 use crate::actions::Action;
@@ -8,19 +8,17 @@ use crate::actions::Command;
 use crate::actions::DirectionAction;
 use crate::actions::TileAction;
 
-/// A snapshot of an Entity. Has no logic.
-///
 /// Does not update when the Floor updates.
 /// Only contains getters. It is impossible to have setters.
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct Entity {
-    pub entity: Rc<EntityInternal>,
+pub struct EntitySnapshot {
+    pub entity: Rc<Entity>,
 }
 
 #[godot_api]
-impl Entity {
-    pub fn new(entity: Rc<EntityInternal>) -> Gd<Self> {
+impl EntitySnapshot {
+    pub fn new(entity: Rc<Entity>) -> Gd<Self> {
         Gd::from_object(Self { entity })
     }
 

@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]  # Compile this crate to a dynamic C library.
+# Compile this crate to a dynamic C library.
+# Also compile as lib for testing.
+crate-type = ["lib", "cdylib"]
 
 [dependencies]
 godot = "0.1"

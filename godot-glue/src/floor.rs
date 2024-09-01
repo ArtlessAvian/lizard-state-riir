@@ -18,7 +18,7 @@ use engine::positional::AbsolutePosition;
 use engine::strategy::FollowStrategy;
 use engine::strategy::Strategy;
 use godot::prelude::*;
-use snapshot::Entity;
+use snapshot::EntitySnapshot;
 use tracing::instrument;
 
 use crate::actions::Action;
@@ -34,24 +34,25 @@ use crate::events::FloorEvent;
 /// Other than that, there should be no game logic, eg information hiding.
 ///
 /// Note that `FloorInternal` is entirely pure functions, but this wrapper does not the same.
+// TODO: Add FloorSnapshot?
 #[derive(GodotClass)]
 #[class(init)]
-pub struct Floor {
-    pub floor: FloorInternal,
+pub struct ActiveFloor {
+    pub internal: FloorInternal,
     #[export]
     log: VariantArray,
     pub id_bijection: HashMap<EntityIdInternal, Gd<EntityId>>,
 }
 
 #[godot_api]
-impl Floor {
+impl ActiveFloor {
     /// Since Floor (in glue code) is not a pure class unlike the Floor (in engine),
     /// this is here to explicitly copy.
     #[func]
     #[must_use]
-    pub fn duplicate(&self) -> Gd<Floor> {
-        Gd::from_object(Floor {
-            floor: self.floor.clone(),
+    pub fn duplicate(&self) -> Gd<ActiveFloor> {
+        Gd::from_object(ActiveFloor {
+            internal: self.internal.clone(),
             log: self.log.duplicate_shallow(),
             id_bijection: self.id_bijection.clone(),
         })
@@ -79,7 +80,7 @@ impl Floor {
 
         let map = engine::floor::map::FloorMap::new_with_tiles(tiles);
 
-        self.floor = self.floor.set_map(map);
+        self.internal = self.internal.set_map(map);
     }
 
     // TODO: Sort of temporary. Maybe make a builder?
@@ -99,7 +100,7 @@ impl Floor {
 
         let map = engine::floor::map::FloorMap::new_with_tiles(tiles);
 
-        self.floor = self.floor.set_map(map);
+        self.internal = self.internal.set_map(map);
     }
 
     #[func]
@@ -109,10 +110,10 @@ impl Floor {
         is_player_controlled: bool,
         is_player_friendly: bool,
     ) -> Gd<EntityId> {
-        let (update, id) = self.floor.add_entity(EntityInternal {
+        let (update, id) = self.internal.add_entity(EntityInternal {
             id: EntityIdInternal::default(),
             state: EntityState::Ok {
-                next_turn: self.floor.get_current_turn(),
+                next_turn: self.internal.get_current_turn(),
             },
             pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,
@@ -124,7 +125,7 @@ impl Floor {
         });
 
         let (next, log) = update.into_both();
-        self.floor = next;
+        self.internal = next;
 
         let temp = log
             .into_iter()
@@ -137,7 +138,7 @@ impl Floor {
 
     #[func]
     pub fn get_entity_ids(&mut self) -> Array<Gd<EntityId>> {
-        self.floor
+        self.internal
             .entities
             .iter()
             .map(|e| e.id)
@@ -147,17 +148,17 @@ impl Floor {
 
     #[func]
     #[must_use]
-    pub fn get_entity_by_id(&self, id: Gd<EntityId>) -> Gd<Entity> {
-        Entity::new(Rc::clone(self.floor.entities.index_as_rc(id.bind().id)))
+    pub fn get_entity_by_id(&self, id: Gd<EntityId>) -> Gd<EntitySnapshot> {
+        EntitySnapshot::new(Rc::clone(self.internal.entities.index_as_rc(id.bind().id)))
     }
 
     #[func]
     pub fn take_npc_turn(&mut self) -> bool {
         // TODO: handle err.
-        let result = self.floor.take_npc_turn();
+        let result = self.internal.take_npc_turn();
         if let Ok(update) = result {
             let (next, log) = update.into_both();
-            self.floor = next;
+            self.internal = next;
             let temp = log
                 .into_iter()
                 .map(|ev| FloorEvent::to_variant(self, ev))
@@ -172,8 +173,8 @@ impl Floor {
     #[func]
     #[instrument(skip_all)]
     pub fn do_action(&mut self, command: Gd<Command>) {
-        let (next, log) = command.bind().command.do_action(&self.floor).into_both();
-        self.floor = next;
+        let (next, log) = command.bind().command.do_action(&self.internal).into_both();
+        self.internal = next;
 
         let temp = log
             .into_iter()
@@ -185,38 +186,38 @@ impl Floor {
     #[func]
     #[must_use]
     pub fn get_time(&self) -> u32 {
-        self.floor.get_current_turn()
+        self.internal.get_current_turn()
     }
 
     // engine::actions::public::* goes here.
 
     #[func]
     #[must_use]
-    pub fn get_wait_action(&self) -> Gd<Action> {
+    pub fn get_wait_action() -> Gd<Action> {
         Action::new(Rc::new(WaitAction))
     }
 
     #[func]
     #[must_use]
-    pub fn get_step_action(&self) -> Gd<DirectionAction> {
+    pub fn get_step_action() -> Gd<DirectionAction> {
         DirectionAction::new(Rc::new(StepAction))
     }
 
     #[func]
     #[must_use]
-    pub fn get_bump_action(&self) -> Gd<DirectionAction> {
+    pub fn get_bump_action() -> Gd<DirectionAction> {
         DirectionAction::new(Rc::new(BumpAction))
     }
 
     #[func]
     #[must_use]
-    pub fn get_step_macro_action(&self) -> Gd<DirectionAction> {
+    pub fn get_step_macro_action() -> Gd<DirectionAction> {
         DirectionAction::new(Rc::new(StepMacroAction))
     }
 
     #[func]
     #[must_use]
-    pub fn get_goto_action(&self) -> Gd<TileAction> {
+    pub fn get_goto_action() -> Gd<TileAction> {
         TileAction::new(Rc::new(GotoAction))
     }
 }

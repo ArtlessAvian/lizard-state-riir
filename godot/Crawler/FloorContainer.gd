@@ -7,7 +7,7 @@ enum ExtraTransitions { NONE, EXIT, CLEAR }
 
 @onready var ROOT_STATE = MainState.new()
 
-var floor: Floor
+var floor: ActiveFloor
 var player_id: EntityId
 
 var input_state_stack: Array = []
@@ -17,7 +17,7 @@ var debug_frame_times: Array = [0, 0, 0, 0, 0]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	floor = Floor.new()
+	floor = ActiveFloor.new()
 	# HACK: Temporary.
 	floor.set_map_2d($Map)
 
@@ -63,8 +63,8 @@ func run_engine(frame_start: int):
 		if not floor.take_npc_turn():
 			break
 		#if Time.get_ticks_usec() - frame_start > 1000000/30:
-			#print("Engine taking too long!")
-			#break
+		#print("Engine taking too long!")
+		#break
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

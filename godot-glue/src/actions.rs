@@ -6,8 +6,8 @@ use engine::actions::DirectionActionTrait;
 use engine::actions::TileActionTrait;
 use godot::prelude::*;
 
+use crate::floor::ActiveFloor;
 use crate::floor::EntityId;
-use crate::floor::Floor;
 
 /// An opaque object containing an Action. Has no logic.
 #[derive(GodotClass)]
@@ -24,10 +24,13 @@ impl Action {
     }
 
     #[func]
-    pub fn to_command(&self, floor: Gd<Floor>, subject: Gd<EntityId>) -> Option<Gd<Command>> {
+    #[must_use]
+    pub fn to_command(&self, floor: Gd<ActiveFloor>, subject: Gd<EntityId>) -> Option<Gd<Command>> {
         let binding = subject.bind();
         let subject_id = binding.id;
-        let verify_action = self.action.verify_action(&floor.bind().floor, subject_id)?;
+        let verify_action = self
+            .action
+            .verify_action(&floor.bind().internal, subject_id)?;
         Some(Command::new(verify_action.into()))
     }
 }
@@ -47,9 +50,10 @@ impl TileAction {
     }
 
     #[func]
+    #[must_use]
     pub fn to_command(
         &self,
-        floor: Gd<Floor>,
+        floor: Gd<ActiveFloor>,
         subject: Gd<EntityId>,
         tile: crate::positional::AbsolutePosition,
     ) -> Option<Gd<Command>> {
@@ -57,7 +61,7 @@ impl TileAction {
         let subject_id = binding.id;
         let verify_action =
             self.action
-                .verify_action(&floor.bind().floor, subject_id, tile.into())?;
+                .verify_action(&floor.bind().internal, subject_id, tile.into())?;
         Some(Command::new(verify_action.into()))
     }
 }
@@ -77,9 +81,10 @@ impl DirectionAction {
     }
 
     #[func]
+    #[must_use]
     pub fn to_command(
         &self,
-        floor: Gd<Floor>,
+        floor: Gd<ActiveFloor>,
         subject: Gd<EntityId>,
         dir: crate::positional::RelativePosition,
     ) -> Option<Gd<Command>> {
@@ -87,7 +92,7 @@ impl DirectionAction {
         let subject_id = binding.id;
         let verify_action =
             self.action
-                .verify_action(&floor.bind().floor, subject_id, dir.into())?;
+                .verify_action(&floor.bind().internal, subject_id, dir.into())?;
         Some(Command::new(verify_action.into()))
     }
 }
@@ -96,16 +101,15 @@ impl DirectionAction {
 ///
 /// Note the inversion between object and param compared to Engine (though that may change).
 /// ```rust
-/// // Note this will not run as a doctest since godot_glue is a cdylib.
-/// use engine::data::Floor as FloorInternal;
-/// use engine::actions::Command as CommandInternal;
-/// use godot_glue::Floor;
-/// use godot_glue::Command;
-///
-/// fn engine_context(floor: &FloorInternal, command: &Box<dyn CommandTrait>) {
+/// use godot::prelude::*;
+/// use godot_glue::actions::Command;
+/// use godot_glue::floor::ActiveFloor;
+/// use engine::actions::CommandTrait;
+/// use engine::floor::Floor;
+/// fn engine_context(floor: &Floor, command: &dyn CommandTrait) {
 ///     command.do_action(floor);
 /// }
-/// fn glue_context(floor: &mut Floor, command: &Command) {
+/// fn glue_context(floor: &mut ActiveFloor, command: Gd<Command>) {
 ///     floor.do_action(command);
 /// }
 /// ```
