@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use engine::actions::events::FloorEvent as FloorEventInternal;
+use engine::entity::EntityId as EntityIdInternal;
 use godot::prelude::*;
 
-use crate::floor::ActiveFloor;
 use crate::floor::EntityId;
 use crate::positional::AbsolutePosition;
 
@@ -23,14 +25,20 @@ use crate::positional::AbsolutePosition;
 pub struct FloorEvent;
 
 impl FloorEvent {
-    pub fn to_variant(floor: &mut ActiveFloor, event: FloorEventInternal) -> Variant {
+    pub fn to_variant(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: FloorEventInternal,
+    ) -> Variant {
         match event {
-            FloorEventInternal::Move(x) => MoveEvent::new(floor, x).to_variant(),
-            FloorEventInternal::StartAttack(x) => StartAttackEvent::new(floor, x).to_variant(),
-            FloorEventInternal::AttackHit(x) => AttackHitEvent::new(floor, x).to_variant(),
-            FloorEventInternal::SeeMap(x) => SeeMapEvent::new(floor, x).to_variant(),
-            FloorEventInternal::KnockbackEvent(x) => KnockbackEvent::new(floor, x).to_variant(),
-            // default => Variant::nil(),
+            FloorEventInternal::Move(x) => MoveEvent::new(id_bijection, x).to_variant(),
+            FloorEventInternal::StartAttack(x) => {
+                StartAttackEvent::new(id_bijection, x).to_variant()
+            }
+            FloorEventInternal::AttackHit(x) => AttackHitEvent::new(id_bijection, x).to_variant(),
+            FloorEventInternal::SeeMap(x) => SeeMapEvent::new(id_bijection, x).to_variant(),
+            FloorEventInternal::KnockbackEvent(x) => {
+                KnockbackEvent::new(id_bijection, x).to_variant()
+            } // default => Variant::nil(),
         }
     }
 }
@@ -45,9 +53,12 @@ pub struct MoveEvent {
 }
 
 impl MoveEvent {
-    fn new(floor: &mut ActiveFloor, event: engine::actions::events::MoveEvent) -> Gd<Self> {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::MoveEvent,
+    ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, &mut floor.id_bijection),
+            subject: EntityId::new(event.subject, id_bijection),
             tile: event.tile.into(),
         })
     }
@@ -63,9 +74,12 @@ pub struct StartAttackEvent {
 }
 
 impl StartAttackEvent {
-    fn new(floor: &mut ActiveFloor, event: engine::actions::events::StartAttackEvent) -> Gd<Self> {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::StartAttackEvent,
+    ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, &mut floor.id_bijection),
+            subject: EntityId::new(event.subject, id_bijection),
             tile: event.tile.into(),
         })
     }
@@ -83,10 +97,13 @@ pub struct AttackHitEvent {
 }
 
 impl AttackHitEvent {
-    fn new(floor: &mut ActiveFloor, event: engine::actions::events::AttackHitEvent) -> Gd<Self> {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::AttackHitEvent,
+    ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, &mut floor.id_bijection),
-            target: EntityId::new(event.target, &mut floor.id_bijection),
+            subject: EntityId::new(event.subject, id_bijection),
+            target: EntityId::new(event.target, id_bijection),
             damage: event.damage,
         })
     }
@@ -102,9 +119,12 @@ pub struct SeeMapEvent {
 }
 
 impl SeeMapEvent {
-    fn new(floor: &mut ActiveFloor, event: engine::actions::events::SeeMapEvent) -> Gd<Self> {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::SeeMapEvent,
+    ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, &mut floor.id_bijection),
+            subject: EntityId::new(event.subject, id_bijection),
             vision: event
                 .vision
                 .iter()
@@ -129,9 +149,12 @@ pub struct KnockbackEvent {
 }
 
 impl KnockbackEvent {
-    fn new(floor: &mut ActiveFloor, event: engine::actions::events::KnockbackEvent) -> Gd<Self> {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::KnockbackEvent,
+    ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, &mut floor.id_bijection),
+            subject: EntityId::new(event.subject, id_bijection),
             tile: event.tile.into(),
         })
     }

@@ -129,7 +129,7 @@ impl ActiveFloor {
 
         let temp = log
             .into_iter()
-            .map(|ev| FloorEvent::to_variant(self, ev))
+            .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
             .collect();
         self.log.extend_array(temp);
 
@@ -161,7 +161,7 @@ impl ActiveFloor {
             self.internal = next;
             let temp = log
                 .into_iter()
-                .map(|ev| FloorEvent::to_variant(self, ev))
+                .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
                 .collect();
             self.log.extend_array(temp);
 
@@ -178,7 +178,7 @@ impl ActiveFloor {
 
         let temp = log
             .into_iter()
-            .map(|ev| FloorEvent::to_variant(self, ev))
+            .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
             .collect();
         self.log.extend_array(temp);
     }
