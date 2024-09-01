@@ -1,7 +1,5 @@
 use std::rc::Rc;
 
-use crate::actions::DeserializeCommandTrait;
-use crate::actions::SerializeCommandTrait;
 use rkyv::Archive;
 use rkyv::Archived;
 use rkyv::Deserialize;
@@ -9,15 +7,6 @@ use rkyv::Infallible;
 use rkyv::Serialize;
 use rkyv_dyn::archive_dyn;
 use rkyv_typename::TypeName;
-
-use crate::entity::Entity;
-use crate::entity::EntityId;
-use crate::entity::EntityState;
-use crate::floor::BorrowedFloorUpdate;
-use crate::floor::Floor;
-use crate::floor::FloorUpdate;
-use crate::positional::AbsolutePosition;
-use crate::positional::RelativePosition;
 
 use super::events::AttackHitEvent;
 use super::events::MoveEvent;
@@ -28,6 +17,16 @@ use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
 use super::TileActionTrait;
+use crate::actions::DeserializeCommandTrait;
+use crate::actions::SerializeCommandTrait;
+use crate::entity::Entity;
+use crate::entity::EntityId;
+use crate::entity::EntityState;
+use crate::floor::BorrowedFloorUpdate;
+use crate::floor::Floor;
+use crate::floor::FloorUpdate;
+use crate::positional::AbsolutePosition;
+use crate::positional::RelativePosition;
 
 /// Moves one space.
 #[derive(Debug)]
@@ -313,11 +312,10 @@ impl CommandTrait for Archived<GotoCommand> {
 #[cfg(test)]
 #[test]
 fn bump_test() {
-    use crate::{
-        entity::{EntityId, EntityState},
-        positional::AbsolutePosition,
-        strategy::Strategy,
-    };
+    use crate::entity::EntityId;
+    use crate::entity::EntityState;
+    use crate::positional::AbsolutePosition;
+    use crate::strategy::Strategy;
 
     let mut update = FloorUpdate::new(Floor::new());
     let player_id;
@@ -378,11 +376,10 @@ fn bump_test() {
 #[cfg(test)]
 #[test]
 fn goto_test() {
-    use crate::{
-        entity::{EntityId, EntityState},
-        positional::AbsolutePosition,
-        strategy::Strategy,
-    };
+    use crate::entity::EntityId;
+    use crate::entity::EntityState;
+    use crate::positional::AbsolutePosition;
+    use crate::strategy::Strategy;
 
     let mut update = FloorUpdate::new(Floor::new());
     let player_id;

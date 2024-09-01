@@ -1,12 +1,5 @@
 use std::rc::Rc;
 
-use crate::actions::public::StepAction;
-use crate::actions::utils::DelayCommand;
-use crate::actions::utils::TakeKnockbackUtil;
-use crate::actions::DeserializeCommandTrait;
-use crate::actions::SerializeCommandTrait;
-use crate::actions::TileActionTrait;
-use crate::positional::AbsolutePosition;
 use rkyv::Archive;
 use rkyv::Archived;
 use rkyv::Deserialize;
@@ -15,20 +8,25 @@ use rkyv::Serialize;
 use rkyv_dyn::archive_dyn;
 use rkyv_typename::TypeName;
 
+use super::super::events::AttackHitEvent;
+use super::super::events::StartAttackEvent;
+use super::super::CommandTrait;
+use super::super::DirectionActionTrait;
+use super::super::FloorEvent;
+use crate::actions::public::StepAction;
+use crate::actions::utils::DelayCommand;
+use crate::actions::utils::TakeKnockbackUtil;
+use crate::actions::DeserializeCommandTrait;
+use crate::actions::SerializeCommandTrait;
+use crate::actions::TileActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
-
-// Decide if super::super is good or not
-use super::super::events::AttackHitEvent;
-use super::super::events::StartAttackEvent;
-use super::super::CommandTrait;
-use super::super::DirectionActionTrait;
-use super::super::FloorEvent;
 
 // Steps forward and sweeps at the start of next turn.
 #[derive(Debug)]

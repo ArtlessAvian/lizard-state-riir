@@ -1,5 +1,9 @@
 use std::rc::Rc;
 
+use super::events::FloorEvent;
+use super::events::KnockbackEvent;
+use super::CommandTrait;
+use super::SerializeCommandTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -7,11 +11,6 @@ use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::algorithms::Segment;
 use crate::positional::RelativePosition;
-
-use super::events::FloorEvent;
-use super::events::KnockbackEvent;
-use super::CommandTrait;
-use super::SerializeCommandTrait;
 
 #[derive(Debug)]
 pub struct TakeKnockbackUtil {

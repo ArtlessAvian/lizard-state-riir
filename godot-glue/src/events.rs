@@ -1,5 +1,4 @@
 use engine::actions::events::FloorEvent as FloorEventInternal;
-
 use godot::prelude::*;
 
 use crate::positional::AbsolutePosition;

@@ -1,10 +1,6 @@
 use std::borrow::Cow;
 use std::rc::Rc;
 
-use crate::actions::DeserializeActionTrait;
-use crate::actions::DeserializeCommandTrait;
-use crate::actions::SerializeActionTrait;
-use crate::actions::SerializeCommandTrait;
 use rkyv::Archive;
 use rkyv::Archived;
 use rkyv::Deserialize;
@@ -12,14 +8,6 @@ use rkyv::Infallible;
 use rkyv::Serialize;
 use rkyv_dyn::archive_dyn;
 use rkyv_typename::TypeName;
-
-use crate::entity::Entity;
-use crate::entity::EntityId;
-use crate::entity::EntityState;
-use crate::floor::BorrowedFloorUpdate;
-use crate::floor::Floor;
-use crate::floor::FloorUpdate;
-use crate::positional::RelativePosition;
 
 use super::events::AttackHitEvent;
 use super::events::StartAttackEvent;
@@ -29,6 +17,17 @@ use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
 use super::SerializableAction;
+use crate::actions::DeserializeActionTrait;
+use crate::actions::DeserializeCommandTrait;
+use crate::actions::SerializeActionTrait;
+use crate::actions::SerializeCommandTrait;
+use crate::entity::Entity;
+use crate::entity::EntityId;
+use crate::entity::EntityState;
+use crate::floor::BorrowedFloorUpdate;
+use crate::floor::Floor;
+use crate::floor::FloorUpdate;
+use crate::positional::RelativePosition;
 
 // Hits once, then queues another.
 #[derive(Debug)]
@@ -220,12 +219,11 @@ impl CommandTrait for ExitStanceCommand {
 #[cfg(test)]
 #[test]
 fn double_hit() {
-    use crate::{
-        entity::{EntityId, EntityState},
-        floor::TurntakingError,
-        positional::AbsolutePosition,
-        strategy::Strategy,
-    };
+    use crate::entity::EntityId;
+    use crate::entity::EntityState;
+    use crate::floor::TurntakingError;
+    use crate::positional::AbsolutePosition;
+    use crate::strategy::Strategy;
 
     let mut update = FloorUpdate::new(Floor::new());
     let player_id;

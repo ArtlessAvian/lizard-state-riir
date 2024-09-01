@@ -5,7 +5,9 @@
 // (Currently the only gameplay value is revealing the map in a neat way.)
 // (There's no cover mechanics for example.)
 
-use super::{InsideOctant, RelativeOctantified, RelativePosition};
+use super::InsideOctant;
+use super::RelativeOctantified;
+use super::RelativePosition;
 
 /// A symmetric segment.
 ///

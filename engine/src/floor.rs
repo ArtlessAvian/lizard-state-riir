@@ -1,11 +1,11 @@
 pub mod map;
 
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
-
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
 
 use crate::actions::events::FloorEvent;
 use crate::entity::Entity;

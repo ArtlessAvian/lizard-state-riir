@@ -5,12 +5,6 @@
 
 use std::rc::Rc;
 
-use crate::entity::EntityId;
-use crate::floor::Floor;
-use crate::floor::FloorUpdate;
-use crate::positional::AbsolutePosition;
-use crate::positional::RelativePosition;
-
 use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
@@ -19,6 +13,11 @@ use super::SerializeCommandTrait;
 use super::SerializeDirectionActionTrait;
 use super::SerializeTileActionTrait;
 use super::TileActionTrait;
+use crate::entity::EntityId;
+use crate::floor::Floor;
+use crate::floor::FloorUpdate;
+use crate::positional::AbsolutePosition;
+use crate::positional::RelativePosition;
 
 #[derive(Debug, Clone)]
 pub struct Upcast<T: ?Sized>(Rc<T>);

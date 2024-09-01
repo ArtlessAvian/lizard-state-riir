@@ -1,14 +1,14 @@
 pub mod vision;
 
-use rkyv::with::Skip;
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-
 use std::cell::OnceCell;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+
+use rkyv::with::Skip;
+use rkyv::Archive;
+use rkyv::Deserialize;
+use rkyv::Serialize;
 
 use crate::pathfinding::PathfindingContext;
 use crate::positional::AbsolutePosition;

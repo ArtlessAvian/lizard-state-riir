@@ -1,12 +1,14 @@
 pub mod algorithms;
 pub mod fov;
 
-use std::{
-    collections::HashSet,
-    ops::{Add, Mul, Sub},
-};
+use std::collections::HashSet;
+use std::ops::Add;
+use std::ops::Mul;
+use std::ops::Sub;
 
-use rkyv::{Archive, Deserialize, Serialize};
+use rkyv::Archive;
+use rkyv::Deserialize;
+use rkyv::Serialize;
 
 /// An offset.
 /// A Vector2i, like `AbsolutePosition`.

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
+
 use tracing::instrument;
 
 use crate::positional::AbsolutePosition;

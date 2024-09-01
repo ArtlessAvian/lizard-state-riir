@@ -1,9 +1,9 @@
+use std::ops::Index;
+use std::rc::Rc;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
-
-use std::ops::Index;
-use std::rc::Rc;
 
 use crate::actions::characters::max_tegu::ForwardHeavyAction;
 use crate::actions::characters::max_tegu::TrackingAction;

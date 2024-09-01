@@ -12,9 +12,8 @@ pub mod public;
 
 pub mod characters;
 
-use std::rc::Rc;
-
 use std::fmt::Debug;
+use std::rc::Rc;
 
 use rkyv::Archive;
 use rkyv::Archived;
@@ -23,14 +22,13 @@ use rkyv::Serialize;
 use rkyv_dyn::archive_dyn;
 use rkyv_typename::TypeName;
 
+use self::events::FloorEvent;
+use self::upcast_indirection::Upcast;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
-
-use self::events::FloorEvent;
-use self::upcast_indirection::Upcast;
 
 // Rc to allow cloning trait objects, also its cheap!
 #[derive(Debug, Clone)]

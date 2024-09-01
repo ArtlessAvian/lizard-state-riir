@@ -1,11 +1,11 @@
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::sync::OnceLock;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 use tracing::instrument;
-
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::sync::OnceLock;
 
 use crate::actions::events::FloorEvent;
 use crate::actions::events::SeeMapEvent;
