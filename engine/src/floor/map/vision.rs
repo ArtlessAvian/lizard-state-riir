@@ -106,7 +106,7 @@ impl FloorMapVision {
         self.entity_last_at.insert(subject.id, subject.pos);
         self.map_vision.insert(subject.id, vision.clone());
         for (pos, tile) in &vision {
-            self.map_history.insert(*pos, tile.clone());
+            self.map_history.insert(*pos, *tile);
         }
 
         Writer::new(self).log(FloorEvent::SeeMap(SeeMapEvent {
@@ -124,7 +124,7 @@ impl FloorMapVision {
             .into_iter()
             .collect::<HashSet<AbsolutePosition>>() // To dedup given Hash.
             .into_iter()
-            .map(|key| (key, map.get_tile(&key).clone()))
+            .map(|key| (key, *map.get_tile(&key)))
             .collect()
     }
 }

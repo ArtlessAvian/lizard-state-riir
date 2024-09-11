@@ -14,7 +14,7 @@ use crate::pathfinding::PathfindingContext;
 use crate::positional::AbsolutePosition;
 
 // TODO: Decide whether to use non_exhaustive.
-#[derive(Clone, Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 #[non_exhaustive]
 pub enum FloorTile {
@@ -67,7 +67,6 @@ impl FloorMap {
 
     #[must_use]
     pub fn is_tile_floor(&self, pos: &AbsolutePosition) -> bool {
-        // clean (and obvious) but more floors will be added ig.
         self.get_tile(pos).is_tile_floor()
     }
 
@@ -79,7 +78,7 @@ impl FloorMap {
     ) -> Option<AbsolutePosition> {
         let lazy = self.pathfinder.get_or_init(|| {
             let tiles = Rc::clone(&self.tiles);
-            let default = self.default.clone();
+            let default = self.default;
             RefCell::new(PathfindingContext::new(
                 Box::new(move |pos| !tiles.get(&pos).unwrap_or(&default).is_tile_floor()),
                 Box::new(AbsolutePosition::distance),
