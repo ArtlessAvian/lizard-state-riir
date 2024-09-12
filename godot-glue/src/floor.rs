@@ -140,7 +140,7 @@ impl ActiveFloor {
     pub fn get_entity_ids(&mut self) -> Array<Gd<EntityId>> {
         self.internal
             .entities
-            .iter()
+            .iter_entities()
             .map(|e| e.id)
             .map(|e| EntityId::new(e, &mut self.id_bijection))
             .collect()

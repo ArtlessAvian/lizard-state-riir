@@ -224,7 +224,7 @@ impl Floor {
     pub fn get_next_entity(&self) -> Option<EntityId> {
         return self
             .entities
-            .iter()
+            .iter_entities()
             .filter(|e| e.get_next_turn().is_some())
             .min_by_key(|e| e.get_next_turn())
             .map(|e| e.id);

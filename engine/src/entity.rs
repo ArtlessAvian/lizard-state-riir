@@ -38,7 +38,6 @@ impl From<EntityId> for i32 {
 ///
 /// Outside a Floor, entities have a statline (`health`, etc.) and some constant data (`max_health`, etc.).
 // TODO: Split into an EntityData. Wrap with Entity when added to a Floor?
-// TODO: Make API more like HashMap? Iter should return keys.
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct Entity {
@@ -160,8 +159,19 @@ impl EntitySet {
         &self.0[index.0]
     }
 
-    pub fn iter(&self) -> std::slice::Iter<Rc<Entity>> {
-        self.0.iter()
+    pub fn iter_entities(&self) -> impl Iterator<Item = &Entity> {
+        self.0.iter().map(Rc::as_ref)
+    }
+
+    pub fn iter_ids(&self) -> impl Iterator<Item = EntityId> {
+        (0..self.0.len()).map(EntityId)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
+        self.0
+            .iter()
+            .enumerate()
+            .map(|(index, element)| (EntityId(index), element.as_ref()))
     }
 
     pub fn iter_mut(&mut self) -> std::slice::IterMut<Rc<Entity>> {
@@ -251,4 +261,39 @@ pub enum EntityState {
         next_turn: u32,
     },
     Dead,
+}
+
+#[test]
+fn entity_set_iters() {
+    let mut entities = EntitySet::new();
+    entities.add(Entity {
+        id: EntityId(0),
+        state: EntityState::Dead,
+        pos: AbsolutePosition::new(1, 2),
+        health: 3,
+        max_energy: 4,
+        energy: 5,
+        strategy: Strategy::Null,
+        is_player_controlled: true,
+        is_player_friendly: true,
+    });
+    entities.add(Entity {
+        id: EntityId(1),
+        state: EntityState::Dead,
+        pos: AbsolutePosition::new(2, 3),
+        health: 4,
+        max_energy: 5,
+        energy: 6,
+        strategy: Strategy::Null,
+        is_player_controlled: false,
+        is_player_friendly: true,
+    });
+
+    for (pair, other) in entities
+        .iter()
+        .zip(entities.iter_ids().zip(entities.iter_entities()))
+    {
+        assert_eq!(pair.0, other.0);
+        assert!(std::ptr::eq(pair.1, other.1));
+    }
 }

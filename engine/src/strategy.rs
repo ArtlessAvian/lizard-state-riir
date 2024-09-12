@@ -72,7 +72,7 @@ impl StrategyTrait for StandAndFightStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         let in_range = original
             .entities
-            .iter()
+            .iter_entities()
             .find(|x| x.pos.distance(original.entities[subject_id].pos) <= 2 && x.id != subject_id);
 
         if let Some(other) = in_range {
@@ -104,7 +104,7 @@ impl StrategyTrait for FollowStrategy {
         // TODO: Add teams/friendliness to the game.
         let in_range = original
             .entities
-            .iter()
+            .iter_entities()
             .find(|x| x.pos.distance(original.entities[subject_id].pos) <= 6 && x.id != subject_id);
 
         let subject = &original.entities[subject_id];
