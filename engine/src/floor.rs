@@ -82,10 +82,14 @@ impl Floor {
         let id = next_entities.add(new);
 
         let mut next_occupiers = self.occupiers.clone();
-        match next_occupiers.entry(next_entities[id].pos) {
-            Entry::Occupied(_) => panic!("New entity occupies same position as existing entity."),
-            Entry::Vacant(vacancy) => {
-                vacancy.insert(id);
+        if let Some(occupied) = next_entities[id].get_occupied_position() {
+            match next_occupiers.entry(occupied) {
+                Entry::Occupied(_) => {
+                    panic!("New entity occupies same position as existing entity.")
+                }
+                Entry::Vacant(vacancy) => {
+                    vacancy.insert(id);
+                }
             }
         }
 
@@ -114,10 +118,12 @@ impl Floor {
     #[must_use]
     pub fn set_map(&self, map: FloorMap) -> Self {
         for entity in &self.entities {
-            assert!(
-                map.is_tile_floor(&entity.pos),
-                "Updated map has wall over existing entity."
-            );
+            if let Some(pos) = entity.get_occupied_position() {
+                assert!(
+                    map.is_tile_floor(&pos),
+                    "Updated map has wall over existing entity."
+                );
+            }
         }
 
         Floor {
@@ -152,23 +158,27 @@ impl Floor {
 
         let mut next_occupiers: HashMap<AbsolutePosition, EntityId> = self.occupiers.clone();
         for (_, old) in &old_set {
-            let remove = next_occupiers.remove(&old.pos);
-            assert!(remove.is_some());
+            if let Some(pos) = old.get_occupied_position() {
+                let remove = next_occupiers.remove(&pos);
+                assert!(remove.is_some());
+            }
         }
         for (id, new) in &new_ref_set {
-            match next_occupiers.entry(new.pos) {
-                Entry::Occupied(_) => {
-                    panic!("Updated entities occupy same position as another entity.")
+            if let Some(pos) = new.get_occupied_position() {
+                match next_occupiers.entry(pos) {
+                    Entry::Occupied(_) => {
+                        panic!("Updated entities occupy same position as another entity.")
+                    }
+                    Entry::Vacant(vacancy) => {
+                        vacancy.insert(*id);
+                    }
                 }
-                Entry::Vacant(vacancy) => {
-                    vacancy.insert(*id);
-                }
-            }
 
-            assert!(
-                self.map.is_tile_floor(&new.pos),
-                "Updated entity occupies wall position."
-            );
+                assert!(
+                    self.map.is_tile_floor(&new.pos),
+                    "Updated entity occupies wall position."
+                );
+            }
         }
 
         self.vision

@@ -111,6 +111,18 @@ impl Entity {
     }
 
     #[must_use]
+    pub fn get_occupied_position(&self) -> Option<AbsolutePosition> {
+        match self.state {
+            EntityState::Ok { .. }
+            | EntityState::Committed { .. }
+            | EntityState::ConfirmCommand { .. }
+            | EntityState::RestrictedActions { .. }
+            | EntityState::Hitstun { .. } => Some(self.pos),
+            EntityState::Knockdown { .. } | EntityState::Dead => None,
+        }
+    }
+
+    #[must_use]
     pub fn is_allied(&self, other: &Entity) -> bool {
         self.is_player_friendly == other.is_player_friendly
     }
