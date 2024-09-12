@@ -130,41 +130,7 @@ impl Floor {
 
     #[must_use]
     pub fn update_entity(&self, new: (EntityId, Entity)) -> FloorUpdate {
-        let old = &self.entities[new.0];
-
-        let mut next_entities = self.entities.clone();
-        next_entities.overwrite(new.0, new.1);
-        let new = (new.0, &next_entities[new.0]);
-
-        let mut next_occupiers = self.occupiers.clone();
-        next_occupiers.remove_entry(&old.pos);
-        match next_occupiers.entry(new.1.pos) {
-            Entry::Occupied(_) => {
-                panic!("Updated entity occupies same position as existing entity.")
-            }
-            Entry::Vacant(vacancy) => {
-                vacancy.insert(new.0);
-            }
-        };
-
-        assert!(
-            self.map.is_tile_floor(&new.1.pos),
-            "Updated entity occupies wall position."
-        );
-
-        self.vision
-            .as_ref()
-            .map_or(Writer::new(None), |x| {
-                x.update_entity(new, &self.map).map(Some)
-            })
-            .bind(|next_vision| {
-                FloorUpdate::new(Floor {
-                    entities: next_entities,
-                    occupiers: next_occupiers,
-                    map: self.map.clone(),
-                    vision: next_vision,
-                })
-            })
+        self.update_entities(vec![new])
     }
 
     #[must_use]
