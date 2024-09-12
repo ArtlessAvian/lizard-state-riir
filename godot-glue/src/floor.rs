@@ -111,7 +111,6 @@ impl ActiveFloor {
         is_player_friendly: bool,
     ) -> Gd<EntityId> {
         let (update, id) = self.internal.add_entity(EntityInternal {
-            id: EntityIdInternal::default(),
             state: EntityState::Ok {
                 next_turn: self.internal.get_current_turn(),
             },
@@ -140,8 +139,7 @@ impl ActiveFloor {
     pub fn get_entity_ids(&mut self) -> Array<Gd<EntityId>> {
         self.internal
             .entities
-            .iter_entities()
-            .map(|e| e.id)
+            .iter_ids()
             .map(|e| EntityId::new(e, &mut self.id_bijection))
             .collect()
     }

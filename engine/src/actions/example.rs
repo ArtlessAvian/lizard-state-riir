@@ -75,7 +75,7 @@ impl CommandTrait for DoubleHitCommand {
 
                 Some(
                     floor
-                        .update_entity(object_clone)
+                        .update_entity((object_index, object_clone))
                         .log(FloorEvent::AttackHit(AttackHitEvent {
                             subject: self.subject_id,
                             target: object_index,
@@ -126,7 +126,7 @@ impl CommandTrait for DoubleHitFollowup {
 
                 Some(
                     floor
-                        .update_entity(object_clone)
+                        .update_entity((object_index, object_clone))
                         .log(FloorEvent::AttackHit(AttackHitEvent {
                             subject: self.subject_id,
                             target: object_index,
@@ -140,7 +140,7 @@ impl CommandTrait for DoubleHitFollowup {
                 subject_clone.state = EntityState::Ok {
                     next_turn: floor.get_current_turn() + 1,
                 };
-                floor.update_entity(subject_clone)
+                floor.update_entity((self.subject_id, subject_clone))
             })
     }
 }
@@ -179,7 +179,7 @@ impl CommandTrait for EnterStanceCommand {
             restricted_actions: vec![SerializableAction::None(Rc::new(ExitStanceAction))],
         };
 
-        floor.update_entity(subject_clone)
+        floor.update_entity((self.subject_id, subject_clone))
     }
 }
 
@@ -212,14 +212,13 @@ impl CommandTrait for ExitStanceCommand {
             next_turn: floor.get_current_turn(),
         };
 
-        floor.update_entity(subject_clone)
+        floor.update_entity((self.subject_id, subject_clone))
     }
 }
 
 #[cfg(test)]
 #[test]
 fn double_hit() {
-    use crate::entity::EntityId;
     use crate::entity::EntityState;
     use crate::floor::TurntakingError;
     use crate::positional::AbsolutePosition;
@@ -230,7 +229,6 @@ fn double_hit() {
     let other_id;
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            id: EntityId::default(),
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
@@ -243,7 +241,6 @@ fn double_hit() {
     });
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            id: EntityId::default(),
             state: EntityState::Ok { next_turn: 100 },
             pos: AbsolutePosition::new(1, 0),
             health: 0,

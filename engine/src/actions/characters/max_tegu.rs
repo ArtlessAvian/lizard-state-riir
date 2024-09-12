@@ -97,7 +97,9 @@ impl CommandTrait for ForwardHeavyFollowup {
                     subject: self.subject_id,
                     tile: subject_update.pos + self.dir,
                 });
-                floor.update_entity(subject_update).log(event)
+                floor
+                    .update_entity((self.subject_id, subject_update))
+                    .log(event)
             })
             .bind_or_noop(|floor| {
                 let &object_index = floor
@@ -110,7 +112,7 @@ impl CommandTrait for ForwardHeavyFollowup {
 
                 Some(
                     floor
-                        .update_entity(object_clone)
+                        .update_entity((object_index, object_clone))
                         .log(FloorEvent::AttackHit(AttackHitEvent {
                             subject: self.subject_id,
                             target: object_index,
@@ -192,7 +194,7 @@ impl CommandTrait for TrackingFollowup {
                     next_turn: floor.get_current_turn() + 2,
                 };
                 subject_update.energy -= 1;
-                floor.update_entity(subject_update)
+                floor.update_entity((self.subject_id, subject_update))
             })
             .bind(|floor| {
                 let object_ref = &floor.entities[self.tracking_id];
@@ -201,10 +203,12 @@ impl CommandTrait for TrackingFollowup {
                     object_clone.health -= 1;
                     let event = FloorEvent::AttackHit(AttackHitEvent {
                         subject: self.subject_id,
-                        target: object_clone.id,
+                        target: self.tracking_id,
                         damage: 1,
                     });
-                    floor.update_entity(object_clone).log(event)
+                    floor
+                        .update_entity((self.tracking_id, object_clone))
+                        .log(event)
                 } else {
                     FloorUpdate::new(floor)
                 }

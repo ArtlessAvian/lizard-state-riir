@@ -66,14 +66,18 @@ impl FloorMapVision {
     // I am a smug nerd.
 
     #[must_use]
-    pub fn add_entity(&self, new: &Entity, map: &FloorMap) -> Writer<FloorMapVision, FloorEvent> {
+    pub fn add_entity(
+        &self,
+        new: (EntityId, &Entity),
+        map: &FloorMap,
+    ) -> Writer<FloorMapVision, FloorEvent> {
         self.update_entity(new, map)
     }
 
     #[must_use]
     pub fn update_entity(
         &self,
-        new: &Entity,
+        new: (EntityId, &Entity),
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
         self.update_entities(&vec![new], map)
@@ -82,15 +86,14 @@ impl FloorMapVision {
     #[must_use]
     pub fn update_entities(
         &self,
-        new_set: &Vec<&Entity>,
+        new_set: &Vec<(EntityId, &Entity)>,
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
         let mut out = Writer::new(self.clone());
-        for new in new_set {
-            if out.get_contents().entity_last_at.get(&new.id) != Some(&new.pos)
-                && new.is_player_friendly
+        for (id, new) in new_set {
+            if out.get_contents().entity_last_at.get(id) != Some(&new.pos) && new.is_player_friendly
             {
-                out = out.bind(|vision| vision.update_and_emit_event(new, map));
+                out = out.bind(|vision| vision.update_and_emit_event((*id, new), map));
             }
         }
         out
@@ -98,19 +101,19 @@ impl FloorMapVision {
 
     fn update_and_emit_event(
         mut self,
-        subject: &Entity,
+        subject: (EntityId, &Entity),
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
-        let vision = Self::get_vision(map, subject.pos);
+        let vision = Self::get_vision(map, subject.1.pos);
 
-        self.entity_last_at.insert(subject.id, subject.pos);
-        self.map_vision.insert(subject.id, vision.clone());
+        self.entity_last_at.insert(subject.0, subject.1.pos);
+        self.map_vision.insert(subject.0, vision.clone());
         for (pos, tile) in &vision {
             self.map_history.insert(*pos, *tile);
         }
 
         Writer::new(self).log(FloorEvent::SeeMap(SeeMapEvent {
-            subject: subject.id,
+            subject: subject.0,
             vision,
         }))
     }

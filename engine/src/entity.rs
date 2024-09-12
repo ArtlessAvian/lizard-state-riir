@@ -41,9 +41,6 @@ impl From<EntityId> for i32 {
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct Entity {
-    // TODO: Try removing. Anywhere where this would've been read, (presumably) the caller could have had indirect access, so pass around (Id, Entity) pairs.
-    pub id: EntityId,
-
     // Turntaking and state are highly correlated, and changing one usually implies something about the other.
     // EG: Doing a move, queued or not, should usually unset the queued move.
     // EG: Being dead means you are not participating in turntaking.
@@ -134,21 +131,19 @@ impl EntitySet {
         Self(Vec::new())
     }
 
-    pub fn add(&mut self, mut new: Entity) -> EntityId {
+    pub fn add(&mut self, new: Entity) -> EntityId {
         let id = EntityId(self.0.len());
-        new.id = id;
         self.0.push(Rc::new(new));
         id
     }
 
-    pub fn overwrite(&mut self, value: Entity) {
-        let id = value.id.0;
-        self.0[id] = Rc::new(value);
+    pub fn overwrite(&mut self, id: EntityId, value: Entity) {
+        self.0[id.0] = Rc::new(value);
     }
 
     #[must_use]
     pub fn contains_id(&self, id: &EntityId) -> bool {
-        self.0.binary_search_by_key(&id.0, |e| e.id.0).is_ok()
+        (0..self.0.len()).contains(&id.0)
     }
 
     #[must_use]
@@ -267,7 +262,6 @@ pub enum EntityState {
 fn entity_set_iters() {
     let mut entities = EntitySet::new();
     entities.add(Entity {
-        id: EntityId(0),
         state: EntityState::Dead,
         pos: AbsolutePosition::new(1, 2),
         health: 3,
@@ -278,7 +272,6 @@ fn entity_set_iters() {
         is_player_friendly: true,
     });
     entities.add(Entity {
-        id: EntityId(1),
         state: EntityState::Dead,
         pos: AbsolutePosition::new(2, 3),
         health: 4,

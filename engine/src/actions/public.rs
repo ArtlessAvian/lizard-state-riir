@@ -53,7 +53,7 @@ impl CommandTrait for WaitCommand {
         };
         subject_clone.energy = i8::min(subject_clone.energy + 1, subject_clone.max_energy);
 
-        floor.update_entity(subject_clone)
+        floor.update_entity((self.subject_id, subject_clone))
     }
 }
 
@@ -88,7 +88,7 @@ impl DirectionActionTrait for StepAction {
         if floor
             .occupiers
             .get(&(floor.entities[subject_id].pos + dir))
-            .is_some_and(|x| x != &floor.entities[subject_id].id)
+            .is_some_and(|x| *x != subject_id)
         {
             return None;
         }
@@ -113,10 +113,10 @@ impl CommandTrait for StepCommand {
 
         BorrowedFloorUpdate::new(floor)
             .log(FloorEvent::Move(MoveEvent {
-                subject: subject_clone.id,
+                subject: self.subject_id,
                 tile: subject_clone.pos,
             }))
-            .bind(|floor| floor.update_entity(subject_clone))
+            .bind(|floor| floor.update_entity((self.subject_id, subject_clone)))
     }
 }
 
@@ -178,15 +178,20 @@ impl CommandTrait for BumpCommand {
 
         BorrowedFloorUpdate::new(floor)
             .log(FloorEvent::StartAttack(StartAttackEvent {
-                subject: subject_clone.id,
+                subject: self.subject_id,
                 tile: subject_clone.pos + self.dir,
             }))
             .log(FloorEvent::AttackHit(AttackHitEvent {
-                subject: subject_clone.id,
-                target: object_clone.id,
+                subject: self.subject_id,
+                target: object_index,
                 damage: 1,
             }))
-            .bind(|floor| floor.update_entities(Vec::from([subject_clone, object_clone])))
+            .bind(|floor| {
+                floor.update_entities(Vec::from([
+                    (self.subject_id, subject_clone),
+                    (object_index, object_clone),
+                ]))
+            })
             .bind(|floor| {
                 TakeKnockbackUtil {
                     entity: object_index,
@@ -272,7 +277,7 @@ impl CommandTrait for GotoCommand {
                 subject_clone.state = EntityState::Ok {
                     next_turn: floor.get_current_turn(),
                 };
-                floor.update_entity(subject_clone)
+                floor.update_entity((self.subject_id, subject_clone))
             }
             Some(command) => command
                 .do_action(floor) // (force indent)
@@ -292,7 +297,7 @@ impl CommandTrait for GotoCommand {
                             to_confirm: Rc::new(self.clone()),
                         }
                     };
-                    floor.update_entity(subject_clone)
+                    floor.update_entity((self.subject_id, subject_clone))
                 }),
         }
     }
@@ -312,7 +317,6 @@ impl CommandTrait for Archived<GotoCommand> {
 #[cfg(test)]
 #[test]
 fn bump_test() {
-    use crate::entity::EntityId;
     use crate::entity::EntityState;
     use crate::positional::AbsolutePosition;
     use crate::strategy::Strategy;
@@ -322,7 +326,6 @@ fn bump_test() {
     let other_id;
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            id: EntityId::default(),
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
             health: 0,
@@ -335,7 +338,6 @@ fn bump_test() {
     });
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            id: EntityId::default(),
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(1, 0),
             health: 0,
@@ -376,7 +378,6 @@ fn bump_test() {
 #[cfg(test)]
 #[test]
 fn goto_test() {
-    use crate::entity::EntityId;
     use crate::entity::EntityState;
     use crate::positional::AbsolutePosition;
     use crate::strategy::Strategy;
@@ -385,7 +386,6 @@ fn goto_test() {
     let player_id;
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            id: EntityId::default(),
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
             health: 0,

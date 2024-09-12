@@ -95,7 +95,7 @@ impl Floor {
         );
 
         let vision_update = self.vision.as_ref().map_or(Writer::new(None), |x| {
-            x.add_entity(&next_entities[id], &self.map).map(Some)
+            x.add_entity((id, &next_entities[id]), &self.map).map(Some)
         });
 
         (
@@ -129,33 +129,33 @@ impl Floor {
     }
 
     #[must_use]
-    pub fn update_entity(&self, new: Entity) -> FloorUpdate {
-        let old = &self.entities[new.id];
+    pub fn update_entity(&self, new: (EntityId, Entity)) -> FloorUpdate {
+        let old = &self.entities[new.0];
 
         let mut next_entities = self.entities.clone();
-        next_entities.overwrite(new);
-        let new_ref = &next_entities[old.id];
+        next_entities.overwrite(new.0, new.1);
+        let new = (new.0, &next_entities[new.0]);
 
         let mut next_occupiers = self.occupiers.clone();
         next_occupiers.remove_entry(&old.pos);
-        match next_occupiers.entry(new_ref.pos) {
+        match next_occupiers.entry(new.1.pos) {
             Entry::Occupied(_) => {
                 panic!("Updated entity occupies same position as existing entity.")
             }
             Entry::Vacant(vacancy) => {
-                vacancy.insert(new_ref.id);
+                vacancy.insert(new.0);
             }
         };
 
         assert!(
-            self.map.is_tile_floor(&new_ref.pos),
+            self.map.is_tile_floor(&new.1.pos),
             "Updated entity occupies wall position."
         );
 
         self.vision
             .as_ref()
             .map_or(Writer::new(None), |x| {
-                x.update_entity(new_ref, &self.map).map(Some)
+                x.update_entity(new, &self.map).map(Some)
             })
             .bind(|next_vision| {
                 FloorUpdate::new(Floor {
@@ -168,31 +168,34 @@ impl Floor {
     }
 
     #[must_use]
-    pub fn update_entities(&self, new_set: Vec<Entity>) -> FloorUpdate {
+    pub fn update_entities(&self, new_set: Vec<(EntityId, Entity)>) -> FloorUpdate {
         let old_set = new_set
             .iter()
-            .map(|x| &self.entities[x.id])
-            .collect::<Vec<&Entity>>();
+            .map(|(id, _)| (*id, &self.entities[*id]))
+            .collect::<Vec<(EntityId, &Entity)>>();
 
         let mut next_entities = self.entities.clone();
-        for new in new_set {
-            next_entities.overwrite(new);
+        for (new_id, new) in new_set {
+            next_entities.overwrite(new_id, new);
         }
 
-        let new_ref_set: Vec<&Entity> = old_set.iter().map(|x| &next_entities[x.id]).collect();
+        let new_ref_set: Vec<(EntityId, &Entity)> = old_set
+            .iter()
+            .map(|(id, _)| (*id, &next_entities[*id]))
+            .collect();
 
         let mut next_occupiers: HashMap<AbsolutePosition, EntityId> = self.occupiers.clone();
-        for old in &old_set {
+        for (_, old) in &old_set {
             let remove = next_occupiers.remove(&old.pos);
             assert!(remove.is_some());
         }
-        for new in &new_ref_set {
+        for (id, new) in &new_ref_set {
             match next_occupiers.entry(new.pos) {
                 Entry::Occupied(_) => {
                     panic!("Updated entities occupy same position as another entity.")
                 }
                 Entry::Vacant(vacancy) => {
-                    vacancy.insert(new.id);
+                    vacancy.insert(*id);
                 }
             }
 
@@ -224,10 +227,10 @@ impl Floor {
     pub fn get_next_entity(&self) -> Option<EntityId> {
         return self
             .entities
-            .iter_entities()
-            .filter(|e| e.get_next_turn().is_some())
-            .min_by_key(|e| e.get_next_turn())
-            .map(|e| e.id);
+            .iter()
+            .filter(|(_, e)| e.get_next_turn().is_some())
+            .min_by_key(|(_, e)| e.get_next_turn())
+            .map(|(id, _)| id);
     }
 
     // If there are no turntaking entities, the next turn can safely be 0 without "going back in time".
@@ -292,7 +295,6 @@ impl Default for Floor {
 //     let floor = Floor::new();
 //     let floor = floor
 //         .add_entity(Entity {
-//             id: EntityId::default(),
 //             state: EntityState::Hitstun {
 //                 next_turn: 100,
 //                 extensions: 3,

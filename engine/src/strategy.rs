@@ -70,16 +70,15 @@ pub struct StandAndFightStrategy;
 
 impl StrategyTrait for StandAndFightStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
-        let in_range = original
-            .entities
-            .iter_entities()
-            .find(|x| x.pos.distance(original.entities[subject_id].pos) <= 2 && x.id != subject_id);
+        let in_range = original.entities.iter().find(|(id, entity)| {
+            entity.pos.distance(original.entities[subject_id].pos) <= 2 && *id != subject_id
+        });
 
         if let Some(other) = in_range {
             let unaimed_action = &original.entities[subject_id].get_actions()[3];
             let lmao = match unaimed_action {
                 crate::actions::UnaimedAction::Tile(hi_this_is_temporary) => {
-                    hi_this_is_temporary.verify_action(original, subject_id, other.pos)
+                    hi_this_is_temporary.verify_action(original, subject_id, other.1.pos)
                 }
                 _ => None,
             };
@@ -102,16 +101,15 @@ pub struct FollowStrategy;
 impl StrategyTrait for FollowStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         // TODO: Add teams/friendliness to the game.
-        let in_range = original
-            .entities
-            .iter_entities()
-            .find(|x| x.pos.distance(original.entities[subject_id].pos) <= 6 && x.id != subject_id);
+        let in_range = original.entities.iter().find(|(id, entity)| {
+            entity.pos.distance(original.entities[subject_id].pos) <= 6 && *id != subject_id
+        });
 
         let subject = &original.entities[subject_id];
 
         if let Some(other) = in_range {
-            if subject.pos.distance(other.pos) > 2 {
-                if let Some(step_to) = original.map.get_step(subject.pos, other.pos) {
+            if subject.pos.distance(other.1.pos) > 2 {
+                if let Some(step_to) = original.map.get_step(subject.pos, other.1.pos) {
                     if let Some(x) =
                         StepAction.verify_action(original, subject_id, step_to - subject.pos)
                     {

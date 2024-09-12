@@ -35,7 +35,7 @@ impl CommandTrait for TakeKnockbackUtil {
         updated.pos = last_valid_position;
 
         floor
-            .update_entity(updated)
+            .update_entity((self.entity, updated))
             .log(FloorEvent::KnockbackEvent(KnockbackEvent {
                 subject: self.entity,
                 tile: last_valid_position,
@@ -60,7 +60,7 @@ impl CommandTrait for DelayCommand {
         };
 
         floor
-            .update_entity(subject_clone)
+            .update_entity((self.subject_id, subject_clone))
             .log_option(self.event.clone())
     }
 }
