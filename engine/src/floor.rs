@@ -1,7 +1,5 @@
 pub mod map;
-
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+pub mod occupiers;
 
 use rkyv::Archive;
 use rkyv::Deserialize;
@@ -13,7 +11,7 @@ use crate::entity::EntityId;
 use crate::entity::EntitySet;
 use crate::floor::map::vision::FloorMapVision;
 use crate::floor::map::FloorMap;
-use crate::positional::AbsolutePosition;
+use crate::floor::occupiers::Occupiers;
 use crate::strategy::StrategyTrait;
 use crate::writer::Writer;
 
@@ -56,7 +54,7 @@ pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.
     pub entities: EntitySet,
-    pub occupiers: HashMap<AbsolutePosition, EntityId>,
+    pub occupiers: Occupiers,
     pub map: FloorMap,
 
     // TODO: Wrap current behavior with inner class?
@@ -69,7 +67,7 @@ impl Floor {
     pub fn new() -> Self {
         Floor {
             entities: EntitySet::new(),
-            occupiers: HashMap::new(),
+            occupiers: Occupiers::new(),
             map: FloorMap::new_empty(),
             vision: Some(FloorMapVision::new()),
         }
@@ -81,17 +79,7 @@ impl Floor {
         let mut next_entities = self.entities.clone();
         let id = next_entities.add(new);
 
-        let mut next_occupiers = self.occupiers.clone();
-        if let Some(occupied) = next_entities[id].get_occupied_position() {
-            match next_occupiers.entry(occupied) {
-                Entry::Occupied(_) => {
-                    panic!("New entity occupies same position as existing entity.")
-                }
-                Entry::Vacant(vacancy) => {
-                    vacancy.insert(id);
-                }
-            }
-        }
+        let next_occupiers = self.occupiers.add_entity((id, &next_entities[id]));
 
         assert!(
             self.map.is_tile_floor(&next_entities[id].pos),
@@ -156,26 +144,12 @@ impl Floor {
             .map(|(id, _)| (*id, &next_entities[*id]))
             .collect();
 
-        let mut next_occupiers: HashMap<AbsolutePosition, EntityId> = self.occupiers.clone();
-        for (_, old) in &old_set {
-            if let Some(pos) = old.get_occupied_position() {
-                let remove = next_occupiers.remove(&pos);
-                assert!(remove.is_some());
-            }
-        }
-        for (id, new) in &new_ref_set {
-            if let Some(pos) = new.get_occupied_position() {
-                match next_occupiers.entry(pos) {
-                    Entry::Occupied(_) => {
-                        panic!("Updated entities occupy same position as another entity.")
-                    }
-                    Entry::Vacant(vacancy) => {
-                        vacancy.insert(*id);
-                    }
-                }
+        let next_occupiers = self.occupiers.update_entities(&old_set, &new_ref_set);
 
+        for (_, new) in &new_ref_set {
+            if let Some(pos) = new.get_occupied_position() {
                 assert!(
-                    self.map.is_tile_floor(&new.pos),
+                    self.map.is_tile_floor(&pos),
                     "Updated entity occupies wall position."
                 );
             }

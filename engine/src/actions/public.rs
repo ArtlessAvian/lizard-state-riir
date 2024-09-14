@@ -87,8 +87,8 @@ impl DirectionActionTrait for StepAction {
         // or to waste a turn (check in command, no-op if occupied.)
         if floor
             .occupiers
-            .get(&(floor.entities[subject_id].pos + dir))
-            .is_some_and(|x| *x != subject_id)
+            .get(floor.entities[subject_id].pos + dir)
+            .is_some_and(|x| x != subject_id)
         {
             return None;
         }
@@ -142,9 +142,7 @@ impl DirectionActionTrait for BumpAction {
         Some(Box::new(BumpCommand {
             dir,
             subject_id,
-            object_index: *floor
-                .occupiers
-                .get(&(floor.entities[subject_id].pos + dir))?,
+            object_index: floor.occupiers.get(floor.entities[subject_id].pos + dir)?,
         }))
     }
 }

@@ -65,9 +65,9 @@ impl CommandTrait for DoubleHitCommand {
                 tile: floor.entities[self.subject_id].pos + self.dir,
             }))
             .bind_or_noop(|floor| {
-                let &object_index = floor
+                let object_index = floor
                     .occupiers
-                    .get(&(floor.entities[self.subject_id].pos + self.dir))?;
+                    .get(floor.entities[self.subject_id].pos + self.dir)?;
 
                 let object_ref = &floor.entities[object_index];
                 let mut object_clone: Entity = object_ref.clone();
@@ -116,9 +116,9 @@ impl CommandTrait for DoubleHitFollowup {
                 tile: floor.entities[self.subject_id].pos + self.dir,
             }))
             .bind_or_noop(|floor| {
-                let &object_index = floor
+                let object_index = floor
                     .occupiers
-                    .get(&(floor.entities[self.subject_id].pos + self.dir))?;
+                    .get(floor.entities[self.subject_id].pos + self.dir)?;
 
                 let object_ref = &floor.entities[object_index];
                 let mut object_clone: Entity = object_ref.clone();

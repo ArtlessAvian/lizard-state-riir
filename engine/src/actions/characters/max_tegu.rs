@@ -102,9 +102,9 @@ impl CommandTrait for ForwardHeavyFollowup {
                     .log(event)
             })
             .bind_or_noop(|floor| {
-                let &object_index = floor
+                let object_index = floor
                     .occupiers
-                    .get(&(floor.entities[self.subject_id].pos + self.dir))?;
+                    .get(floor.entities[self.subject_id].pos + self.dir)?;
 
                 let object_ref = &floor.entities[object_index];
                 let mut object_clone: Entity = object_ref.clone();
@@ -156,7 +156,7 @@ impl TileActionTrait for TrackingAction {
             return None;
         }
 
-        let tracking_id = *floor.occupiers.get(&(tile))?;
+        let tracking_id = floor.occupiers.get(tile)?;
 
         if tracking_id == subject_id {
             return None;
