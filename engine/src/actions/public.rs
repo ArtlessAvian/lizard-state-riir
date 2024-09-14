@@ -139,14 +139,13 @@ impl DirectionActionTrait for BumpAction {
             return None;
         }
 
-        if !floor
-            .occupiers
-            .contains_key(&(floor.entities[subject_id].pos + dir))
-        {
-            return None;
-        }
-
-        Some(Box::new(BumpCommand { dir, subject_id }))
+        Some(Box::new(BumpCommand {
+            dir,
+            subject_id,
+            object_index: *floor
+                .occupiers
+                .get(&(floor.entities[subject_id].pos + dir))?,
+        }))
     }
 }
 
@@ -154,6 +153,7 @@ impl DirectionActionTrait for BumpAction {
 struct BumpCommand {
     dir: RelativePosition,
     subject_id: EntityId,
+    object_index: EntityId,
 }
 
 impl CommandTrait for BumpCommand {
@@ -163,9 +163,7 @@ impl CommandTrait for BumpCommand {
             next_turn: floor.get_current_turn() + 1,
         };
 
-        let object_index = floor.occupiers[&(subject_clone.pos + self.dir)];
-
-        let object_ref = &floor.entities[object_index];
+        let object_ref = &floor.entities[self.object_index];
         let mut object_clone: Entity = object_ref.clone();
         object_clone.health -= 1;
 
@@ -183,18 +181,18 @@ impl CommandTrait for BumpCommand {
             }))
             .log(FloorEvent::AttackHit(AttackHitEvent {
                 subject: self.subject_id,
-                target: object_index,
+                target: self.object_index,
                 damage: 1,
             }))
             .bind(|floor| {
                 floor.update_entities(Vec::from([
                     (self.subject_id, subject_clone),
-                    (object_index, object_clone),
+                    (self.object_index, object_clone),
                 ]))
             })
             .bind(|floor| {
                 TakeKnockbackUtil {
-                    entity: object_index,
+                    entity: self.object_index,
                     vector: self.dir,
                 }
                 .do_action(&floor)
