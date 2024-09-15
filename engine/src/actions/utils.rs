@@ -20,22 +20,35 @@ pub struct TakeKnockbackUtil {
 
 impl CommandTrait for TakeKnockbackUtil {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        // intentionally incorrect, may panic due to invariant breaking lmao
+        // TODO: Cleanup.
         let mut updated = (floor.entities[self.entity]).clone();
 
+        let mut knocked_down = Vec::new();
+
         let mut last_valid_position = updated.pos;
-        for offset in Segment::calculate_relative(self.vector).0 {
+        for offset in Segment::calculate_relative(self.vector)
+            .0
+            .into_iter()
+            .skip(1)
+        {
             if floor.map.is_tile_floor(&(updated.pos + offset)) {
                 last_valid_position = updated.pos + offset;
-                // TODO: Knockdown entities in the way.
+                if let Some(in_the_way) = floor.occupiers.get(updated.pos + offset) {
+                    let mut clone = floor.entities[in_the_way].clone();
+                    clone.state = EntityState::Knockdown { next_turn: 0 };
+                    knocked_down.push((in_the_way, clone));
+                }
             } else {
                 break;
             }
         }
         updated.pos = last_valid_position;
 
+        let mut all_updated = vec![(self.entity, updated)];
+        all_updated.append(&mut knocked_down);
+
         floor
-            .update_entity((self.entity, updated))
+            .update_entities(all_updated)
             .log(FloorEvent::KnockbackEvent(KnockbackEvent {
                 subject: self.entity,
                 tile: last_valid_position,

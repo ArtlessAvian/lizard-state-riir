@@ -45,10 +45,10 @@ impl Occupiers {
     ) -> Self {
         let mut clone = self.clone();
 
-        for (_, old) in old_set {
+        for (id, old) in old_set {
             if let Some(pos) = old.get_occupied_position() {
                 let remove = clone.0.remove(&pos);
-                assert!(remove.is_some());
+                assert!(remove.is_some_and(|x| x == *id));
             }
         }
         for (id, new) in new_set {

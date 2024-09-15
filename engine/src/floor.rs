@@ -1,14 +1,19 @@
 pub mod map;
 pub mod occupiers;
 
+use std::collections::HashMap;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
 use crate::actions::events::FloorEvent;
+use crate::actions::public::TryToStandUpAction;
+use crate::actions::ActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntitySet;
+use crate::entity::EntityState;
 use crate::floor::map::vision::FloorMapVision;
 use crate::floor::map::FloorMap;
 use crate::floor::occupiers::Occupiers;
@@ -124,14 +129,27 @@ impl Floor {
 
     #[must_use]
     pub fn update_entity(&self, new: (EntityId, Entity)) -> FloorUpdate {
-        self.update_entities(vec![new])
+        self.update_entities_map(std::iter::once(new).collect())
     }
 
+    // TODO: Figure out nicer API that isn't error prone for the caller.
+    // The caller might try update the same entityid twice. This is usually not intended.
+    // The preferred action might be to panic. The caller should make sure to update their existing copy if they intend to make multiple updates.
+    // We can also create a nice type/api to allow mutability of something like [Floor].entities. Cow maybe?
     #[must_use]
     pub fn update_entities(&self, new_set: Vec<(EntityId, Entity)>) -> FloorUpdate {
+        let len = new_set.len();
+        let map = new_set.into_iter().collect::<HashMap<EntityId, Entity>>();
+        assert!(map.len() == len);
+        self.update_entities_map(map)
+    }
+
+    // TODO: Figure out nicer API that isn't so annoying for the caller.
+    #[must_use]
+    pub fn update_entities_map(&self, new_set: HashMap<EntityId, Entity>) -> FloorUpdate {
         let old_set = new_set
-            .iter()
-            .map(|(id, _)| (*id, &self.entities[*id]))
+            .keys()
+            .map(|id| (*id, &self.entities[*id]))
             .collect::<Vec<(EntityId, &Entity)>>();
 
         let mut next_entities = self.entities.clone();
@@ -209,12 +227,21 @@ impl Floor {
         let next_id = next_id.unwrap();
 
         // Return early depending on state.
-        #[allow(clippy::single_match)]
         match &self.entities[next_id].state {
-            crate::entity::EntityState::Committed { queued_command, .. } => {
+            EntityState::Committed { queued_command, .. } => {
                 return Ok(queued_command.do_action(self));
             }
-            _ => {}
+            EntityState::Knockdown { .. } => {
+                return Ok(TryToStandUpAction
+                    .verify_action(self, next_id)
+                    .expect("only fails if entity is not knockdown state")
+                    .do_action(self))
+            }
+            EntityState::Dead => unreachable!("turn taker cannot be dead"),
+            EntityState::Ok { .. }
+            | EntityState::ConfirmCommand { .. }
+            | EntityState::RestrictedActions { .. }
+            | EntityState::Hitstun { .. } => (),
         }
 
         if self.entities[next_id].is_player_controlled {

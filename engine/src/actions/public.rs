@@ -310,6 +310,49 @@ impl CommandTrait for Archived<GotoCommand> {
     }
 }
 
+#[derive(Debug)]
+pub struct TryToStandUpAction;
+
+impl ActionTrait for TryToStandUpAction {
+    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+        match floor.entities[subject_id].state {
+            EntityState::Knockdown { next_turn } => Some(Box::new(TryToStandUpCommand {
+                subject_id,
+                now: next_turn,
+            })),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct TryToStandUpCommand {
+    subject_id: EntityId,
+    now: u32,
+}
+
+impl CommandTrait for TryToStandUpCommand {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        if floor
+            .occupiers
+            .get(floor.entities[self.subject_id].pos)
+            .is_some()
+        {
+            let mut clone = floor.entities[self.subject_id].clone();
+            clone.state = EntityState::Knockdown {
+                next_turn: self.now + 1,
+            };
+            floor.update_entity((self.subject_id, clone))
+        } else {
+            let mut clone = floor.entities[self.subject_id].clone();
+            clone.state = EntityState::Ok {
+                next_turn: self.now,
+            };
+            floor.update_entity((self.subject_id, clone))
+        }
+    }
+}
+
 #[cfg(test)]
 #[test]
 fn bump_test() {
