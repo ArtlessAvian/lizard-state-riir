@@ -22,16 +22,16 @@ func _godot_input(floor_container: FloorContainer, event: InputEvent):
 			return FloorContainer.ExtraTransitions.CLEAR
 
 	if event.is_action_pressed("move_wait"):
-		var action = floor_container.floor.get_wait_action()
-		var command = action.to_command(floor_container.floor, floor_container.player_id)
+		var action = ActiveFloor.get_wait_action()
+		var command = action.to_command(floor_container.active_floor, floor_container.player_id)
 		if command:
-			floor_container.floor.do_action(command)
+			floor_container.active_floor.do_action(command)
 			floor_container.emit_signal("floor_dirtied")
 		return FloorContainer.ExtraTransitions.CLEAR
 
 	if event is InputEventKey:
 		if event.pressed:
-			var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
+			var player = floor_container.active_floor.get_entity_by_id(floor_container.player_id)
 			var actions = player.get_actions()
 			if event.physical_keycode == KEY_Q and len(actions) > 0:
 				return transition_to_action(floor_container, actions[0])
@@ -46,24 +46,23 @@ func _godot_input(floor_container: FloorContainer, event: InputEvent):
 
 
 func move_player(floor_container: FloorContainer, dir: Vector2i):
-	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
-	var action: DirectionAction = floor_container.floor.get_step_macro_action()
-	var command = action.to_command(floor_container.floor, floor_container.player_id, dir)
+	var action: DirectionAction = ActiveFloor.get_step_macro_action()
+	var command = action.to_command(floor_container.active_floor, floor_container.player_id, dir)
 	if command:
-		floor_container.floor.do_action(command)
+		floor_container.active_floor.do_action(command)
 		floor_container.emit_signal("floor_dirtied")
 
 
 func goto_mouse(floor_container: FloorContainer):
 	var absolute_position = project_mouse_to_tile(floor_container.get_viewport())
 	var player_position = (
-		floor_container.floor.get_entity_by_id(floor_container.player_id).get_pos()
+		floor_container.active_floor.get_entity_by_id(floor_container.player_id).get_pos()
 	)
 
 	if absolute_position == player_position:
-		floor_container.floor.do_action(
-			floor_container.floor.get_wait_action().to_command(
-				floor_container.floor, floor_container.player_id
+		floor_container.active_floor.do_action(
+			ActiveFloor.get_wait_action().to_command(
+				floor_container.active_floor, floor_container.player_id
 			)
 		)
 		return FloorContainer.ExtraTransitions.CLEAR
@@ -73,9 +72,9 @@ func goto_mouse(floor_container: FloorContainer):
 		and (absolute_position - player_position).y <= 1
 		and (absolute_position - player_position).y >= -1
 	):
-		floor_container.floor.do_action(
-			floor_container.floor.get_step_macro_action().to_command(
-				floor_container.floor,
+		floor_container.active_floor.do_action(
+			ActiveFloor.get_step_macro_action().to_command(
+				floor_container.active_floor,
 				floor_container.player_id,
 				absolute_position - player_position
 			)
@@ -86,12 +85,12 @@ func goto_mouse(floor_container: FloorContainer):
 		Vector3(absolute_position.x, 0, absolute_position.y) + Vector3.UP * 0.01
 	)
 
-	var action: TileAction = floor_container.floor.get_goto_action()
+	var action: TileAction = ActiveFloor.get_goto_action()
 	var command = action.to_command(
-		floor_container.floor, floor_container.player_id, absolute_position
+		floor_container.active_floor, floor_container.player_id, absolute_position
 	)
 	if command:
-		floor_container.floor.do_action(command)
+		floor_container.active_floor.do_action(command)
 		floor_container.emit_signal("floor_dirtied")
 
 	return preload("res://Crawler/Controller/AutoconfirmState.gd").new("goto")

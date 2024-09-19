@@ -15,31 +15,32 @@ func _init(reason: String):
 # 	return FloorContainer.ExtraTransitions.NONE
 
 
-func _poll_input(floor_container: FloorContainer, delta: float):
+func _poll_input(floor_container: FloorContainer, _delta: float):
 # 	# TODO: Does not cancel while moving!
 # 	if event.is_action_pressed("ui_cancel"):
 # 		return FloorContainer.ExtraTransitions.EXIT
 
-	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
+	var player = floor_container.active_floor.get_entity_by_id(floor_container.player_id)
 	var command = player.get_command_to_confirm()
 	if command:
 		self.debug_autoconfirms += 1
-		floor_container.floor.do_action(command)
+		floor_container.active_floor.do_action(command)
 		floor_container.emit_signal("floor_dirtied")
 		return FloorContainer.ExtraTransitions.NONE
 
 	return FloorContainer.ExtraTransitions.CLEAR
+
 
 func _poll_held_input(floor_container: FloorContainer):
 # 	# TODO: Does not cancel while moving!
 # 	if event.is_action_pressed("ui_cancel"):
 # 		return FloorContainer.ExtraTransitions.EXIT
 
-	var player = floor_container.floor.get_entity_by_id(floor_container.player_id)
+	var player = floor_container.active_floor.get_entity_by_id(floor_container.player_id)
 	var command = player.get_command_to_confirm()
 	if command:
 		self.debug_autoconfirms += 1
-		floor_container.floor.do_action(command)
+		floor_container.active_floor.do_action(command)
 		floor_container.emit_signal("floor_dirtied")
 		return FloorContainer.ExtraTransitions.NONE
 
