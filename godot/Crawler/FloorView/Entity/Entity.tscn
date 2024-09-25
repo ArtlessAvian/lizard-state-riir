@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://26cefkj35wuf"]
+[gd_scene load_steps=12 format=3 uid="uid://26cefkj35wuf"]
 
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/DiscardBasis.gd" id="1_dh5rl"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/Entity.gd" id="1_r4emd"]
@@ -7,6 +7,8 @@
 [ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://Crawler/FloorView/Entity/tegu.png" id="4_w7ppg"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/UnclipTail.gd" id="5_1w3dl"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/EntitySprite.gd" id="5_jvxk3"]
+
+[sub_resource type="PrismMesh" id="PrismMesh_1gh1x"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_31piw"]
 atlas = ExtResource("4_w7ppg")
@@ -22,6 +24,13 @@ region = Rect2(0, 80, 40, 40)
 
 [node name="Entity" type="Node3D"]
 script = ExtResource("1_r4emd")
+
+[node name="Arrow" type="Node3D" parent="."]
+
+[node name="Tip" type="MeshInstance3D" parent="Arrow"]
+transform = Transform3D(0.8, 0, 0, 0, 0, -0.1, 0, 0.3, 0, 0, 0, 0.3)
+mesh = SubResource("PrismMesh_1gh1x")
+skeleton = NodePath("../../DiscardBasis")
 
 [node name="DiscardBasis" type="Node3D" parent="."]
 top_level = true

@@ -60,7 +60,7 @@ func clear_queue(delta, floor: ActiveFloor):
 			var subject = id_to_node[event.subject]
 			var tile = Vector3(event.tile.x, 0, event.tile.y)
 			if event.tile != subject.last_known_position:
-				subject.get_node("DiscardBasis/Sprite3D").look_dir = tile - subject.position
+				subject.basis = Basis.looking_at(tile - subject.position, Vector3.UP, true)
 
 			if event.tile != subject.last_known_position:
 				var tween = subject.create_tween()
@@ -81,7 +81,7 @@ func clear_queue(delta, floor: ActiveFloor):
 			# TODO: Replace with actual animation player.
 			var subject = id_to_node[event.subject]
 			var target = Vector3(event.tile.x, 0, event.tile.y)
-			subject.get_node("DiscardBasis/Sprite3D").look_dir = target - subject.position
+			subject.basis = Basis.looking_at(target - subject.position, Vector3.UP, true)
 
 			var sprite = subject.get_node("DiscardBasis/Sprite3D")
 			sprite.look_dir_offset = 0
@@ -103,7 +103,7 @@ func clear_queue(delta, floor: ActiveFloor):
 			target.get_node("DiscardBasis/DamagePopup").popup(-1)
 
 			var subject = id_to_node[event.subject]
-			target.get_node("DiscardBasis/Sprite3D").look_dir = subject.position - target.position
+			target.basis = Basis.looking_at(subject.position - target.position, Vector3.UP, true)
 
 			event_index += 1
 
@@ -151,7 +151,6 @@ func sync_with_engine(floor):
 			id_to_node[id] = dup
 			dup.name = id.petname
 			%Entity.add_sibling(dup)
-		var entity = floor.get_entity_by_id(id)
 		id_to_node[id].sync_with(floor.get_entity_by_id(id))
 
 	#print(floor.get_entity_by_id(player_id).get_actions())
