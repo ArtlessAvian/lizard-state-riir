@@ -8,6 +8,7 @@ extends Sprite3D
 # y is dropped for calculations.
 @export var look_dir_offset: float = 0  # full rotations
 
+
 func _process(delta):
 	var camera_direction
 	var camera_up
@@ -18,15 +19,15 @@ func _process(delta):
 		camera_direction = Vector3.FORWARD
 		camera_up = Vector3.UP
 
-	self.transform.basis = Basis.looking_at(camera_direction, camera_up)
+	self.global_basis = Basis.looking_at(camera_direction, camera_up)
 	spin_around(camera_direction)
 
 
 func spin_around(camera_direction):
-	if not self.get_parent() or not self.get_parent().get_parent():
+	if not self.get_parent():
 		return  # we need to yoink their global transform since we threw ours out.
 
-	var local_forward = self.get_parent().get_parent().global_transform.basis * Vector3.MODEL_FRONT
+	var local_forward = self.get_parent().global_basis * Vector3.MODEL_FRONT
 	local_forward = local_forward.rotated(Vector3.UP, look_dir_offset * 2 * PI)
 
 	var cam_dir_drop_y = camera_direction * Vector3(1, 0, 1)

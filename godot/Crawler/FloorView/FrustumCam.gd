@@ -1,5 +1,5 @@
 @tool
-extends Node3D
+extends Camera3D
 
 const TILE_APPARENT_WIDTH: float = 24
 const LARGE_DISTANCE: float = 1000

@@ -64,12 +64,18 @@ func clear_queue(delta, floor: ActiveFloor):
 
 			if event.tile != subject.last_known_position:
 				var tween = subject.create_tween()
+				# HACK: Tweens do work after process, *after* the camera has tracked the player
+				# position, so the player moves after the camera has moved.
+				# call_deferred does not help much?
+				# This is not a good solution because movement is now locked to 60 FPS.
+				# We could instead reparent the camera but it is a bit awkward.
+				tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 				tween.tween_property(subject, "position", tile, 10 / 60.0)
 				test_tweens[tween] = "Move"
 				# HACK: For smoothness at very low fps. The best thing to do would be to pass
 				# a residual delta from done_animating, and pass that back into floor_sync.
 				# Then use delta here.
-				tween.custom_step(1.0 / max(Engine.get_frames_per_second(), 144))
+				# tween.custom_step(1.0 / max(Engine.get_frames_per_second(), 144))
 
 			subject.last_known_position = event.tile
 			event_index += 1
@@ -83,17 +89,8 @@ func clear_queue(delta, floor: ActiveFloor):
 			var target = Vector3(event.tile.x, 0, event.tile.y)
 			subject.basis = Basis.looking_at(target - subject.position, Vector3.UP, true)
 
-			var sprite = subject.get_node("DiscardBasis/Sprite3D")
-			sprite.look_dir_offset = 0
-
-			var tween = sprite.create_tween()
-			tween.tween_property(sprite, "look_dir_offset", 1, 8 / 60.0)
-			tween.parallel().tween_property(
-				sprite, "position", sprite.position.lerp(target - subject.position, 0.5), 4 / 60.0
-			)
-			tween.tween_property(sprite, "position", sprite.position, 4 / 60.0)
-
-			test_tweens[tween] = "Start Attack"
+			var animation = subject.get_node("AnimationPlayer") as AnimationPlayer
+			animation.play("Entity/Attack")
 
 			test_event_delay += 4 / 60.0
 			event_index += 1
