@@ -102,6 +102,9 @@ func clear_queue(delta, floor: ActiveFloor):
 			var subject = id_to_node[event.subject]
 			target.basis = Basis.looking_at(subject.position - target.position, Vector3.UP, true)
 
+			var animation = target.get_node("AnimationPlayer") as AnimationPlayer
+			animation.play("Entity/Hurt")
+
 			event_index += 1
 
 		elif event is SeeMapEvent:

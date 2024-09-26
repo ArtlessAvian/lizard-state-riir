@@ -9,3 +9,17 @@ func sync_with(snapshot: EntitySnapshot):
 
 	find_child("Debug").text = snapshot.get_debug()
 	find_child("DebugHealth").text = str(snapshot.get_energy())
+
+	$AnimationPlayer.play("RESET")
+	$AnimationPlayer.seek(100, true)
+	$AnimationPlayer.play(snapshot_to_idle_animation(snapshot))
+
+
+func snapshot_to_idle_animation(snapshot):
+	if snapshot.get_state_name() == "Knockdown":
+		return "Entity/StateKnockdown"
+	if snapshot.get_state_name() == "Hitstun":
+		return "Entity/StateHitstun"
+	if snapshot.get_state_name() == "Committed":
+		return "Entity/StateCommitted"
+	return "Entity/StateOk"

@@ -1,9 +1,5 @@
 @tool
-extends Sprite3D
-
-@export var towards: Texture
-@export var right: Texture
-@export var away: Texture
+extends AnimatedSprite3D
 
 # y is dropped for calculations.
 @export var look_dir_offset: float = 0  # full rotations
@@ -20,12 +16,16 @@ func _process(delta):
 		camera_up = Vector3.UP
 
 	self.global_basis = Basis.looking_at(camera_direction, camera_up)
-	spin_around(camera_direction)
+
+	if not Engine.is_editor_hint():
+		spin_around(camera_direction)
 
 
 func spin_around(camera_direction):
 	if not self.get_parent():
 		return  # we need to yoink their global transform since we threw ours out.
+
+	var held_frame = self.frame
 
 	var local_forward = self.get_parent().global_basis * Vector3.MODEL_FRONT
 	local_forward = local_forward.rotated(Vector3.UP, look_dir_offset * 2 * PI)
@@ -36,10 +36,12 @@ func spin_around(camera_direction):
 	var angle = rad_to_deg(cam_dir_drop_y.angle_to(look_dir_drop_y))
 	if angle < 30:
 		self.flip_h = false
-		self.texture = away
+		self.animation = "Away"
 	elif angle > 150:
 		self.flip_h = false
-		self.texture = towards
+		self.animation = "Towards"
 	else:
 		self.flip_h = cam_dir_drop_y.cross(look_dir_drop_y).y > 0
-		self.texture = right
+		self.animation = "Right"
+
+	self.frame = held_frame

@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use engine::entity::Entity;
+use engine::entity::EntityState;
 use godot::prelude::*;
 
 use crate::actions::Action;
@@ -63,4 +64,30 @@ impl EntitySnapshot {
     fn get_debug(&self) -> String {
         format!("{:?}", self.entity.state)
     }
+
+    #[func]
+    fn get_state_name(&self) -> EntityStateName {
+        match self.entity.state {
+            EntityState::Ok { .. } => EntityStateName::Ok,
+            EntityState::Committed { .. } => EntityStateName::Committed,
+            EntityState::ConfirmCommand { .. } => EntityStateName::ConfirmCommand,
+            EntityState::RestrictedActions { .. } => EntityStateName::RestrictedActions,
+            EntityState::Hitstun { .. } => EntityStateName::Hitstun,
+            EntityState::Knockdown { .. } => EntityStateName::Knockdown,
+            EntityState::Dead => EntityStateName::Dead,
+        }
+    }
+}
+
+#[derive(GodotConvert, Var, Export)]
+#[godot(via = GString)]
+#[derive(Debug)]
+pub enum EntityStateName {
+    Ok,
+    Committed,
+    ConfirmCommand,
+    RestrictedActions,
+    Hitstun,
+    Knockdown,
+    Dead,
 }
