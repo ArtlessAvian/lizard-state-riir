@@ -4,21 +4,37 @@ extends AnimatedSprite3D
 # y is dropped for calculations.
 @export var look_dir_offset: float = 0  # full rotations
 
+# This could run all the time, but it would save rotation and cause
+# version control noise.
+@export var rotate_in_editor: bool = false:
+	set(value):
+		rotate_in_editor = value
+		update_configuration_warnings()
+
+
+func _get_configuration_warnings() -> PackedStringArray:
+	if rotate_in_editor:
+		return ["Uncheck rotate_in_editor before committing!"]
+	return []
+
 
 func _process(delta):
 	var camera_direction
 	var camera_up
-	if get_viewport().get_camera_3d() is Camera3D and not Engine.is_editor_hint():
-		camera_direction = -get_viewport().get_camera_3d().basis.z
-		camera_up = get_viewport().get_camera_3d().basis.y
+	if not Engine.is_editor_hint() and get_viewport().get_camera_3d() is Camera3D:
+		var camera = get_viewport().get_camera_3d()
+		camera_direction = -camera.basis.z
+		camera_up = camera.basis.y
+	elif Engine.is_editor_hint() and rotate_in_editor:
+		var camera = EditorInterface.get_editor_viewport_3d().get_camera_3d()
+		camera_direction = -camera.basis.z
+		camera_up = camera.basis.y
 	else:
 		camera_direction = Vector3.FORWARD
 		camera_up = Vector3.UP
 
 	self.global_basis = Basis.looking_at(camera_direction, camera_up)
-
-	if not Engine.is_editor_hint():
-		spin_around(camera_direction)
+	spin_around(camera_direction)
 
 
 func spin_around(camera_direction):
