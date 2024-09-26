@@ -139,6 +139,13 @@ func clear_queue(delta, floor: ActiveFloor):
 
 			event_index += 1
 
+		elif event is KnockdownEvent:
+			var subject = id_to_node[event.subject]
+			var animation = subject.get_node("AnimationPlayer") as AnimationPlayer
+			animation.play(&"Entity/KnockedDown")
+
+			event_index += 1
+
 		else:
 			printerr("Unknown Event! ", event)
 			event_index += 1

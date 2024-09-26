@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use super::events::FloorEvent;
 use super::events::KnockbackEvent;
+use super::events::KnockdownEvent;
 use super::CommandTrait;
 use super::SerializeCommandTrait;
 use crate::entity::Entity;
@@ -35,7 +36,11 @@ impl CommandTrait for TakeKnockbackUtil {
                 last_valid_position = updated.pos + offset;
                 if let Some(in_the_way) = floor.occupiers.get(updated.pos + offset) {
                     let mut clone = floor.entities[in_the_way].clone();
-                    clone.state = EntityState::Knockdown { next_turn: 0 };
+                    clone.state = EntityState::Knockdown {
+                        next_turn: updated
+                            .get_next_turn()
+                            .expect("Entity taking knockback should be a turntaker."),
+                    };
                     knocked_down.push((in_the_way, clone));
                 }
             } else {
@@ -44,15 +49,21 @@ impl CommandTrait for TakeKnockbackUtil {
         }
         updated.pos = last_valid_position;
 
+        let knocked_down_ids: Vec<_> = knocked_down.iter().map(|x| x.0).collect();
+
         let mut all_updated = vec![(self.entity, updated)];
         all_updated.append(&mut knocked_down);
 
-        floor
+        let mut update = floor
             .update_entities(all_updated)
             .log(FloorEvent::KnockbackEvent(KnockbackEvent {
                 subject: self.entity,
                 tile: last_valid_position,
-            }))
+            }));
+        for id in knocked_down_ids {
+            update = update.log(FloorEvent::KnockdownEvent(KnockdownEvent { subject: id }));
+        }
+        update
     }
 }
 

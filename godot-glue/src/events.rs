@@ -38,6 +38,9 @@ impl FloorEvent {
             FloorEventInternal::SeeMap(x) => SeeMapEvent::new(id_bijection, x).to_variant(),
             FloorEventInternal::KnockbackEvent(x) => {
                 KnockbackEvent::new(id_bijection, x).to_variant()
+            }
+            FloorEventInternal::KnockdownEvent(x) => {
+                KnockdownEvent::new(id_bijection, x).to_variant()
             } // default => Variant::nil(),
         }
     }
@@ -156,6 +159,24 @@ impl KnockbackEvent {
         Gd::from_object(Self {
             subject: EntityId::new(event.subject, id_bijection),
             tile: event.tile.into(),
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct KnockdownEvent {
+    #[var(get)]
+    subject: Gd<EntityId>,
+}
+
+impl KnockdownEvent {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::KnockdownEvent,
+    ) -> Gd<Self> {
+        Gd::from_object(Self {
+            subject: EntityId::new(event.subject, id_bijection),
         })
     }
 }

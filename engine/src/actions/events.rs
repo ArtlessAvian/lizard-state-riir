@@ -15,6 +15,7 @@ pub enum FloorEvent {
     AttackHit(AttackHitEvent),
     SeeMap(SeeMapEvent),
     KnockbackEvent(KnockbackEvent),
+    KnockdownEvent(KnockdownEvent),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -55,4 +56,9 @@ impl std::fmt::Debug for SeeMapEvent {
 pub struct KnockbackEvent {
     pub subject: EntityId,
     pub tile: AbsolutePosition,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct KnockdownEvent {
+    pub subject: EntityId,
 }
