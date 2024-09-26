@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://26cefkj35wuf"]
+[gd_scene load_steps=33 format=3 uid="uid://26cefkj35wuf"]
 
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/DiscardBasis.gd" id="1_dh5rl"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/Entity.gd" id="1_r4emd"]
@@ -220,6 +220,14 @@ _data = {
 
 [sub_resource type="PrismMesh" id="PrismMesh_1gh1x"]
 
+[sub_resource type="Environment" id="Environment_bfuew"]
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.301961, 0.301961, 0.301961, 1)
+fog_density = 1.0
+fog_depth_begin = 6.0
+fog_depth_end = 8.0
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_ojjfa"]
 atlas = ExtResource("4_w7ppg")
 region = Rect2(0, 80, 40, 40)
@@ -382,8 +390,13 @@ font_size = 8
 outline_size = 4
 script = ExtResource("3_vuf35")
 
-[node name="Perspective" type="Camera3D" parent="DiscardBasis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+[node name="Perspective" type="Camera3D" parent="."]
+editor_description = "this is incredibly silly!
+
+Planned to be used for a diagetic camera feature."
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0.75, 0)
+environment = SubResource("Environment_bfuew")
+fov = 105.0
 
 [node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
 offset = Vector2(0, 15)

@@ -23,12 +23,12 @@ func _process(delta):
 	var camera_up
 	if not Engine.is_editor_hint() and get_viewport().get_camera_3d() is Camera3D:
 		var camera = get_viewport().get_camera_3d()
-		camera_direction = -camera.basis.z
-		camera_up = camera.basis.y
+		camera_direction = -camera.global_basis.z
+		camera_up = camera.global_basis.y
 	elif Engine.is_editor_hint() and rotate_in_editor:
 		var camera = EditorInterface.get_editor_viewport_3d().get_camera_3d()
-		camera_direction = -camera.basis.z
-		camera_up = camera.basis.y
+		camera_direction = -camera.global_basis.z
+		camera_up = camera.global_basis.y
 	else:
 		camera_direction = Vector3.FORWARD
 		camera_up = Vector3.UP
