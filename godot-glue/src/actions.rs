@@ -1,3 +1,5 @@
+pub mod public;
+
 use std::rc::Rc;
 
 use engine::actions::ActionTrait;

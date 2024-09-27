@@ -5,11 +5,6 @@ use std::collections::HashMap;
 use std::default::Default;
 use std::rc::Rc;
 
-use engine::actions::public::BumpAction;
-use engine::actions::public::GotoAction;
-use engine::actions::public::StepAction;
-use engine::actions::public::StepMacroAction;
-use engine::actions::public::WaitAction;
 use engine::entity::Entity as EntityInternal;
 use engine::entity::EntityId as EntityIdInternal;
 use engine::entity::EntityState;
@@ -18,14 +13,11 @@ use engine::positional::AbsolutePosition;
 use engine::strategy::FollowStrategy;
 use engine::strategy::Strategy;
 use godot::prelude::*;
-use snapshot::EntitySnapshot;
 use tracing::instrument;
 
-use crate::actions::Action;
 use crate::actions::Command;
-use crate::actions::DirectionAction;
-use crate::actions::TileAction;
 use crate::events::FloorEvent;
+use crate::floor::snapshot::EntitySnapshot;
 
 /// The game.
 ///
@@ -185,38 +177,6 @@ impl ActiveFloor {
     #[must_use]
     pub fn get_time(&self) -> u32 {
         self.internal.get_current_turn()
-    }
-
-    // engine::actions::public::* goes here.
-
-    #[func]
-    #[must_use]
-    pub fn get_wait_action() -> Gd<Action> {
-        Action::new(Rc::new(WaitAction))
-    }
-
-    #[func]
-    #[must_use]
-    pub fn get_step_action() -> Gd<DirectionAction> {
-        DirectionAction::new(Rc::new(StepAction))
-    }
-
-    #[func]
-    #[must_use]
-    pub fn get_bump_action() -> Gd<DirectionAction> {
-        DirectionAction::new(Rc::new(BumpAction))
-    }
-
-    #[func]
-    #[must_use]
-    pub fn get_step_macro_action() -> Gd<DirectionAction> {
-        DirectionAction::new(Rc::new(StepMacroAction))
-    }
-
-    #[func]
-    #[must_use]
-    pub fn get_goto_action() -> Gd<TileAction> {
-        TileAction::new(Rc::new(GotoAction))
     }
 }
 

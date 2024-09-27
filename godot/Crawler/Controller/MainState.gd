@@ -22,7 +22,7 @@ func _godot_input(floor_container: FloorContainer, event: InputEvent):
 			return FloorContainer.ExtraTransitions.CLEAR
 
 	if event.is_action_pressed("move_wait"):
-		var action = ActiveFloor.get_wait_action()
+		var action = PublicActions.get_wait_action()
 		var command = action.to_command(floor_container.active_floor, floor_container.player_id)
 		if command:
 			floor_container.active_floor.do_action(command)
@@ -46,7 +46,7 @@ func _godot_input(floor_container: FloorContainer, event: InputEvent):
 
 
 func move_player(floor_container: FloorContainer, dir: Vector2i):
-	var action: DirectionAction = ActiveFloor.get_step_macro_action()
+	var action: DirectionAction = PublicActions.get_step_macro_action()
 	var command = action.to_command(floor_container.active_floor, floor_container.player_id, dir)
 	if command:
 		floor_container.active_floor.do_action(command)
@@ -61,7 +61,7 @@ func goto_mouse(floor_container: FloorContainer):
 
 	if absolute_position == player_position:
 		floor_container.active_floor.do_action(
-			ActiveFloor.get_wait_action().to_command(
+			PublicActions.get_wait_action().to_command(
 				floor_container.active_floor, floor_container.player_id
 			)
 		)
@@ -73,7 +73,7 @@ func goto_mouse(floor_container: FloorContainer):
 		and (absolute_position - player_position).y >= -1
 	):
 		floor_container.active_floor.do_action(
-			ActiveFloor.get_step_macro_action().to_command(
+			PublicActions.get_step_macro_action().to_command(
 				floor_container.active_floor,
 				floor_container.player_id,
 				absolute_position - player_position
@@ -85,7 +85,7 @@ func goto_mouse(floor_container: FloorContainer):
 		Vector3(absolute_position.x, 0, absolute_position.y) + Vector3.UP * 0.01
 	)
 
-	var action: TileAction = ActiveFloor.get_goto_action()
+	var action: TileAction = PublicActions.get_goto_action()
 	var command = action.to_command(
 		floor_container.active_floor, floor_container.player_id, absolute_position
 	)
