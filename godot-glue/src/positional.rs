@@ -26,7 +26,7 @@ impl From<RelativePosition> for engine::positional::RelativePosition {
     }
 }
 
-#[derive(GodotConvert, Var, Debug)]
+#[derive(GodotConvert, Var, Export, Debug, Clone, Copy, Default)]
 #[godot(transparent)]
 pub struct AbsolutePosition {
     absolute: Vector2i,

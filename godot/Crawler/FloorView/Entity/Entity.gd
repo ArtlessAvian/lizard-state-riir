@@ -1,6 +1,26 @@
+@tool
 extends Node3D
 
+# Read-only for tool/editor stuff.
+@export var entity_initializer: EntityInitializer
+
+# The actual logic and stuff.
 var last_known_position: Vector2i
+
+
+func _ready():
+	if Engine.is_editor_hint():
+		if entity_initializer is EntityInitializer:
+			self.sync_with(entity_initializer.to_snapshot())
+
+
+func _process(_delta: float):
+	if Engine.is_editor_hint():
+		if entity_initializer is EntityInitializer:
+			# TODO: Run as little as possible. Repeatedly constructs Rust structs in Rcs,
+			# passes them around, then drops them.
+			if EditorInterface.get_inspector().get_edited_object() == self:
+				self.sync_with(entity_initializer.to_snapshot())
 
 
 func sync_with(snapshot: EntitySnapshot):

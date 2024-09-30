@@ -12,6 +12,9 @@ pub mod actions;
 pub mod events;
 pub mod floor;
 pub mod positional;
+/// One way conversions from Godot to Rust.
+/// Not intended for saving an existing game.
+pub mod resources;
 
 use std::default::Default;
 

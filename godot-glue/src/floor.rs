@@ -1,4 +1,4 @@
-mod snapshot;
+pub mod snapshot;
 
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
