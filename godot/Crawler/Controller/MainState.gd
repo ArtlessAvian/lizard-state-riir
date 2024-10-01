@@ -65,6 +65,7 @@ func goto_mouse(floor_container: FloorContainer):
 				floor_container.active_floor, floor_container.player_id
 			)
 		)
+		floor_container.emit_signal("floor_dirtied")
 		return FloorContainer.ExtraTransitions.CLEAR
 	elif (
 		(absolute_position - player_position).x <= 1
@@ -79,6 +80,7 @@ func goto_mouse(floor_container: FloorContainer):
 				absolute_position - player_position
 			)
 		)
+		floor_container.emit_signal("floor_dirtied")
 		return FloorContainer.ExtraTransitions.CLEAR
 
 	floor_container.find_child("Cursor").position = (
