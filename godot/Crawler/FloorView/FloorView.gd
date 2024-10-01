@@ -8,7 +8,6 @@ var event_index = 0
 var desynced_from_floor = false
 
 var test_event_delay = 0
-var test_tweens = Dictionary()  # Abuse of dictionary. Treat as Array[Pair<Tween, Variant>]
 
 var test_visions: Dictionary  # of EntityIds to their most recent vision.
 
@@ -29,24 +28,28 @@ func _process_floor(delta, floor: ActiveFloor):
 		desynced_from_floor = true
 		clear_queue(delta, floor)
 
-	for tween in test_tweens.keys().filter(func(t): return !t.is_valid()):
-		test_tweens.erase(tween)
-
 	if (
 		desynced_from_floor
 		and event_index == len(floor.log)
 		and test_event_delay <= 0
-		and test_tweens.is_empty()
+		and id_to_node.values().all(func(x): return not x.is_animating())
 	):
 		desynced_from_floor = false
 		sync_with_engine(floor)
 		emit_signal("done_animating")  # repoll input for smooth movement.
 
 	$Control/Label.text = "hi"
-	for key in test_tweens.keys():
-		$Control/Label.text += (
-			"\n" + str(key) + ": " + str(test_tweens[key]) + " " + str(key.is_valid())
-		)
+	for id in id_to_node:
+		var node = id_to_node[id]
+		if node.is_animating():
+			$Control/Label.text += (
+				"\n"
+				+ str(id)
+				+ ": "
+				+ str(node.movement_tween)
+				+ " "
+				+ str(node.get_node("AnimationPlayer").current_animation)
+			)
 
 
 func clear_queue(delta, floor: ActiveFloor):
@@ -54,34 +57,24 @@ func clear_queue(delta, floor: ActiveFloor):
 		var event = floor.log[event_index]
 
 		if event is MoveEvent:
-			if test_tweens.values().any(func(x): return x != "Move"):
+			var subject = id_to_node[event.subject]
+			if subject.is_animating():
 				return
 
-			var subject = id_to_node[event.subject]
 			var tile = Vector3(event.tile.x, 0, event.tile.y)
 			if event.tile != subject.last_known_position:
 				subject.basis = Basis.looking_at(tile - subject.position, Vector3.UP, true)
 
 			if event.tile != subject.last_known_position:
 				var tween = subject.create_tween()
-				# HACK: Tweens do work after process, *after* the camera has tracked the player
-				# position, so the player moves after the camera has moved.
-				# call_deferred does not help much?
-				# This is not a good solution because movement is now locked to 60 FPS.
-				# We could instead reparent the camera but it is a bit awkward.
-				tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 				tween.tween_property(subject, "position", tile, 10 / 60.0)
-				test_tweens[tween] = "Move"
-				# HACK: For smoothness at very low fps. The best thing to do would be to pass
-				# a residual delta from done_animating, and pass that back into floor_sync.
-				# Then use delta here.
-				# tween.custom_step(1.0 / max(Engine.get_frames_per_second(), 144))
+				subject.movement_tween = tween
+				subject.last_known_position = event.tile
 
-			subject.last_known_position = event.tile
 			event_index += 1
 
 		elif event is StartAttackEvent:
-			if test_tweens.keys().any(func(t): return t.is_valid()):
+			if id_to_node.values().any(func(x): return x.is_animating()):
 				return
 
 			# TODO: Replace with actual animation player.
@@ -124,6 +117,9 @@ func clear_queue(delta, floor: ActiveFloor):
 
 		elif event is KnockbackEvent:
 			var subject = id_to_node[event.subject]
+			if subject.is_animating():
+				return
+
 			var tile = Vector3(event.tile.x, 0, event.tile.y)
 
 			var tween = subject.create_tween()
@@ -133,8 +129,7 @@ func clear_queue(delta, floor: ActiveFloor):
 				. set_trans(Tween.TRANS_EXPO)
 				. set_ease(Tween.EASE_OUT)
 			)
-			test_tweens[tween] = "Knockback"
-
+			subject.movement_tween = tween
 			subject.last_known_position = event.tile
 
 			event_index += 1

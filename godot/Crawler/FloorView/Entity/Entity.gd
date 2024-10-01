@@ -5,6 +5,7 @@ extends Node3D
 @export var entity_initializer: EntityInitializer
 
 # The actual logic and stuff.
+var movement_tween: Tween
 var last_known_position: Vector2i
 
 
@@ -14,13 +15,26 @@ func _ready():
 			self.sync_with(entity_initializer.to_snapshot())
 
 
-func _process(_delta: float):
+func _process(delta: float):
 	if Engine.is_editor_hint():
 		if entity_initializer is EntityInitializer:
 			# TODO: Run as little as possible. Repeatedly constructs Rust structs in Rcs,
 			# passes them around, then drops them.
 			if EditorInterface.get_inspector().get_edited_object() == self:
 				self.sync_with(entity_initializer.to_snapshot())
+
+	if movement_tween is Tween:
+		# We want to run these manually during the _process propagation.
+		# Otherwise it would run in the idle time after that,
+		# which ruins the current camera tracking.
+		movement_tween.pause()
+		movement_tween.custom_step(delta)
+
+
+func is_animating() -> bool:
+	if movement_tween is Tween and movement_tween.is_valid():
+		return true
+	return $AnimationPlayer.is_playing()
 
 
 func sync_with(snapshot: EntitySnapshot):
@@ -33,6 +47,8 @@ func sync_with(snapshot: EntitySnapshot):
 	$AnimationPlayer.play("RESET")
 	$AnimationPlayer.seek(100, true)
 	$AnimationPlayer.play(snapshot_to_idle_animation(snapshot))
+	$AnimationPlayer.seek(100, true)
+	$AnimationPlayer.stop()
 
 
 func snapshot_to_idle_animation(snapshot):

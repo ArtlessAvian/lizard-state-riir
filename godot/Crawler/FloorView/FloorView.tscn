@@ -51,6 +51,7 @@ metadata/_edit_lock_ = true
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 5, 0)
 
 [node name="Camera3D" type="Camera3D" parent="."]
+process_priority = 100
 editor_description = "Writes to WorldSkew to simulate moving the Camera around (with a more domain appropriate interface).
 
 This can be disabled, and the output is indistinguishable (aside from lighting changes and billboard sprites clipping)."
