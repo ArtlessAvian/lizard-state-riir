@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=17 format=3 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" path="res://Crawler/FloorView/FloorView.gd" id="1_7s6h2"]
 [ext_resource type="Script" path="res://Crawler/FloorView/FloorCamera.gd" id="2_0g4sw"]
@@ -43,6 +43,13 @@ item/1/shapes = []
 item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 item/1/navigation_layers = 1
 
+[sub_resource type="LabelSettings" id="LabelSettings_2yoih"]
+line_spacing = 4.0
+font = ExtResource("4_73ryr")
+font_size = 8
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
 [node name="FloorView" type="Node3D"]
 script = ExtResource("1_7s6h2")
 metadata/_edit_lock_ = true
@@ -70,24 +77,6 @@ transform = Transform3D(1, 0, 0, 0, 0.745356, -0.666667, 0, 0.666667, 0.745356, 
 rotation_edit_mode = 2
 mesh = SubResource("PlaneMesh_k7u2w")
 skeleton = NodePath("../../WorldSkew/MapHistory")
-
-[node name="Vi Keys Guide" type="Label3D" parent="Camera3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.88, -3.61, -0.06)
-layers = 2
-pixel_size = 0.0417
-billboard = 1
-texture_filter = 0
-render_priority = 2
-outline_render_priority = 1
-modulate = Color(0, 0.537255, 0.964706, 1)
-text = "YKU
-H  L
-BJN"
-font = ExtResource("4_73ryr")
-font_size = 8
-outline_size = 4
-horizontal_alignment = 0
-line_spacing = 5.0
 
 [node name="WorldSkew" type="Node3D" parent="."]
 editor_description = "Funky transformation that appears to rotate, but actually keeps \"up\" as Y+, so billboard sprites don't clip into vertical walls behind them. Set directly by ../Camera3D."
@@ -154,6 +143,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="Vi Keys Guide" type="Label" parent="Control"]
+texture_filter = 1
+layout_mode = 0
+offset_left = 1075.0
+offset_top = 538.0
+offset_right = 1107.0
+offset_bottom = 574.0
+scale = Vector2(3, 3)
+text = "YKU
+H  L
+BJN"
+label_settings = SubResource("LabelSettings_2yoih")
 
 [node name="Label" type="Label" parent="Control"]
 layout_mode = 1

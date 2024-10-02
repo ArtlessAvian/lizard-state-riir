@@ -351,21 +351,23 @@ top_level = true
 script = ExtResource("1_dh5rl")
 
 [node name="Debug" type="Label3D" parent="DiscardBasis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.436, 0)
 visible = false
 layers = 2
 pixel_size = 0.01
+offset = Vector2(0, 200)
 billboard = 1
 texture_filter = 0
 render_priority = 2
 outline_render_priority = 1
 text = "Debug"
+vertical_alignment = 2
 autowrap_mode = 3
 
 [node name="DebugHealth" type="Label3D" parent="DiscardBasis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.07296, 0)
+visible = false
 layers = 2
 pixel_size = 0.01
+offset = Vector2(0, 40)
 billboard = 1
 texture_filter = 0
 render_priority = 2
@@ -374,9 +376,9 @@ text = "Debug"
 autowrap_mode = 3
 
 [node name="DamagePopup" type="Label3D" parent="DiscardBasis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.021, 0, 0)
 visible = false
 layers = 2
+sorting_offset = 5.0
 pixel_size = 0.0417
 offset = Vector2(0, 24)
 billboard = 1
