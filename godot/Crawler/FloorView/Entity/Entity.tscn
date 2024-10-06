@@ -49,7 +49,7 @@ tracks/2/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_xa0to"]
 _data = {
-"RESET": SubResource("Animation_n3kfw")
+&"RESET": SubResource("Animation_n3kfw")
 }
 
 [sub_resource type="Animation" id="Animation_fjuaq"]
@@ -209,13 +209,13 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ue4a2"]
 _data = {
-"Attack": SubResource("Animation_fjuaq"),
-"Hurt": SubResource("Animation_yyjnj"),
-"KnockedDown": SubResource("Animation_ait06"),
-"StateCommitted": SubResource("Animation_7tdug"),
-"StateHitstun": SubResource("Animation_vo2u8"),
-"StateKnockdown": SubResource("Animation_et8y6"),
-"StateOk": SubResource("Animation_dr4du")
+&"StateCommitted": SubResource("Animation_7tdug"),
+&"StateHitstun": SubResource("Animation_vo2u8"),
+&"StateOk": SubResource("Animation_dr4du"),
+&"StateKnockdown": SubResource("Animation_et8y6"),
+&"Hurt": SubResource("Animation_yyjnj"),
+&"Attack": SubResource("Animation_fjuaq"),
+&"KnockedDown": SubResource("Animation_ait06")
 }
 
 [sub_resource type="PrismMesh" id="PrismMesh_1gh1x"]
@@ -335,8 +335,8 @@ script = ExtResource("1_r4emd")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-"": SubResource("AnimationLibrary_xa0to"),
-"Entity": SubResource("AnimationLibrary_ue4a2")
+&"": SubResource("AnimationLibrary_xa0to"),
+&"Entity": SubResource("AnimationLibrary_ue4a2")
 }
 
 [node name="Arrow" type="Node3D" parent="."]
