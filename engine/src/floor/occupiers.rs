@@ -97,6 +97,7 @@ fn add_panic() {
         strategy: crate::strategy::Strategy::Null,
         is_player_controlled: Default::default(),
         is_player_friendly: Default::default(),
+        payload: String::default(),
     });
     let occupiers = occupiers.add_entity((first, &entities[first]));
 
@@ -109,6 +110,7 @@ fn add_panic() {
         strategy: crate::strategy::Strategy::Null,
         is_player_controlled: Default::default(),
         is_player_friendly: Default::default(),
+        payload: String::default(),
     });
     let _should_panic = occupiers.add_entity((second, &entities[second]));
 }
@@ -133,6 +135,7 @@ fn update_panic() {
         strategy: Strategy::Null,
         is_player_controlled: Default::default(),
         is_player_friendly: Default::default(),
+        payload: String::default(),
     });
     let occupiers = occupiers.add_entity((first, &entities[first]));
 
@@ -145,6 +148,7 @@ fn update_panic() {
         strategy: Strategy::Null,
         is_player_controlled: Default::default(),
         is_player_friendly: Default::default(),
+        payload: String::default(),
     });
     let occupiers = occupiers.add_entity((second, &entities[second]));
 
@@ -176,6 +180,7 @@ fn update_knockdown() {
         strategy: Strategy::Null,
         is_player_controlled: Default::default(),
         is_player_friendly: Default::default(),
+        payload: String::default(),
     });
     let occupiers = occupiers.add_entity((first, &entities[first]));
 
@@ -188,6 +193,7 @@ fn update_knockdown() {
         strategy: Strategy::Null,
         is_player_controlled: Default::default(),
         is_player_friendly: Default::default(),
+        payload: String::default(),
     });
     let occupiers = occupiers.add_entity((second, &entities[second]));
 

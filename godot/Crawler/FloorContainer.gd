@@ -24,9 +24,7 @@ func _ready():
 	active_floor.set_map_2d($Map)
 
 	for initializer in entity_initializers:
-		var id = active_floor.add_entity_at(
-			initializer.position, initializer.is_player_controlled, initializer.is_player_friendly
-		)
+		var id = active_floor.add_entity_from_initializer(initializer)
 		# TODO: Unhardcode reading player_id?
 		if initializer.is_player_controlled:
 			player_id = id

@@ -237,6 +237,7 @@ fn double_hit() {
             strategy: Strategy::Null,
             is_player_controlled: true,
             is_player_friendly: false,
+            payload: String::default(),
         })
     });
     (update, other_id) = update.bind_with_side_output(|floor| {
@@ -249,6 +250,7 @@ fn double_hit() {
             strategy: Strategy::Null,
             is_player_controlled: true,
             is_player_friendly: false,
+            payload: String::default(),
         })
     });
     update = update

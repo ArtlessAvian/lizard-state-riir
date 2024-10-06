@@ -9,10 +9,12 @@
 [sub_resource type="EntityInitializer" id="EntityInitializer_daood"]
 is_player_controlled = true
 is_player_friendly = true
+passthrough = "Tegu"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_dd0o1"]
 position = Vector2i(3, 0)
 is_player_friendly = true
+passthrough = "Axolotl"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_xrjo1"]
 position = Vector2i(21, 10)

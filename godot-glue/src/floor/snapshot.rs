@@ -78,6 +78,13 @@ impl EntitySnapshot {
             EntityState::Dead => EntityStateName::Dead,
         }
     }
+
+    // Passthrough as defined by the EntityInitializer.
+    // If not constructed by EntityInitializer, this is whatever string.
+    #[func]
+    fn get_passthrough(&self) -> GString {
+        self.entity.get_payload().into()
+    }
 }
 
 #[derive(GodotConvert, Var, Export)]

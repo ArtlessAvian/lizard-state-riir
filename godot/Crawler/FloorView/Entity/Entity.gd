@@ -38,10 +38,17 @@ func is_animating() -> bool:
 
 
 func sync_with(snapshot: EntitySnapshot):
+	if snapshot.get_passthrough() != "":
+		# TODO: Figure out something smarter than string comparison
+		if snapshot.get_passthrough() == "Axolotl":
+			$AnimatedSprite3D.sprite_frames = preload(
+				"res://Crawler/FloorView/Entity/axolotl/Axolotl.tres"
+			)
+
 	position = Vector3(snapshot.get_pos().x, 0, snapshot.get_pos().y)
 	last_known_position = snapshot.get_pos()
 
-	find_child("Debug").text = snapshot.get_debug()
+	find_child("Debug").text = snapshot.get_passthrough()
 	find_child("DebugHealth").text = str(snapshot.get_energy())
 
 	$AnimationPlayer.play("RESET")

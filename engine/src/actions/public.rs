@@ -373,6 +373,7 @@ fn bump_test() {
             strategy: Strategy::Null,
             is_player_controlled: false,
             is_player_friendly: false,
+            payload: String::default(),
         })
     });
     (update, other_id) = update.bind_with_side_output(|floor| {
@@ -385,6 +386,7 @@ fn bump_test() {
             strategy: Strategy::Null,
             is_player_controlled: false,
             is_player_friendly: false,
+            payload: String::default(),
         })
     });
     update = update.bind(|floor| {
@@ -433,6 +435,7 @@ fn goto_test() {
             strategy: Strategy::Null,
             is_player_controlled: true,
             is_player_friendly: false,
+            payload: String::default(),
         })
     });
     update = update.bind(|floor| {

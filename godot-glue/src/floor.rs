@@ -18,6 +18,7 @@ use tracing::instrument;
 use crate::actions::Command;
 use crate::events::FloorEvent;
 use crate::floor::snapshot::EntitySnapshot;
+use crate::resources::EntityInitializer;
 
 /// The game.
 ///
@@ -113,7 +114,27 @@ impl ActiveFloor {
             strategy: Strategy::Follow(FollowStrategy {}),
             is_player_controlled,
             is_player_friendly,
+            payload: String::default(),
         });
+
+        let (next, log) = update.into_both();
+        self.internal = next;
+
+        let temp = log
+            .into_iter()
+            .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
+            .collect();
+        self.log.extend_array(temp);
+
+        EntityId::new(id, &mut self.id_bijection)
+    }
+
+    #[func]
+    pub fn add_entity_from_initializer(
+        &mut self,
+        initializer: Gd<EntityInitializer>,
+    ) -> Gd<EntityId> {
+        let (update, id) = self.internal.add_entity(initializer.bind().to_entity());
 
         let (next, log) = update.into_both();
         self.internal = next;

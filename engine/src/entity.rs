@@ -63,6 +63,9 @@ pub struct Entity {
 
     // Controls aggression. Also controls vision.
     pub is_player_friendly: bool,
+
+    // Some string we don't care about in logic.
+    pub payload: String,
 }
 
 impl Entity {
@@ -125,6 +128,11 @@ impl Entity {
     #[must_use]
     pub fn is_allied(&self, other: &Entity) -> bool {
         self.is_player_friendly == other.is_player_friendly
+    }
+
+    #[must_use]
+    pub fn get_payload(&self) -> &str {
+        &self.payload
     }
 }
 
@@ -282,6 +290,7 @@ fn entity_set_iters() {
         strategy: Strategy::Null,
         is_player_controlled: true,
         is_player_friendly: true,
+        payload: String::default(),
     });
     entities.add(Entity {
         state: EntityState::Dead,
@@ -292,6 +301,7 @@ fn entity_set_iters() {
         strategy: Strategy::Null,
         is_player_controlled: false,
         is_player_friendly: true,
+        payload: String::default(),
     });
 
     for (pair, other) in entities
