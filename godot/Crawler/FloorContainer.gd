@@ -14,6 +14,8 @@ var input_state_stack: Array = []
 
 var debug_frame_times: Array = [0, 0, 0, 0, 0]
 
+@export var entity_initializers: Array[EntityInitializer] = []
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -21,22 +23,28 @@ func _ready():
 	# HACK: Temporary.
 	active_floor.set_map_2d($Map)
 
-	player_id = active_floor.add_entity_at(Vector2i.ZERO, true, true)
-	$FloorView.id_to_node[player_id] = find_child("Entity")
+	for initializer in entity_initializers:
+		var id = active_floor.add_entity_at(
+			initializer.position, initializer.is_player_controlled, initializer.is_player_friendly
+		)
+		# TODO: Unhardcode reading player_id?
+		if initializer.is_player_controlled:
+			player_id = id
+			$FloorView.id_to_node[player_id] = find_child("Entity")
 
-	active_floor.add_entity_at(Vector2i(3, 0), false, true)
-
+	#active_floor.add_entity_at(Vector2i(3, 0), false, true)
+	#
 	# Entities from old game.
-	active_floor.add_entity_at(Vector2i(21, 10), false, false)  # enemy
-	active_floor.add_entity_at(Vector2i(8, 34), false, false)  # enemy3
+	#active_floor.add_entity_at(Vector2i(21, 10), false, false)  # enemy
+	#active_floor.add_entity_at(Vector2i(8, 34), false, false)  # enemy3
 	# out of bounds enemy omitted.
-	active_floor.add_entity_at(Vector2i(-11, -5), false, false)  # enemy
-	active_floor.add_entity_at(Vector2i(35, 4), false, false)  # enemy
-	active_floor.add_entity_at(Vector2i(17, -29), false, false)  # enemy2
-	active_floor.add_entity_at(Vector2i(-18, -12), false, false)  # enemy2
-	active_floor.add_entity_at(Vector2i(23, -17), false, false)  # enemy2
-	active_floor.add_entity_at(Vector2i(9, -25), false, false)  # enemy2
-	active_floor.add_entity_at(Vector2i(16, 16), false, false)  # enemy2
+	#active_floor.add_entity_at(Vector2i(-11, -5), false, false)  # enemy
+	#active_floor.add_entity_at(Vector2i(35, 4), false, false)  # enemy
+	#active_floor.add_entity_at(Vector2i(17, -29), false, false)  # enemy2
+	#active_floor.add_entity_at(Vector2i(-18, -12), false, false)  # enemy2
+	#active_floor.add_entity_at(Vector2i(23, -17), false, false)  # enemy2
+	#active_floor.add_entity_at(Vector2i(9, -25), false, false)  # enemy2
+	#active_floor.add_entity_at(Vector2i(16, 16), false, false)  # enemy2
 
 
 func get_current_state() -> RefCounted:
