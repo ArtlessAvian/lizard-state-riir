@@ -31,6 +31,9 @@ impl FloorEvent {
     ) -> Variant {
         match event {
             FloorEventInternal::Move(x) => MoveEvent::new(id_bijection, x).to_variant(),
+            FloorEventInternal::PrepareAttack(x) => {
+                PrepareAttackEvent::new(id_bijection, x).to_variant()
+            }
             FloorEventInternal::StartAttack(x) => {
                 StartAttackEvent::new(id_bijection, x).to_variant()
             }
@@ -80,6 +83,27 @@ impl StartAttackEvent {
     fn new(
         id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
         event: engine::actions::events::StartAttackEvent,
+    ) -> Gd<Self> {
+        Gd::from_object(Self {
+            subject: EntityId::new(event.subject, id_bijection),
+            tile: event.tile.into(),
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct PrepareAttackEvent {
+    #[var(get)]
+    subject: Gd<EntityId>,
+    #[var(get)]
+    tile: AbsolutePosition,
+}
+
+impl PrepareAttackEvent {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::PrepareAttackEvent,
     ) -> Gd<Self> {
         Gd::from_object(Self {
             subject: EntityId::new(event.subject, id_bijection),

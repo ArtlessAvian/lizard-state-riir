@@ -11,6 +11,7 @@ use crate::positional::AbsolutePosition;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FloorEvent {
     Move(MoveEvent),
+    PrepareAttack(PrepareAttackEvent),
     StartAttack(StartAttackEvent),
     AttackHit(AttackHitEvent),
     SeeMap(SeeMapEvent),
@@ -20,6 +21,12 @@ pub enum FloorEvent {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct MoveEvent {
+    pub subject: EntityId,
+    pub tile: AbsolutePosition,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct PrepareAttackEvent {
     pub subject: EntityId,
     pub tile: AbsolutePosition,
 }

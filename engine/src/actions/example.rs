@@ -10,6 +10,7 @@ use rkyv_dyn::archive_dyn;
 use rkyv_typename::TypeName;
 
 use super::events::AttackHitEvent;
+use super::events::PrepareAttackEvent;
 use super::events::StartAttackEvent;
 use super::utils::DelayCommand;
 use super::ActionTrait;
@@ -92,7 +93,10 @@ impl CommandTrait for DoubleHitCommand {
                         subject_id: self.subject_id,
                     }),
                     turns: 1,
-                    event: None,
+                    event: Some(FloorEvent::PrepareAttack(PrepareAttackEvent {
+                        subject: self.subject_id,
+                        tile: floor.entities[self.subject_id].pos + self.dir,
+                    })),
                 }
                 .do_action(&floor)
             })

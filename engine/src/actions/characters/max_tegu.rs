@@ -13,6 +13,7 @@ use super::super::events::StartAttackEvent;
 use super::super::CommandTrait;
 use super::super::DirectionActionTrait;
 use super::super::FloorEvent;
+use crate::actions::events::PrepareAttackEvent;
 use crate::actions::public::StepAction;
 use crate::actions::utils::DelayCommand;
 use crate::actions::utils::TakeKnockbackUtil;
@@ -72,6 +73,10 @@ impl CommandTrait for ForwardHeavyCommand {
                     event: None,
                 }
                 .do_action(&floor)
+                .log(FloorEvent::PrepareAttack(PrepareAttackEvent {
+                    subject: self.subject_id,
+                    tile: floor.entities[self.subject_id].pos + self.dir,
+                }))
             })
     }
 }
@@ -169,7 +174,7 @@ impl TileActionTrait for TrackingAction {
                 subject_id,
             }),
             turns: 1,
-            event: Some(FloorEvent::StartAttack(StartAttackEvent {
+            event: Some(FloorEvent::PrepareAttack(PrepareAttackEvent {
                 subject: subject_id,
                 tile: floor.entities[tracking_id].pos,
             })),
@@ -198,6 +203,11 @@ impl CommandTrait for TrackingFollowup {
             })
             .bind(|floor| {
                 let object_ref = &floor.entities[self.tracking_id];
+                let start_attack = FloorEvent::StartAttack(StartAttackEvent {
+                    subject: self.subject_id,
+                    tile: object_ref.pos,
+                });
+
                 if object_ref.pos.distance(floor.entities[self.subject_id].pos) <= 2 {
                     let mut object_clone = (object_ref).clone();
                     object_clone.health -= 1;
@@ -208,9 +218,10 @@ impl CommandTrait for TrackingFollowup {
                     });
                     floor
                         .update_entity((self.tracking_id, object_clone))
+                        .log(start_attack)
                         .log(event)
                 } else {
-                    FloorUpdate::new(floor)
+                    FloorUpdate::new(floor).log(start_attack)
                 }
             })
     }

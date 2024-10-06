@@ -73,6 +73,21 @@ func clear_queue(delta, floor: ActiveFloor):
 
 			event_index += 1
 
+		elif event is PrepareAttackEvent:
+			if id_to_node.values().any(func(x): return x.is_animating()):
+				return
+
+			# TODO: Replace with actual animation player.
+			var subject = id_to_node[event.subject]
+			var target = Vector3(event.tile.x, 0, event.tile.y)
+			subject.basis = Basis.looking_at(target - subject.position, Vector3.UP, true)
+
+			var animation = subject.get_node("AnimationPlayer") as AnimationPlayer
+			animation.play("Entity/StateCommitted")
+
+			test_event_delay += 4 / 60.0
+			event_index += 1
+
 		elif event is StartAttackEvent:
 			if id_to_node.values().any(func(x): return x.is_animating()):
 				return
