@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://26cefkj35wuf"]
+[gd_scene load_steps=22 format=3 uid="uid://26cefkj35wuf"]
 
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/DiscardBasis.gd" id="1_dh5rl"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/Entity.gd" id="1_r4emd"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://Crawler/FloorView/Entity/tegu.png" id="4_w7ppg"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/UnclipTail.gd" id="5_1w3dl"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/EntitySprite.gd" id="5_jvxk3"]
+[ext_resource type="SpriteFrames" uid="uid://l5q2pxndfxty" path="res://Crawler/FloorView/Entity/tegu/Tegu.tres" id="5_r6nbe"]
 
 [sub_resource type="Animation" id="Animation_n3kfw"]
 length = 0.001
@@ -52,50 +53,77 @@ _data = {
 &"RESET": SubResource("Animation_n3kfw")
 }
 
-[sub_resource type="Animation" id="Animation_fjuaq"]
-resource_name = "Attack"
-length = 0.133335
+[sub_resource type="Animation" id="Animation_et8y6"]
+resource_name = "StateKnockdown"
+length = 0.001
 step = 0.0166667
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite3D:look_dir_offset")
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.133335),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [0.0, 1.0]
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [3]
 }
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite3D:position")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.0666667, 0.133333),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector3(0, 0, 0), Vector3(0, 0, 0.5), Vector3(0, 0, 0)]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("AnimatedSprite3D:frame")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
+
+[sub_resource type="Animation" id="Animation_dr4du"]
+resource_name = "StateOk"
+length = 0.001
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [0]
 }
 
+[sub_resource type="Animation" id="Animation_7tdug"]
+resource_name = "StateCommitted"
+length = 0.001
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+
 [sub_resource type="Animation" id="Animation_yyjnj"]
 resource_name = "Hurt"
 length = 0.0500018
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+
+[sub_resource type="Animation" id="Animation_vo2u8"]
+resource_name = "StateHitstun"
+length = 0.001
 step = 0.0166667
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -139,68 +167,41 @@ tracks/1/keys = {
 "values": [Vector3(0, 0, 0), Vector3(0, 0.3, 0), Vector3(0, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_7tdug"]
-resource_name = "StateCommitted"
-length = 0.001
+[sub_resource type="Animation" id="Animation_fjuaq"]
+resource_name = "Attack"
+length = 0.133335
 step = 0.0166667
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/path = NodePath("AnimatedSprite3D:look_dir_offset")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [2]
+"times": PackedFloat32Array(0, 0.133335),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
 }
-
-[sub_resource type="Animation" id="Animation_vo2u8"]
-resource_name = "StateHitstun"
-length = 0.001
-step = 0.0166667
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite3D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [1]
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite3D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.0666667, 0.133333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0, 0.5), Vector3(0, 0, 0)]
 }
-
-[sub_resource type="Animation" id="Animation_et8y6"]
-resource_name = "StateKnockdown"
-length = 0.001
-step = 0.0166667
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite3D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [3]
-}
-
-[sub_resource type="Animation" id="Animation_dr4du"]
-resource_name = "StateOk"
-length = 0.001
-step = 0.0166667
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite3D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite3D:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
@@ -209,13 +210,13 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ue4a2"]
 _data = {
-&"StateCommitted": SubResource("Animation_7tdug"),
-&"StateHitstun": SubResource("Animation_vo2u8"),
-&"StateOk": SubResource("Animation_dr4du"),
-&"StateKnockdown": SubResource("Animation_et8y6"),
-&"Hurt": SubResource("Animation_yyjnj"),
+&"KnockedDown": SubResource("Animation_ait06"),
 &"Attack": SubResource("Animation_fjuaq"),
-&"KnockedDown": SubResource("Animation_ait06")
+&"Hurt": SubResource("Animation_yyjnj"),
+&"StateCommitted": SubResource("Animation_7tdug"),
+&"StateKnockdown": SubResource("Animation_et8y6"),
+&"StateOk": SubResource("Animation_dr4du"),
+&"StateHitstun": SubResource("Animation_vo2u8")
 }
 
 [sub_resource type="PrismMesh" id="PrismMesh_1gh1x"]
@@ -228,107 +229,9 @@ fog_density = 1.0
 fog_depth_begin = 6.0
 fog_depth_end = 8.0
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_ojjfa"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(0, 80, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_l6t23"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(40, 80, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_m32ct"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(80, 80, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_v6saa"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(40, 120, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_fy5bw"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(0, 40, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_qeu4a"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(40, 40, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_1wo5m"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(80, 40, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_6ts8s"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(40, 120, 40, 40)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_mso2v"]
 atlas = ExtResource("4_w7ppg")
 region = Rect2(0, 0, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_ko7qk"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(40, 0, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_rml38"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(80, 0, 40, 40)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_5idub"]
-atlas = ExtResource("4_w7ppg")
-region = Rect2(40, 120, 40, 40)
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_7ofnm"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ojjfa")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_l6t23")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_m32ct")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_v6saa")
-}],
-"loop": true,
-"name": &"Away",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_fy5bw")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_qeu4a")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_1wo5m")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_6ts8s")
-}],
-"loop": true,
-"name": &"Right",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_mso2v")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ko7qk")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_rml38")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_5idub")
-}],
-"loop": true,
-"name": &"Towards",
-"speed": 5.0
-}]
 
 [node name="Entity" type="Node3D"]
 script = ExtResource("1_r4emd")
@@ -404,7 +307,7 @@ fov = 105.0
 offset = Vector2(0, 15)
 pixel_size = 0.0417
 texture_filter = 0
-sprite_frames = SubResource("SpriteFrames_7ofnm")
+sprite_frames = ExtResource("5_r6nbe")
 animation = &"Towards"
 script = ExtResource("5_jvxk3")
 
