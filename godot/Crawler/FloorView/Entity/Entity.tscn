@@ -82,6 +82,23 @@ tracks/1/keys = {
 "values": [Vector3(0, 0, 0), Vector3(0, 0.3, 0), Vector3(0, 0, 0)]
 }
 
+[sub_resource type="Animation" id="Animation_dr4du"]
+resource_name = "StateOk"
+length = 0.001
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
 [sub_resource type="Animation" id="Animation_fjuaq"]
 resource_name = "Attack"
 length = 0.133335
@@ -123,9 +140,9 @@ tracks/2/keys = {
 "values": [0]
 }
 
-[sub_resource type="Animation" id="Animation_yyjnj"]
-resource_name = "Hurt"
-length = 0.0500018
+[sub_resource type="Animation" id="Animation_et8y6"]
+resource_name = "StateKnockdown"
+length = 0.001
 step = 0.0166667
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -137,7 +154,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [1]
+"values": [3]
 }
 
 [sub_resource type="Animation" id="Animation_7tdug"]
@@ -157,23 +174,6 @@ tracks/0/keys = {
 "values": [2]
 }
 
-[sub_resource type="Animation" id="Animation_et8y6"]
-resource_name = "StateKnockdown"
-length = 0.001
-step = 0.0166667
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite3D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [3]
-}
-
 [sub_resource type="Animation" id="Animation_vo2u8"]
 resource_name = "StateHitstun"
 length = 0.001
@@ -191,9 +191,9 @@ tracks/0/keys = {
 "values": [1]
 }
 
-[sub_resource type="Animation" id="Animation_dr4du"]
-resource_name = "StateOk"
-length = 0.001
+[sub_resource type="Animation" id="Animation_yyjnj"]
+resource_name = "Hurt"
+length = 0.0500018
 step = 0.0166667
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -205,18 +205,18 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [0]
+"values": [1]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ue4a2"]
 _data = {
+&"StateHitstun": SubResource("Animation_vo2u8"),
+&"StateCommitted": SubResource("Animation_7tdug"),
+&"StateKnockdown": SubResource("Animation_et8y6"),
 &"KnockedDown": SubResource("Animation_ait06"),
 &"StateOk": SubResource("Animation_dr4du"),
-&"Attack": SubResource("Animation_fjuaq"),
-&"StateKnockdown": SubResource("Animation_et8y6"),
-&"StateCommitted": SubResource("Animation_7tdug"),
-&"StateHitstun": SubResource("Animation_vo2u8"),
-&"Hurt": SubResource("Animation_yyjnj")
+&"Hurt": SubResource("Animation_yyjnj"),
+&"Attack": SubResource("Animation_fjuaq")
 }
 
 [sub_resource type="PrismMesh" id="PrismMesh_1gh1x"]

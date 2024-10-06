@@ -7,32 +7,55 @@
 [ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="5_ueg1a"]
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_daood"]
+health = 10
+max_energy = 6
 is_player_controlled = true
 is_player_friendly = true
 passthrough = "Tegu"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_dd0o1"]
 position = Vector2i(3, 0)
+health = 10
+max_energy = 6
+strategy = "Follow"
 is_player_friendly = true
 passthrough = "Axolotl"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_xrjo1"]
 position = Vector2i(21, 10)
+health = 10
+max_energy = 6
+strategy = "StandAndFight"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_hw1ny"]
 position = Vector2i(8, 34)
+health = 10
+max_energy = 6
+strategy = "StandAndFight"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_s2ngo"]
 position = Vector2i(-11, -5)
+health = 10
+max_energy = 6
+strategy = "StandAndFight"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_rhbro"]
 position = Vector2i(35, 4)
+health = 10
+max_energy = 6
+strategy = "StandAndFight"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_87o3v"]
 position = Vector2i(17, -29)
+health = 10
+max_energy = 6
+strategy = "StandAndFight"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_l85gf"]
 position = Vector2i(-18, -12)
+health = 10
+max_energy = 6
+strategy = "StandAndFight"
 
 [sub_resource type="Theme" id="Theme_nvbww"]
 default_font = ExtResource("5_ueg1a")

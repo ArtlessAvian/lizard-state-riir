@@ -1,6 +1,9 @@
 use std::rc::Rc;
 
 use engine::strategy::FollowStrategy;
+use engine::strategy::StandAndFightStrategy;
+use engine::strategy::Strategy;
+use engine::strategy::WanderStrategy;
 use godot::prelude::*;
 
 use crate::floor::snapshot::EntitySnapshot;
@@ -16,6 +19,8 @@ pub struct EntityInitializer {
     health: i8,
     #[export]
     max_energy: i8,
+    #[export]
+    strategy: StrategyName,
     #[export]
     is_player_controlled: bool,
     #[export]
@@ -34,7 +39,7 @@ impl EntityInitializer {
             health: self.health,
             max_energy: self.max_energy,
             energy: self.max_energy,
-            strategy: engine::strategy::Strategy::Follow(FollowStrategy),
+            strategy: self.strategy.to_actual(),
             is_player_controlled: self.is_player_controlled,
             is_player_friendly: self.is_player_friendly,
             // Use the payload to hold "non-model" or Godot related info.
@@ -48,5 +53,27 @@ impl EntityInitializer {
         Gd::from_object(EntitySnapshot {
             entity: Rc::new(self.to_entity()),
         })
+    }
+}
+
+#[derive(GodotConvert, Var, Export, Default)]
+#[godot(via = GString)]
+#[derive(Debug)]
+pub enum StrategyName {
+    #[default]
+    Null,
+    Wander,
+    StandAndFight,
+    Follow,
+}
+
+impl StrategyName {
+    fn to_actual(&self) -> Strategy {
+        match self {
+            StrategyName::Null => Strategy::Null,
+            StrategyName::Wander => Strategy::Wander(WanderStrategy),
+            StrategyName::StandAndFight => Strategy::StandAndFight(StandAndFightStrategy),
+            StrategyName::Follow => Strategy::Follow(FollowStrategy),
+        }
     }
 }
