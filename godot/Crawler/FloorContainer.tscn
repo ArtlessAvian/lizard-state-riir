@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://d00xpnofgcnrt"]
+[gd_scene load_steps=18 format=3 uid="uid://d00xpnofgcnrt"]
 
 [ext_resource type="Script" path="res://Crawler/FloorContainer.gd" id="1_6nk2a"]
 [ext_resource type="PackedScene" uid="uid://1ug7wykfxdyt" path="res://Crawler/FloorView/FloorView.tscn" id="2_1cpv2"]
@@ -26,43 +26,70 @@ position = Vector2i(21, 10)
 health = 10
 max_energy = 6
 strategy = "StandAndFight"
+passthrough = "Enemy"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_hw1ny"]
 position = Vector2i(8, 34)
 health = 10
 max_energy = 6
 strategy = "StandAndFight"
+passthrough = "Enemy3"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_s2ngo"]
 position = Vector2i(-11, -5)
 health = 10
 max_energy = 6
 strategy = "StandAndFight"
+passthrough = "Enemy"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_rhbro"]
 position = Vector2i(35, 4)
 health = 10
 max_energy = 6
 strategy = "StandAndFight"
+passthrough = "Enemy"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_87o3v"]
 position = Vector2i(17, -29)
 health = 10
 max_energy = 6
 strategy = "StandAndFight"
+passthrough = "Enemy2"
 
 [sub_resource type="EntityInitializer" id="EntityInitializer_l85gf"]
 position = Vector2i(-18, -12)
 health = 10
 max_energy = 6
 strategy = "StandAndFight"
+passthrough = "Enemy2"
+
+[sub_resource type="EntityInitializer" id="EntityInitializer_tvc7b"]
+position = Vector2i(23, -17)
+health = 10
+max_energy = 6
+strategy = "StandAndFight"
+passthrough = "Enemy2"
+
+[sub_resource type="EntityInitializer" id="EntityInitializer_s42vx"]
+position = Vector2i(9, -25)
+health = 10
+max_energy = 6
+strategy = "StandAndFight"
+passthrough = "Enemy2"
+
+[sub_resource type="EntityInitializer" id="EntityInitializer_i7kh1"]
+position = Vector2i(16, 16)
+health = 10
+max_energy = 6
+strategy = "StandAndFight"
+passthrough = "Enemy2"
 
 [sub_resource type="Theme" id="Theme_nvbww"]
 default_font = ExtResource("5_ueg1a")
 
 [node name="FloorContainer" type="Node3D"]
 script = ExtResource("1_6nk2a")
-entity_initializers = Array[EntityInitializer]([SubResource("EntityInitializer_daood"), SubResource("EntityInitializer_dd0o1"), SubResource("EntityInitializer_xrjo1"), SubResource("EntityInitializer_hw1ny"), SubResource("EntityInitializer_s2ngo"), SubResource("EntityInitializer_rhbro"), SubResource("EntityInitializer_87o3v"), SubResource("EntityInitializer_l85gf")])
+entity_initializers = Array[EntityInitializer]([SubResource("EntityInitializer_daood"), SubResource("EntityInitializer_dd0o1"), SubResource("EntityInitializer_xrjo1"), SubResource("EntityInitializer_hw1ny"), SubResource("EntityInitializer_s2ngo"), SubResource("EntityInitializer_rhbro"), SubResource("EntityInitializer_87o3v"), SubResource("EntityInitializer_l85gf"), SubResource("EntityInitializer_tvc7b"), SubResource("EntityInitializer_s42vx"), SubResource("EntityInitializer_i7kh1")])
 
 [node name="FloorView" parent="." instance=ExtResource("2_1cpv2")]
 

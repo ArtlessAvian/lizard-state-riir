@@ -44,6 +44,14 @@ func sync_with(snapshot: EntitySnapshot):
 			$AnimatedSprite3D.sprite_frames = preload(
 				"res://Crawler/FloorView/Entity/axolotl/Axolotl.tres"
 			)
+		elif snapshot.get_passthrough().contains("Enemy2"):
+			$AnimatedSprite3D.sprite_frames = preload(
+				"res://Crawler/FloorView/Entity/tegu/TeguClone.tres"
+			)
+		elif snapshot.get_passthrough().contains("Enemy"):
+			$AnimatedSprite3D.sprite_frames = preload(
+				"res://Crawler/FloorView/Entity/gecko/Gecko.tres"
+			)
 
 	position = Vector3(snapshot.get_pos().x, 0, snapshot.get_pos().y)
 	last_known_position = snapshot.get_pos()
