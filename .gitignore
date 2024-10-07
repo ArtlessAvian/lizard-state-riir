@@ -1,2 +1,7 @@
 /target
 .vscode/
+.cargo/
+
+lcov.info
+mutants.out/
+mutants.out.old/

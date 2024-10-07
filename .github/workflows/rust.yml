@@ -1,0 +1,45 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/**"
+      - "Cargo.*"
+      - "*/Cargo.*"
+      - "*/src/**.rs"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - run: cargo build --verbose
+    - run: cargo test --verbose
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - run: cargo llvm-cov --all-features --workspace >> $GITHUB_STEP_SUMMARY
+
+  mutants:
+    # From: https://mutants.rs/ci.html
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-mutants, cargo-nextest
+      - run: cargo mutants --test-tool=nextest -vV --in-place
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutants-out
+          path: mutants.out
