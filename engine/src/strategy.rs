@@ -2,6 +2,7 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
+use crate::actions::public::BumpAction;
 use crate::actions::public::StepAction;
 use crate::actions::public::WaitAction;
 use crate::actions::ActionTrait;
@@ -22,6 +23,7 @@ pub enum Strategy {
     Wander(WanderStrategy),
     StandAndFight(StandAndFightStrategy),
     Follow(FollowStrategy),
+    Rushdown(RushdownStrategy),
 }
 
 impl StrategyTrait for Strategy {
@@ -35,6 +37,7 @@ impl StrategyTrait for Strategy {
             Strategy::Wander(x) => x.take_turn(original, subject_id),
             Strategy::StandAndFight(x) => x.take_turn(original, subject_id),
             Strategy::Follow(x) => x.take_turn(original, subject_id),
+            Strategy::Rushdown(x) => x.take_turn(original, subject_id),
         }
     }
 }
@@ -116,6 +119,41 @@ impl StrategyTrait for FollowStrategy {
                         return x.do_action(original);
                     }
                 }
+            }
+        }
+
+        WaitAction {}
+            .verify_action(original, subject_id)
+            .expect("Wait should never fail")
+            .do_action(original)
+    }
+}
+
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
+pub struct RushdownStrategy;
+
+impl StrategyTrait for RushdownStrategy {
+    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+        let subject = &original.entities[subject_id];
+
+        let in_range = original.entities.iter().find(|(id, entity)| {
+            entity.pos.distance(subject.pos) <= 6 && *id != subject_id && !subject.is_allied(entity)
+        });
+
+        if let Some(other) = in_range {
+            if subject.pos.distance(other.1.pos) > 1 {
+                if let Some(step_to) = original.map.get_step(subject.pos, other.1.pos) {
+                    if let Some(x) =
+                        StepAction.verify_action(original, subject_id, step_to - subject.pos)
+                    {
+                        return x.do_action(original);
+                    }
+                }
+            } else if let Some(x) =
+                BumpAction.verify_action(original, subject_id, other.1.pos - subject.pos)
+            {
+                return x.do_action(original);
             }
         }
 

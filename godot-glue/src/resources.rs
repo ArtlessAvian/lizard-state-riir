@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use engine::strategy::FollowStrategy;
+use engine::strategy::RushdownStrategy;
 use engine::strategy::StandAndFightStrategy;
 use engine::strategy::Strategy;
 use engine::strategy::WanderStrategy;
@@ -65,6 +66,7 @@ pub enum StrategyName {
     Wander,
     StandAndFight,
     Follow,
+    Rushdown,
 }
 
 impl StrategyName {
@@ -74,6 +76,7 @@ impl StrategyName {
             StrategyName::Wander => Strategy::Wander(WanderStrategy),
             StrategyName::StandAndFight => Strategy::StandAndFight(StandAndFightStrategy),
             StrategyName::Follow => Strategy::Follow(FollowStrategy),
+            StrategyName::Rushdown => Strategy::Rushdown(RushdownStrategy),
         }
     }
 }
