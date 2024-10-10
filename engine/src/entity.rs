@@ -5,10 +5,8 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
-use crate::actions::upcast_indirection::Upcast;
-use crate::actions::CommandTrait;
+use crate::actions::static_dispatch::SerializableCommand;
 use crate::actions::SerializableUnaimedAction;
-use crate::actions::SerializeCommandTrait;
 use crate::actions::UnaimedAction;
 use crate::positional::AbsolutePosition;
 use crate::strategy::Strategy;
@@ -90,9 +88,9 @@ impl Entity {
     }
 
     #[must_use]
-    pub fn get_command_to_confirm(&self) -> Option<Rc<dyn CommandTrait>> {
+    pub fn get_command_to_confirm(&self) -> Option<SerializableCommand> {
         if let EntityState::ConfirmCommand { to_confirm, .. } = &self.state {
-            Some(Rc::new(Upcast::new(Rc::clone(to_confirm))))
+            Some(to_confirm.clone())
         } else {
             None
         }
@@ -243,7 +241,7 @@ pub enum EntityState {
     Committed {
         next_turn: u32,
         // Rc for Clone.
-        queued_command: Rc<dyn SerializeCommandTrait>,
+        queued_command: SerializableCommand,
     },
     /// On the entities next turn, the entity may choose to run this command.
     /// Does *NOT* grant counterhit status.
@@ -254,7 +252,7 @@ pub enum EntityState {
     //       requeueing itself.
     ConfirmCommand {
         next_turn: u32,
-        to_confirm: Rc<dyn SerializeCommandTrait>,
+        to_confirm: SerializableCommand,
     },
     RestrictedActions {
         next_turn: u32,

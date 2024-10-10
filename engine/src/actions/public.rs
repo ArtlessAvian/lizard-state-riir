@@ -11,6 +11,7 @@ use rkyv_typename::TypeName;
 use super::events::AttackHitEvent;
 use super::events::MoveEvent;
 use super::events::StartAttackEvent;
+use super::static_dispatch::SerializableCommand;
 use super::utils::TakeKnockbackUtil;
 use super::ActionTrait;
 use super::CommandTrait;
@@ -290,7 +291,7 @@ impl CommandTrait for GotoCommand {
                             next_turn: subject_clone
                                 .get_next_turn()
                                 .expect("This entity just took a step so it has a next turn."),
-                            to_confirm: Rc::new(self.clone()),
+                            to_confirm: SerializableCommand::GotoCommand(Rc::new(self.clone())),
                         }
                     };
                     floor.update_entity((self.subject_id, subject_clone))

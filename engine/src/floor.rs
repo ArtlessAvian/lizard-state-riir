@@ -10,6 +10,7 @@ use rkyv::Serialize;
 use crate::actions::events::FloorEvent;
 use crate::actions::public::TryToStandUpAction;
 use crate::actions::ActionTrait;
+use crate::actions::CommandTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntitySet;

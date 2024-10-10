@@ -1,10 +1,8 @@
-use std::rc::Rc;
-
 use super::events::FloorEvent;
 use super::events::KnockbackEvent;
 use super::events::KnockdownEvent;
+use super::static_dispatch::SerializableCommand;
 use super::CommandTrait;
-use super::SerializeCommandTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -70,7 +68,7 @@ impl CommandTrait for TakeKnockbackUtil {
 #[derive(Debug)]
 pub struct DelayCommand {
     pub subject_id: EntityId,
-    pub queued_command: Rc<dyn SerializeCommandTrait>,
+    pub queued_command: SerializableCommand,
     pub turns: u32,
     pub event: Option<FloorEvent>,
 }
@@ -80,7 +78,7 @@ impl CommandTrait for DelayCommand {
         let mut subject_clone: Entity = floor.entities[self.subject_id].clone();
         subject_clone.state = EntityState::Committed {
             next_turn: floor.get_current_turn() + self.turns,
-            queued_command: Rc::clone(&self.queued_command),
+            queued_command: self.queued_command.clone(),
         };
 
         floor

@@ -12,6 +12,7 @@ use rkyv_typename::TypeName;
 use super::events::AttackHitEvent;
 use super::events::PrepareAttackEvent;
 use super::events::StartAttackEvent;
+use super::static_dispatch::SerializableCommand;
 use super::utils::DelayCommand;
 use super::ActionTrait;
 use super::CommandTrait;
@@ -88,10 +89,12 @@ impl CommandTrait for DoubleHitCommand {
             .bind(|floor| {
                 DelayCommand {
                     subject_id: self.subject_id,
-                    queued_command: Rc::new(DoubleHitFollowup {
-                        dir: self.dir,
-                        subject_id: self.subject_id,
-                    }),
+                    queued_command: SerializableCommand::DoubleHitFollowup(Rc::new(
+                        DoubleHitFollowup {
+                            dir: self.dir,
+                            subject_id: self.subject_id,
+                        },
+                    )),
                     turns: 1,
                     event: Some(FloorEvent::PrepareAttack(PrepareAttackEvent {
                         subject: self.subject_id,
@@ -105,7 +108,7 @@ impl CommandTrait for DoubleHitCommand {
 
 #[derive(Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug, TypeName))]
-struct DoubleHitFollowup {
+pub(crate) struct DoubleHitFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
 }

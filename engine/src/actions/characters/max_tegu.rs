@@ -15,6 +15,7 @@ use super::super::DirectionActionTrait;
 use super::super::FloorEvent;
 use crate::actions::events::PrepareAttackEvent;
 use crate::actions::public::StepAction;
+use crate::actions::static_dispatch::SerializableCommand;
 use crate::actions::utils::DelayCommand;
 use crate::actions::utils::TakeKnockbackUtil;
 use crate::actions::DeserializeCommandTrait;
@@ -65,10 +66,12 @@ impl CommandTrait for ForwardHeavyCommand {
             .bind(|floor| {
                 DelayCommand {
                     subject_id: self.subject_id,
-                    queued_command: Rc::new(ForwardHeavyFollowup {
-                        dir: self.dir,
-                        subject_id: self.subject_id,
-                    }),
+                    queued_command: SerializableCommand::ForwardHeavyFollowup(Rc::new(
+                        ForwardHeavyFollowup {
+                            dir: self.dir,
+                            subject_id: self.subject_id,
+                        },
+                    )),
                     turns: 0, // The step already takes a turn.
                     event: None,
                 }
@@ -83,7 +86,7 @@ impl CommandTrait for ForwardHeavyCommand {
 
 #[derive(Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug, TypeName))]
-struct ForwardHeavyFollowup {
+pub(crate) struct ForwardHeavyFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
 }
@@ -169,10 +172,10 @@ impl TileActionTrait for TrackingAction {
 
         Some(Box::new(DelayCommand {
             subject_id,
-            queued_command: Rc::new(TrackingFollowup {
+            queued_command: SerializableCommand::TrackingFollowup(Rc::new(TrackingFollowup {
                 tracking_id,
                 subject_id,
-            }),
+            })),
             turns: 1,
             event: Some(FloorEvent::PrepareAttack(PrepareAttackEvent {
                 subject: subject_id,
@@ -184,7 +187,7 @@ impl TileActionTrait for TrackingAction {
 
 #[derive(Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug, TypeName))]
-struct TrackingFollowup {
+pub(crate) struct TrackingFollowup {
     tracking_id: EntityId,
     subject_id: EntityId,
 }
