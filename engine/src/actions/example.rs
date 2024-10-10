@@ -17,7 +17,7 @@ use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
-use super::SerializableAction;
+use super::SerializableUnaimedAction;
 use crate::actions::DeserializeActionTrait;
 use crate::actions::DeserializeCommandTrait;
 use crate::actions::SerializeActionTrait;
@@ -180,7 +180,7 @@ impl CommandTrait for EnterStanceCommand {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::RestrictedActions {
             next_turn: floor.get_current_turn() + 1,
-            restricted_actions: vec![SerializableAction::None(Rc::new(ExitStanceAction))],
+            restricted_actions: vec![SerializableUnaimedAction::None(Rc::new(ExitStanceAction))],
         };
 
         floor.update_entity((self.subject_id, subject_clone))

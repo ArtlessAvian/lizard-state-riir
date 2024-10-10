@@ -7,7 +7,7 @@ use rkyv::Serialize;
 
 use crate::actions::upcast_indirection::Upcast;
 use crate::actions::CommandTrait;
-use crate::actions::SerializableAction;
+use crate::actions::SerializableUnaimedAction;
 use crate::actions::SerializeCommandTrait;
 use crate::actions::UnaimedAction;
 use crate::positional::AbsolutePosition;
@@ -50,7 +50,7 @@ pub struct Entity {
     pub max_energy: i8,
     pub energy: i8,
 
-    pub moveset: Vec<SerializableAction>,
+    pub moveset: Vec<SerializableUnaimedAction>,
 
     // TODO: AI. Roughly should be a type that tries a sequence of actions, and on success may mutate its own clone and return the FloorUpdate.
     // Should not be wrapped in Option. A "NullAI" should just wait in place forever.
@@ -259,7 +259,7 @@ pub enum EntityState {
     RestrictedActions {
         next_turn: u32,
         // On the entities next turn, action must be chosen from a set.
-        restricted_actions: Vec<SerializableAction>,
+        restricted_actions: Vec<SerializableUnaimedAction>,
     },
 
     // Inactionable states below.

@@ -12,6 +12,8 @@ pub mod public;
 
 pub mod characters;
 
+pub mod static_dispatch;
+
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -41,19 +43,21 @@ pub enum UnaimedAction {
 // Same as above, but more specialized. Has an ugly conversion.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub enum SerializableAction {
+pub enum SerializableUnaimedAction {
     None(Rc<dyn SerializeActionTrait>),
     Tile(Rc<dyn SerializeTileActionTrait>),
     Direction(Rc<dyn SerializeDirectionActionTrait>),
 }
 
-impl From<SerializableAction> for UnaimedAction {
-    fn from(value: SerializableAction) -> Self {
+impl From<SerializableUnaimedAction> for UnaimedAction {
+    fn from(value: SerializableUnaimedAction) -> Self {
         // mmm yes i love indirection
         match value {
-            SerializableAction::None(x) => UnaimedAction::None(Rc::new(Upcast::new(x))),
-            SerializableAction::Tile(x) => UnaimedAction::Tile(Rc::new(Upcast::new(x))),
-            SerializableAction::Direction(x) => UnaimedAction::Direction(Rc::new(Upcast::new(x))),
+            SerializableUnaimedAction::None(x) => UnaimedAction::None(Rc::new(Upcast::new(x))),
+            SerializableUnaimedAction::Tile(x) => UnaimedAction::Tile(Rc::new(Upcast::new(x))),
+            SerializableUnaimedAction::Direction(x) => {
+                UnaimedAction::Direction(Rc::new(Upcast::new(x)))
+            }
         }
     }
 }

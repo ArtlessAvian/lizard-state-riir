@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use engine::actions::SerializableAction;
+use engine::actions::SerializableUnaimedAction;
 use engine::strategy::FollowStrategy;
 use engine::strategy::RushdownStrategy;
 use engine::strategy::StandAndFightStrategy;
@@ -35,7 +35,7 @@ pub struct EntityInitializer {
 impl EntityInitializer {
     #[must_use]
     pub fn to_entity(&self) -> engine::entity::Entity {
-        let moveset: Vec<SerializableAction> = Vec::new();
+        let moveset: Vec<SerializableUnaimedAction> = Vec::new();
         // moveset.push(SerializableAction::Direction(Rc::new(DoubleHitAction {})));
         // moveset.push(SerializableAction::None(Rc::new(EnterStanceAction {})));
         // moveset.push(SerializableAction::Direction(Rc::new(
