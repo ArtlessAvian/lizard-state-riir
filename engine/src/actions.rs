@@ -25,7 +25,9 @@ use rkyv_dyn::archive_dyn;
 use rkyv_typename::TypeName;
 
 use self::events::FloorEvent;
-use self::upcast_indirection::Upcast;
+use self::static_dispatch::SerializableAction;
+use self::static_dispatch::SerializableDirectionAction;
+use self::static_dispatch::SerializableTileAction;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
@@ -44,20 +46,18 @@ pub enum UnaimedAction {
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum SerializableUnaimedAction {
-    None(Rc<dyn SerializeActionTrait>),
-    Tile(Rc<dyn SerializeTileActionTrait>),
-    Direction(Rc<dyn SerializeDirectionActionTrait>),
+    None(SerializableAction),
+    Tile(SerializableTileAction),
+    Direction(SerializableDirectionAction),
 }
 
 impl From<SerializableUnaimedAction> for UnaimedAction {
     fn from(value: SerializableUnaimedAction) -> Self {
         // mmm yes i love indirection
         match value {
-            SerializableUnaimedAction::None(x) => UnaimedAction::None(Rc::new(Upcast::new(x))),
-            SerializableUnaimedAction::Tile(x) => UnaimedAction::Tile(Rc::new(Upcast::new(x))),
-            SerializableUnaimedAction::Direction(x) => {
-                UnaimedAction::Direction(Rc::new(Upcast::new(x)))
-            }
+            SerializableUnaimedAction::None(x) => UnaimedAction::None(x.into()),
+            SerializableUnaimedAction::Tile(x) => UnaimedAction::Tile(x.into()),
+            SerializableUnaimedAction::Direction(x) => UnaimedAction::Direction(x.into()),
         }
     }
 }
