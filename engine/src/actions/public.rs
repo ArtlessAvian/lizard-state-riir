@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -295,7 +293,7 @@ impl CommandTrait for GotoCommand {
 
 impl From<GotoCommand> for SerializableCommand {
     fn from(value: GotoCommand) -> Self {
-        SerializableCommand::Goto(Rc::new(value))
+        SerializableCommand::Goto(value)
     }
 }
 

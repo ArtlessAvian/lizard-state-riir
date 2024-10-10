@@ -29,42 +29,41 @@ use crate::floor::FloorUpdate;
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum SerializableAction {
-    EnterStance(Rc<EnterStanceAction>),
-    ExitStance(Rc<ExitStanceAction>),
+    EnterStance(EnterStanceAction),
+    ExitStance(ExitStanceAction),
     External(Rc<dyn SerializeActionTrait>),
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum SerializableTileAction {
-    Tracking(Rc<TrackingAction>),
+    Tracking(TrackingAction),
     External(Rc<dyn SerializeTileActionTrait>),
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum SerializableDirectionAction {
-    DoubleHit(Rc<DoubleHitAction>),
-    ForwardHeavy(Rc<ForwardHeavyAction>),
+    DoubleHit(DoubleHitAction),
+    ForwardHeavy(ForwardHeavyAction),
     External(Rc<dyn SerializeDirectionActionTrait>),
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum SerializableCommand {
-    DoubleHitFollowup(Rc<DoubleHitFollowup>),
-    ForwardHeavyFollowup(Rc<ForwardHeavyFollowup>),
-    TrackingFollowup(Rc<TrackingFollowup>),
-    Goto(Rc<GotoCommand>),
+    DoubleHitFollowup(DoubleHitFollowup),
+    ForwardHeavyFollowup(ForwardHeavyFollowup),
+    TrackingFollowup(TrackingFollowup),
+    Goto(GotoCommand),
     External(Rc<dyn SerializeCommandTrait>),
 }
 
 impl From<SerializableAction> for Rc<dyn ActionTrait> {
-    #[allow(clippy::clone_on_ref_ptr)]
     fn from(val: SerializableAction) -> Self {
         match val {
-            SerializableAction::EnterStance(rc) => rc.clone(),
-            SerializableAction::ExitStance(rc) => rc.clone(),
+            SerializableAction::EnterStance(x) => Rc::new(x),
+            SerializableAction::ExitStance(x) => Rc::new(x),
             SerializableAction::External(rc) => Rc::new(Upcast::new(rc)),
         }
     }
@@ -72,9 +71,8 @@ impl From<SerializableAction> for Rc<dyn ActionTrait> {
 
 impl From<SerializableTileAction> for Rc<dyn TileActionTrait> {
     fn from(val: SerializableTileAction) -> Self {
-        #[allow(clippy::clone_on_ref_ptr)]
         match val {
-            SerializableTileAction::Tracking(rc) => rc.clone(),
+            SerializableTileAction::Tracking(x) => Rc::new(x),
             SerializableTileAction::External(rc) => Rc::new(Upcast::new(rc)),
         }
     }
@@ -84,8 +82,8 @@ impl From<SerializableDirectionAction> for Rc<dyn DirectionActionTrait> {
     fn from(val: SerializableDirectionAction) -> Self {
         #[allow(clippy::clone_on_ref_ptr)]
         match val {
-            SerializableDirectionAction::DoubleHit(rc) => rc.clone(),
-            SerializableDirectionAction::ForwardHeavy(rc) => rc.clone(),
+            SerializableDirectionAction::DoubleHit(x) => Rc::new(x),
+            SerializableDirectionAction::ForwardHeavy(x) => Rc::new(x),
             SerializableDirectionAction::External(rc) => Rc::new(Upcast::new(rc)),
         }
     }
@@ -93,19 +91,19 @@ impl From<SerializableDirectionAction> for Rc<dyn DirectionActionTrait> {
 
 impl From<SerializableCommand> for Rc<dyn CommandTrait> {
     fn from(val: SerializableCommand) -> Self {
-        #[allow(clippy::clone_on_ref_ptr)]
-        match val {
-            SerializableCommand::DoubleHitFollowup(rc) => rc.clone(),
-            SerializableCommand::ForwardHeavyFollowup(rc) => rc.clone(),
-            SerializableCommand::TrackingFollowup(rc) => rc.clone(),
-            SerializableCommand::Goto(rc) => rc.clone(),
-            SerializableCommand::External(rc) => Rc::new(Upcast::new(rc)),
-        }
+        Rc::new(val)
     }
 }
 
 impl CommandTrait for SerializableCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        Into::<Rc<dyn CommandTrait>>::into(self.clone()).do_action(floor)
+        #[allow(clippy::clone_on_ref_ptr)]
+        match self {
+            SerializableCommand::DoubleHitFollowup(x) => x.do_action(floor),
+            SerializableCommand::ForwardHeavyFollowup(x) => x.do_action(floor),
+            SerializableCommand::TrackingFollowup(x) => x.do_action(floor),
+            SerializableCommand::Goto(x) => x.do_action(floor),
+            SerializableCommand::External(rc) => rc.do_action(floor),
+        }
     }
 }

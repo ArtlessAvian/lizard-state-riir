@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::rc::Rc;
 
 use rkyv::Archive;
 use rkyv::Deserialize;
@@ -26,7 +25,7 @@ use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
 
 // Hits once, then queues another.
-#[derive(Debug, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct DoubleHitAction;
 
@@ -49,7 +48,7 @@ impl DirectionActionTrait for DoubleHitAction {
 
 impl From<DoubleHitAction> for SerializableUnaimedAction {
     fn from(value: DoubleHitAction) -> Self {
-        SerializableUnaimedAction::Direction(SerializableDirectionAction::DoubleHit(Rc::new(value)))
+        SerializableUnaimedAction::Direction(SerializableDirectionAction::DoubleHit(value))
     }
 }
 
@@ -106,7 +105,7 @@ impl CommandTrait for DoubleHitCommand {
     }
 }
 
-#[derive(Debug, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub(crate) struct DoubleHitFollowup {
     dir: RelativePosition,
@@ -153,12 +152,12 @@ impl CommandTrait for DoubleHitFollowup {
 
 impl From<DoubleHitFollowup> for SerializableCommand {
     fn from(val: DoubleHitFollowup) -> Self {
-        SerializableCommand::DoubleHitFollowup(Rc::new(val))
+        SerializableCommand::DoubleHitFollowup(val)
     }
 }
 
 // Waits a turn, then lets the user do a big attack or exit stance.
-#[derive(Debug, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct EnterStanceAction;
 
@@ -170,7 +169,7 @@ impl ActionTrait for EnterStanceAction {
 
 impl From<EnterStanceAction> for SerializableUnaimedAction {
     fn from(value: EnterStanceAction) -> Self {
-        SerializableUnaimedAction::None(SerializableAction::EnterStance(Rc::new(value)))
+        SerializableUnaimedAction::None(SerializableAction::EnterStance(value))
     }
 }
 
@@ -203,7 +202,7 @@ impl ActionTrait for ExitStanceAction {
 
 impl From<ExitStanceAction> for SerializableUnaimedAction {
     fn from(value: ExitStanceAction) -> Self {
-        SerializableUnaimedAction::None(SerializableAction::ExitStance(Rc::new(value)))
+        SerializableUnaimedAction::None(SerializableAction::ExitStance(value))
     }
 }
 

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -28,7 +26,7 @@ use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 // Steps forward and sweeps at the start of next turn.
-#[derive(Debug, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct ForwardHeavyAction;
 
@@ -52,9 +50,7 @@ impl DirectionActionTrait for ForwardHeavyAction {
 
 impl From<ForwardHeavyAction> for SerializableUnaimedAction {
     fn from(value: ForwardHeavyAction) -> Self {
-        SerializableUnaimedAction::Direction(SerializableDirectionAction::ForwardHeavy(Rc::new(
-            value,
-        )))
+        SerializableUnaimedAction::Direction(SerializableDirectionAction::ForwardHeavy(value))
     }
 }
 
@@ -89,7 +85,7 @@ impl CommandTrait for ForwardHeavyCommand {
     }
 }
 
-#[derive(Debug, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub(crate) struct ForwardHeavyFollowup {
     dir: RelativePosition,
@@ -144,12 +140,12 @@ impl CommandTrait for ForwardHeavyFollowup {
 
 impl From<ForwardHeavyFollowup> for SerializableCommand {
     fn from(value: ForwardHeavyFollowup) -> Self {
-        SerializableCommand::ForwardHeavyFollowup(Rc::new(value))
+        SerializableCommand::ForwardHeavyFollowup(value)
     }
 }
 
 // Steps forward and sweeps at the start of next turn.
-#[derive(Debug, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct TrackingAction;
 
@@ -188,11 +184,11 @@ impl TileActionTrait for TrackingAction {
 
 impl From<TrackingAction> for SerializableUnaimedAction {
     fn from(value: TrackingAction) -> Self {
-        SerializableUnaimedAction::Tile(SerializableTileAction::Tracking(Rc::new(value)))
+        SerializableUnaimedAction::Tile(SerializableTileAction::Tracking(value))
     }
 }
 
-#[derive(Debug, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub(crate) struct TrackingFollowup {
     tracking_id: EntityId,
@@ -238,6 +234,6 @@ impl CommandTrait for TrackingFollowup {
 
 impl From<TrackingFollowup> for SerializableCommand {
     fn from(value: TrackingFollowup) -> Self {
-        SerializableCommand::TrackingFollowup(Rc::new(value))
+        SerializableCommand::TrackingFollowup(value)
     }
 }
