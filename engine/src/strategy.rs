@@ -18,7 +18,9 @@ pub trait StrategyTrait {
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
+#[cfg_attr(test, derive(Default))]
 pub enum Strategy {
+    #[cfg_attr(test, default)]
     Null,
     Wander(WanderStrategy),
     StandAndFight(StandAndFightStrategy),

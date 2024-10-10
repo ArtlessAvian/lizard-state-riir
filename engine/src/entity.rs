@@ -40,6 +40,7 @@ impl From<EntityId> for i32 {
 // TODO: Split into an EntityData. Wrap with Entity when added to a Floor?
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
+#[cfg_attr(test, derive(Default))]
 pub struct Entity {
     // Turntaking and state are highly correlated, and changing one usually implies something about the other.
     // EG: Doing a move, queued or not, should usually unset the queued move.
@@ -278,31 +279,18 @@ pub enum EntityState {
     Dead,
 }
 
+#[cfg(test)]
+impl Default for EntityState {
+    fn default() -> Self {
+        Self::Ok { next_turn: 0 }
+    }
+}
+
 #[test]
 fn entity_set_iters() {
     let mut entities = EntitySet::new();
-    entities.add(Entity {
-        state: EntityState::Dead,
-        pos: AbsolutePosition::new(1, 2),
-        health: 3,
-        max_energy: 4,
-        energy: 5,
-        strategy: Strategy::Null,
-        is_player_controlled: true,
-        is_player_friendly: true,
-        payload: String::default(),
-    });
-    entities.add(Entity {
-        state: EntityState::Dead,
-        pos: AbsolutePosition::new(2, 3),
-        health: 4,
-        max_energy: 5,
-        energy: 6,
-        strategy: Strategy::Null,
-        is_player_controlled: false,
-        is_player_friendly: true,
-        payload: String::default(),
-    });
+    entities.add(Entity::default());
+    entities.add(Entity::default());
 
     for (pair, other) in entities
         .iter()

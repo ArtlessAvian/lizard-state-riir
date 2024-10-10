@@ -358,7 +358,6 @@ impl CommandTrait for TryToStandUpCommand {
 fn bump_test() {
     use crate::entity::EntityState;
     use crate::positional::AbsolutePosition;
-    use crate::strategy::Strategy;
 
     let mut update = FloorUpdate::new(Floor::new());
     let player_id;
@@ -367,26 +366,14 @@ fn bump_test() {
         floor.add_entity(Entity {
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
-            health: 0,
-            max_energy: 0,
-            energy: 0,
-            strategy: Strategy::Null,
-            is_player_controlled: false,
-            is_player_friendly: false,
-            payload: String::default(),
+            ..Default::default()
         })
     });
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(1, 0),
-            health: 0,
-            max_energy: 0,
-            energy: 0,
-            strategy: Strategy::Null,
-            is_player_controlled: false,
-            is_player_friendly: false,
-            payload: String::default(),
+            ..Default::default()
         })
     });
     update = update.bind(|floor| {
@@ -421,7 +408,6 @@ fn bump_test() {
 fn goto_test() {
     use crate::entity::EntityState;
     use crate::positional::AbsolutePosition;
-    use crate::strategy::Strategy;
 
     let mut update = FloorUpdate::new(Floor::new());
     let player_id;
@@ -429,13 +415,7 @@ fn goto_test() {
         floor.add_entity(Entity {
             state: EntityState::Ok { next_turn: 0 },
             pos: AbsolutePosition::new(0, 0),
-            health: 0,
-            max_energy: 0,
-            energy: 0,
-            strategy: Strategy::Null,
-            is_player_controlled: true,
-            is_player_friendly: false,
-            payload: String::default(),
+            ..Default::default()
         })
     });
     update = update.bind(|floor| {

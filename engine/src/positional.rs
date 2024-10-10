@@ -91,7 +91,18 @@ impl RelativePosition {
 /// * Tabletop rules: Every second diagonal costs 2. Again stops being a metric space. Nice integer values! (and octagons!)
 
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize, PartialOrd, Ord,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Archive,
+    Serialize,
+    Deserialize,
+    PartialOrd,
+    Ord,
+    Default,
 )]
 #[archive_attr(derive(Hash, PartialEq, Eq, Debug))]
 pub struct AbsolutePosition {

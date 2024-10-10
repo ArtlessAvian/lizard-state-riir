@@ -91,26 +91,14 @@ fn add_panic() {
     let first = entities.add(Entity {
         state: crate::entity::EntityState::Ok { next_turn: 1 },
         pos: AbsolutePosition::new(10, 10),
-        health: Default::default(),
-        max_energy: Default::default(),
-        energy: Default::default(),
-        strategy: crate::strategy::Strategy::Null,
-        is_player_controlled: Default::default(),
-        is_player_friendly: Default::default(),
-        payload: String::default(),
+        ..Default::default()
     });
     let occupiers = occupiers.add_entity((first, &entities[first]));
 
     let second = entities.add(Entity {
         state: crate::entity::EntityState::Ok { next_turn: 1 },
         pos: entities[first].pos,
-        health: Default::default(),
-        max_energy: Default::default(),
-        energy: Default::default(),
-        strategy: crate::strategy::Strategy::Null,
-        is_player_controlled: Default::default(),
-        is_player_friendly: Default::default(),
-        payload: String::default(),
+        ..Default::default()
     });
     let _should_panic = occupiers.add_entity((second, &entities[second]));
 }
@@ -121,7 +109,6 @@ fn add_panic() {
 fn update_panic() {
     use crate::entity::EntitySet;
     use crate::entity::EntityState;
-    use crate::strategy::Strategy;
 
     let mut entities = EntitySet::new();
     let occupiers = Occupiers::new();
@@ -129,26 +116,14 @@ fn update_panic() {
     let first = entities.add(Entity {
         state: EntityState::Ok { next_turn: 1 },
         pos: AbsolutePosition::new(10, 10),
-        health: Default::default(),
-        max_energy: Default::default(),
-        energy: Default::default(),
-        strategy: Strategy::Null,
-        is_player_controlled: Default::default(),
-        is_player_friendly: Default::default(),
-        payload: String::default(),
+        ..Default::default()
     });
     let occupiers = occupiers.add_entity((first, &entities[first]));
 
     let second = entities.add(Entity {
         state: EntityState::Ok { next_turn: 1 },
         pos: AbsolutePosition::new(15, 15),
-        health: Default::default(),
-        max_energy: Default::default(),
-        energy: Default::default(),
-        strategy: Strategy::Null,
-        is_player_controlled: Default::default(),
-        is_player_friendly: Default::default(),
-        payload: String::default(),
+        ..Default::default()
     });
     let occupiers = occupiers.add_entity((second, &entities[second]));
 
@@ -166,7 +141,6 @@ fn update_panic() {
 fn update_knockdown() {
     use crate::entity::EntitySet;
     use crate::entity::EntityState;
-    use crate::strategy::Strategy;
 
     let mut entities = EntitySet::new();
     let occupiers = Occupiers::new();
@@ -174,26 +148,14 @@ fn update_knockdown() {
     let first = entities.add(Entity {
         state: EntityState::Ok { next_turn: 1 },
         pos: AbsolutePosition::new(10, 10),
-        health: Default::default(),
-        max_energy: Default::default(),
-        energy: Default::default(),
-        strategy: Strategy::Null,
-        is_player_controlled: Default::default(),
-        is_player_friendly: Default::default(),
-        payload: String::default(),
+        ..Default::default()
     });
     let occupiers = occupiers.add_entity((first, &entities[first]));
 
     let second = entities.add(Entity {
         state: EntityState::Ok { next_turn: 1 },
         pos: AbsolutePosition::new(15, 15),
-        health: Default::default(),
-        max_energy: Default::default(),
-        energy: Default::default(),
-        strategy: Strategy::Null,
-        is_player_controlled: Default::default(),
-        is_player_friendly: Default::default(),
-        payload: String::default(),
+        ..Default::default()
     });
     let occupiers = occupiers.add_entity((second, &entities[second]));
 
