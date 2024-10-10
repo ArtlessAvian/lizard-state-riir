@@ -55,7 +55,7 @@ pub enum SerializableCommand {
     DoubleHitFollowup(Rc<DoubleHitFollowup>),
     ForwardHeavyFollowup(Rc<ForwardHeavyFollowup>),
     TrackingFollowup(Rc<TrackingFollowup>),
-    GotoCommand(Rc<GotoCommand>),
+    Goto(Rc<GotoCommand>),
     External(Rc<dyn SerializeCommandTrait>),
 }
 
@@ -98,7 +98,7 @@ impl From<SerializableCommand> for Rc<dyn CommandTrait> {
             SerializableCommand::DoubleHitFollowup(rc) => rc.clone(),
             SerializableCommand::ForwardHeavyFollowup(rc) => rc.clone(),
             SerializableCommand::TrackingFollowup(rc) => rc.clone(),
-            SerializableCommand::GotoCommand(rc) => rc.clone(),
+            SerializableCommand::Goto(rc) => rc.clone(),
             SerializableCommand::External(rc) => Rc::new(Upcast::new(rc)),
         }
     }

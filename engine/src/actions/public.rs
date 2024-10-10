@@ -284,12 +284,18 @@ impl CommandTrait for GotoCommand {
                             next_turn: subject_clone
                                 .get_next_turn()
                                 .expect("This entity just took a step so it has a next turn."),
-                            to_confirm: SerializableCommand::GotoCommand(Rc::new(self.clone())),
+                            to_confirm: self.clone().into(),
                         }
                     };
                     floor.update_entity((self.subject_id, subject_clone))
                 }),
         }
+    }
+}
+
+impl From<GotoCommand> for SerializableCommand {
+    fn from(value: GotoCommand) -> Self {
+        SerializableCommand::Goto(Rc::new(value))
     }
 }
 

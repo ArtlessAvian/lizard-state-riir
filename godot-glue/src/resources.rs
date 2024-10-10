@@ -4,9 +4,6 @@ use engine::actions::characters::max_tegu::ForwardHeavyAction;
 use engine::actions::characters::max_tegu::TrackingAction;
 use engine::actions::example::DoubleHitAction;
 use engine::actions::example::EnterStanceAction;
-use engine::actions::static_dispatch::SerializableAction;
-use engine::actions::static_dispatch::SerializableDirectionAction;
-use engine::actions::static_dispatch::SerializableTileAction;
 use engine::actions::SerializableUnaimedAction;
 use engine::strategy::FollowStrategy;
 use engine::strategy::RushdownStrategy;
@@ -43,18 +40,10 @@ impl EntityInitializer {
     #[must_use]
     pub fn to_entity(&self) -> engine::entity::Entity {
         let moveset: Vec<SerializableUnaimedAction> = vec![
-            SerializableUnaimedAction::Direction(SerializableDirectionAction::DoubleHit(Rc::new(
-                DoubleHitAction {},
-            ))),
-            SerializableUnaimedAction::None(SerializableAction::EnterStance(Rc::new(
-                EnterStanceAction {},
-            ))),
-            (SerializableUnaimedAction::Direction(SerializableDirectionAction::ForwardHeavy(
-                Rc::new(ForwardHeavyAction {}),
-            ))),
-            SerializableUnaimedAction::Tile(SerializableTileAction::Tracking(Rc::new(
-                TrackingAction {},
-            ))),
+            DoubleHitAction {}.into(),
+            EnterStanceAction {}.into(),
+            ForwardHeavyAction {}.into(),
+            TrackingAction {}.into(),
         ];
 
         engine::entity::Entity {

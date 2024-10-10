@@ -12,8 +12,11 @@ use super::super::FloorEvent;
 use crate::actions::events::PrepareAttackEvent;
 use crate::actions::public::StepAction;
 use crate::actions::static_dispatch::SerializableCommand;
+use crate::actions::static_dispatch::SerializableDirectionAction;
+use crate::actions::static_dispatch::SerializableTileAction;
 use crate::actions::utils::DelayCommand;
 use crate::actions::utils::TakeKnockbackUtil;
+use crate::actions::SerializableUnaimedAction;
 use crate::actions::TileActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
@@ -47,6 +50,14 @@ impl DirectionActionTrait for ForwardHeavyAction {
     }
 }
 
+impl From<ForwardHeavyAction> for SerializableUnaimedAction {
+    fn from(value: ForwardHeavyAction) -> Self {
+        SerializableUnaimedAction::Direction(SerializableDirectionAction::ForwardHeavy(Rc::new(
+            value,
+        )))
+    }
+}
+
 #[derive(Debug)]
 struct ForwardHeavyCommand {
     step: Box<dyn CommandTrait>,
@@ -61,12 +72,11 @@ impl CommandTrait for ForwardHeavyCommand {
             .bind(|floor| {
                 DelayCommand {
                     subject_id: self.subject_id,
-                    queued_command: SerializableCommand::ForwardHeavyFollowup(Rc::new(
-                        ForwardHeavyFollowup {
-                            dir: self.dir,
-                            subject_id: self.subject_id,
-                        },
-                    )),
+                    queued_command: ForwardHeavyFollowup {
+                        dir: self.dir,
+                        subject_id: self.subject_id,
+                    }
+                    .into(),
                     turns: 0, // The step already takes a turn.
                     event: None,
                 }
@@ -132,6 +142,12 @@ impl CommandTrait for ForwardHeavyFollowup {
     }
 }
 
+impl From<ForwardHeavyFollowup> for SerializableCommand {
+    fn from(value: ForwardHeavyFollowup) -> Self {
+        SerializableCommand::ForwardHeavyFollowup(Rc::new(value))
+    }
+}
+
 // Steps forward and sweeps at the start of next turn.
 #[derive(Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
@@ -156,16 +172,23 @@ impl TileActionTrait for TrackingAction {
 
         Some(Box::new(DelayCommand {
             subject_id,
-            queued_command: SerializableCommand::TrackingFollowup(Rc::new(TrackingFollowup {
+            queued_command: TrackingFollowup {
                 tracking_id,
                 subject_id,
-            })),
+            }
+            .into(),
             turns: 1,
             event: Some(FloorEvent::PrepareAttack(PrepareAttackEvent {
                 subject: subject_id,
                 tile: floor.entities[tracking_id].pos,
             })),
         }))
+    }
+}
+
+impl From<TrackingAction> for SerializableUnaimedAction {
+    fn from(value: TrackingAction) -> Self {
+        SerializableUnaimedAction::Tile(SerializableTileAction::Tracking(Rc::new(value)))
     }
 }
 
@@ -210,5 +233,11 @@ impl CommandTrait for TrackingFollowup {
                     FloorUpdate::new(floor).log(start_attack)
                 }
             })
+    }
+}
+
+impl From<TrackingFollowup> for SerializableCommand {
+    fn from(value: TrackingFollowup) -> Self {
+        SerializableCommand::TrackingFollowup(Rc::new(value))
     }
 }

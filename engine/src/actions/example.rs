@@ -10,6 +10,7 @@ use super::events::PrepareAttackEvent;
 use super::events::StartAttackEvent;
 use super::static_dispatch::SerializableAction;
 use super::static_dispatch::SerializableCommand;
+use super::static_dispatch::SerializableDirectionAction;
 use super::utils::DelayCommand;
 use super::ActionTrait;
 use super::CommandTrait;
@@ -43,6 +44,12 @@ impl DirectionActionTrait for DoubleHitAction {
         }
 
         Some(Box::new(DoubleHitCommand { dir, subject_id }))
+    }
+}
+
+impl From<DoubleHitAction> for SerializableUnaimedAction {
+    fn from(value: DoubleHitAction) -> Self {
+        SerializableUnaimedAction::Direction(SerializableDirectionAction::DoubleHit(Rc::new(value)))
     }
 }
 
@@ -83,12 +90,11 @@ impl CommandTrait for DoubleHitCommand {
             .bind(|floor| {
                 DelayCommand {
                     subject_id: self.subject_id,
-                    queued_command: SerializableCommand::DoubleHitFollowup(Rc::new(
-                        DoubleHitFollowup {
-                            dir: self.dir,
-                            subject_id: self.subject_id,
-                        },
-                    )),
+                    queued_command: DoubleHitFollowup {
+                        dir: self.dir,
+                        subject_id: self.subject_id,
+                    }
+                    .into(),
                     turns: 1,
                     event: Some(FloorEvent::PrepareAttack(PrepareAttackEvent {
                         subject: self.subject_id,
@@ -145,6 +151,12 @@ impl CommandTrait for DoubleHitFollowup {
     }
 }
 
+impl From<DoubleHitFollowup> for SerializableCommand {
+    fn from(val: DoubleHitFollowup) -> Self {
+        SerializableCommand::DoubleHitFollowup(Rc::new(val))
+    }
+}
+
 // Waits a turn, then lets the user do a big attack or exit stance.
 #[derive(Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
@@ -153,6 +165,12 @@ pub struct EnterStanceAction;
 impl ActionTrait for EnterStanceAction {
     fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
         Some(Box::new(EnterStanceCommand { subject_id }))
+    }
+}
+
+impl From<EnterStanceAction> for SerializableUnaimedAction {
+    fn from(value: EnterStanceAction) -> Self {
+        SerializableUnaimedAction::None(SerializableAction::EnterStance(Rc::new(value)))
     }
 }
 
@@ -166,9 +184,7 @@ impl CommandTrait for EnterStanceCommand {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::RestrictedActions {
             next_turn: floor.get_current_turn() + 1,
-            restricted_actions: vec![SerializableUnaimedAction::None(
-                SerializableAction::ExitStance(Rc::new(ExitStanceAction)),
-            )],
+            restricted_actions: vec![ExitStanceAction.into()],
         };
 
         floor.update_entity((self.subject_id, subject_clone))
@@ -182,6 +198,12 @@ pub struct ExitStanceAction;
 impl ActionTrait for ExitStanceAction {
     fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
         Some(Box::new(ExitStanceCommand { subject_id }))
+    }
+}
+
+impl From<ExitStanceAction> for SerializableUnaimedAction {
+    fn from(value: ExitStanceAction) -> Self {
+        SerializableUnaimedAction::None(SerializableAction::ExitStance(Rc::new(value)))
     }
 }
 
