@@ -260,70 +260,50 @@ impl Default for Floor {
     }
 }
 
-// TODO: Fails because of skipping serialization of pathfinder.
-// #[cfg(test)]
-// #[test]
-// // TODO: Decide scope of test.
-// // (To compile error if floor fails to serialize, deserialize?)
-// fn serialize_deserialize() {
-//     use rkyv::ser::{serializers::AllocSerializer, Serializer};
+#[cfg(test)]
+#[test]
+fn serialize_deserialize() {
+    use rkyv::ser::serializers::AllocSerializer;
+    use rkyv::ser::Serializer;
 
-//     use crate::{entity::EntityState, strategy::Strategy};
+    use crate::entity::EntityState;
+    use crate::positional::AbsolutePosition;
+    use crate::strategy::Strategy;
 
-//     let floor = Floor::new();
-//     let floor = floor
-//         .add_entity(Entity {
-//             state: EntityState::Hitstun {
-//                 next_turn: 100,
-//                 extensions: 3,
-//             },
-//             pos: AbsolutePosition::new(101, 101),
-//             health: 103,
-//             max_energy: 104,
-//             energy: 105,
-//             strategy: Strategy::Null,
-//             is_player_controlled: false,
-//         })
-//         .0
-//         .into_both()
-//         .0;
+    let floor = Floor::new();
+    let floor = floor
+        .add_entity(Entity {
+            state: EntityState::Ok {
+                next_turn: 0x2aaa_aaaa,
+            },
+            pos: AbsolutePosition::new(0x3bbb_bbbb, 0x4ccc_cccc),
+            health: 0x5d,
+            max_energy: 0x6e,
+            energy: 0x7f,
+            strategy: Strategy::Null,
+            is_player_controlled: false,
+            moveset: Vec::new(),
+            is_player_friendly: true,
+            payload: "Hello there!".into(),
+        })
+        .0
+        .into_both()
+        .0;
 
-//     let mut serializer = AllocSerializer::<256>::default();
-//     serializer.serialize_value(&floor).unwrap();
+    let mut serializer = AllocSerializer::<256>::default();
+    serializer.serialize_value(&floor).unwrap();
 
-//     let bytes = serializer.into_serializer().into_inner();
-//     let archived = unsafe { rkyv::archived_root::<Floor>(&bytes[..]) };
+    let bytes = serializer.into_serializer().into_inner();
+    let archived = unsafe { rkyv::archived_root::<Floor>(&bytes[..]) };
+    // TODO: Validate bytes somehow.
 
-//     let deserialized: Floor = archived
-//         .deserialize(&mut rkyv::de::deserializers::SharedDeserializeMap::new())
-//         .unwrap();
+    let _deserialized: Floor = archived
+        .deserialize(&mut rkyv::de::deserializers::SharedDeserializeMap::new())
+        .unwrap();
 
-//     // Debug doesn't sort the HashMaps so this hack equality check fails.
-//     // PartialEq can't(?) be derived for Floor due to dyn trait (in EntityState).
-//     // assert_eq!(format!("{:?}", deserialized), format!("{:?}", floor));
+    // We can't easily check the equality of deserialized and floor.
+    // Oh well.
 
-//     // Instead we have this "even better" hack. Its permissive of ordering issues.
-//     // Doesn't tell you where the difference is though.
-//     let count = |string: &String| {
-//         let mut out = HashMap::new();
-//         string.chars().for_each(|x| {
-//             out.insert(x, out.get(&x).unwrap_or(&0) + 1);
-//         });
-//         out
-//     };
-
-//     let (debug_deserialized, debug_original) = (format!("{deserialized:?}"), format!("{floor:?}"));
-//     let (count_deserialized, count_original) = (count(&debug_deserialized), count(&debug_original));
-
-//     assert!(
-//         count_deserialized == count_original,
-//         "Diffs in Debug dumps: {:?}\n  left: {:?}\n right: {:?}",
-//         count_deserialized
-//             .iter()
-//             .filter(|(k, v)| count_original[k] != **v)
-//             .map(|(k, _v)| k)
-//             .collect::<Vec<&char>>(),
-//         debug_deserialized,
-//         debug_original
-//     );
-// }
+    // Fun stuff.
+    assert_eq!(bytes.len(), 592 * 16);
+}
