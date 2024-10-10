@@ -18,11 +18,9 @@ use std::fmt::Debug;
 use std::rc::Rc;
 
 use rkyv::Archive;
-use rkyv::Archived;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 use rkyv_dyn::archive_dyn;
-use rkyv_typename::TypeName;
 
 use self::events::FloorEvent;
 use self::static_dispatch::SerializableAction;
@@ -138,17 +136,10 @@ pub trait CommandTrait: Debug {
 ///
 /// This is preferable to a no-op command, since that would produce a new Floor.
 #[derive(Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug, TypeName))]
+#[archive_attr(derive(Debug))]
 pub struct NullAction {}
 
-#[archive_dyn(deserialize)]
 impl ActionTrait for NullAction {
-    fn verify_action(&self, _: &Floor, _: EntityId) -> Option<Box<dyn CommandTrait>> {
-        None
-    }
-}
-
-impl ActionTrait for Archived<NullAction> {
     fn verify_action(&self, _: &Floor, _: EntityId) -> Option<Box<dyn CommandTrait>> {
         None
     }

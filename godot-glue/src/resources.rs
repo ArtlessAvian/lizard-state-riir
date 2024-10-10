@@ -1,5 +1,12 @@
 use std::rc::Rc;
 
+use engine::actions::characters::max_tegu::ForwardHeavyAction;
+use engine::actions::characters::max_tegu::TrackingAction;
+use engine::actions::example::DoubleHitAction;
+use engine::actions::example::EnterStanceAction;
+use engine::actions::static_dispatch::SerializableAction;
+use engine::actions::static_dispatch::SerializableDirectionAction;
+use engine::actions::static_dispatch::SerializableTileAction;
 use engine::actions::SerializableUnaimedAction;
 use engine::strategy::FollowStrategy;
 use engine::strategy::RushdownStrategy;
@@ -35,13 +42,20 @@ pub struct EntityInitializer {
 impl EntityInitializer {
     #[must_use]
     pub fn to_entity(&self) -> engine::entity::Entity {
-        let moveset: Vec<SerializableUnaimedAction> = Vec::new();
-        // moveset.push(SerializableAction::Direction(Rc::new(DoubleHitAction {})));
-        // moveset.push(SerializableAction::None(Rc::new(EnterStanceAction {})));
-        // moveset.push(SerializableAction::Direction(Rc::new(
-        //     ForwardHeavyAction {},
-        // )));
-        // moveset.push(SerializableAction::Tile(Rc::new(TrackingAction {})));
+        let moveset: Vec<SerializableUnaimedAction> = vec![
+            SerializableUnaimedAction::Direction(SerializableDirectionAction::DoubleHit(Rc::new(
+                DoubleHitAction {},
+            ))),
+            SerializableUnaimedAction::None(SerializableAction::EnterStance(Rc::new(
+                EnterStanceAction {},
+            ))),
+            (SerializableUnaimedAction::Direction(SerializableDirectionAction::ForwardHeavy(
+                Rc::new(ForwardHeavyAction {}),
+            ))),
+            SerializableUnaimedAction::Tile(SerializableTileAction::Tracking(Rc::new(
+                TrackingAction {},
+            ))),
+        ];
 
         engine::entity::Entity {
             state: engine::entity::EntityState::Ok { next_turn: 0 },

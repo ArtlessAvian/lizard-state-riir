@@ -5,9 +5,14 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
+use super::characters::max_tegu::ForwardHeavyAction;
 use super::characters::max_tegu::ForwardHeavyFollowup;
+use super::characters::max_tegu::TrackingAction;
 use super::characters::max_tegu::TrackingFollowup;
+use super::example::DoubleHitAction;
 use super::example::DoubleHitFollowup;
+use super::example::EnterStanceAction;
+use super::example::ExitStanceAction;
 use super::public::GotoCommand;
 use super::upcast_indirection::Upcast;
 use super::ActionTrait;
@@ -24,18 +29,23 @@ use crate::floor::FloorUpdate;
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum SerializableAction {
+    EnterStance(Rc<EnterStanceAction>),
+    ExitStance(Rc<ExitStanceAction>),
     External(Rc<dyn SerializeActionTrait>),
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum SerializableTileAction {
+    Tracking(Rc<TrackingAction>),
     External(Rc<dyn SerializeTileActionTrait>),
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum SerializableDirectionAction {
+    DoubleHit(Rc<DoubleHitAction>),
+    ForwardHeavy(Rc<ForwardHeavyAction>),
     External(Rc<dyn SerializeDirectionActionTrait>),
 }
 
@@ -50,8 +60,11 @@ pub enum SerializableCommand {
 }
 
 impl From<SerializableAction> for Rc<dyn ActionTrait> {
+    #[allow(clippy::clone_on_ref_ptr)]
     fn from(val: SerializableAction) -> Self {
         match val {
+            SerializableAction::EnterStance(rc) => rc.clone(),
+            SerializableAction::ExitStance(rc) => rc.clone(),
             SerializableAction::External(rc) => Rc::new(Upcast::new(rc)),
         }
     }
@@ -59,7 +72,9 @@ impl From<SerializableAction> for Rc<dyn ActionTrait> {
 
 impl From<SerializableTileAction> for Rc<dyn TileActionTrait> {
     fn from(val: SerializableTileAction) -> Self {
+        #[allow(clippy::clone_on_ref_ptr)]
         match val {
+            SerializableTileAction::Tracking(rc) => rc.clone(),
             SerializableTileAction::External(rc) => Rc::new(Upcast::new(rc)),
         }
     }
@@ -67,7 +82,10 @@ impl From<SerializableTileAction> for Rc<dyn TileActionTrait> {
 
 impl From<SerializableDirectionAction> for Rc<dyn DirectionActionTrait> {
     fn from(val: SerializableDirectionAction) -> Self {
+        #[allow(clippy::clone_on_ref_ptr)]
         match val {
+            SerializableDirectionAction::DoubleHit(rc) => rc.clone(),
+            SerializableDirectionAction::ForwardHeavy(rc) => rc.clone(),
             SerializableDirectionAction::External(rc) => Rc::new(Upcast::new(rc)),
         }
     }

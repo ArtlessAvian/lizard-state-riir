@@ -1,12 +1,8 @@
 use std::rc::Rc;
 
 use rkyv::Archive;
-use rkyv::Archived;
 use rkyv::Deserialize;
-use rkyv::Infallible;
 use rkyv::Serialize;
-use rkyv_dyn::archive_dyn;
-use rkyv_typename::TypeName;
 
 use super::events::AttackHitEvent;
 use super::events::MoveEvent;
@@ -18,8 +14,6 @@ use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
 use super::TileActionTrait;
-use crate::actions::DeserializeCommandTrait;
-use crate::actions::SerializeCommandTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -242,13 +236,12 @@ impl TileActionTrait for GotoAction {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug, TypeName))]
+#[archive_attr(derive(Debug))]
 pub struct GotoCommand {
     pub tile: AbsolutePosition,
     subject_id: EntityId,
 }
 
-#[archive_dyn(deserialize)]
 impl CommandTrait for GotoCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let subject_pos = floor.entities[self.subject_id].pos;
@@ -297,17 +290,6 @@ impl CommandTrait for GotoCommand {
                     floor.update_entity((self.subject_id, subject_clone))
                 }),
         }
-    }
-}
-
-// TODO: Figure out how to resolve `private_interfaces` warning. Maybe commands should be public but not constructable?
-#[allow(private_interfaces)]
-impl CommandTrait for Archived<GotoCommand> {
-    fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        // Deserialize and do. Not zero-copy, but whatever.
-        Deserialize::<GotoCommand, _>::deserialize(self, &mut Infallible)
-            .unwrap()
-            .do_action(floor)
     }
 }
 

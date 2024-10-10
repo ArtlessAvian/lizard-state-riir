@@ -1,12 +1,8 @@
 use std::rc::Rc;
 
 use rkyv::Archive;
-use rkyv::Archived;
 use rkyv::Deserialize;
-use rkyv::Infallible;
 use rkyv::Serialize;
-use rkyv_dyn::archive_dyn;
-use rkyv_typename::TypeName;
 
 use super::super::events::AttackHitEvent;
 use super::super::events::StartAttackEvent;
@@ -18,8 +14,6 @@ use crate::actions::public::StepAction;
 use crate::actions::static_dispatch::SerializableCommand;
 use crate::actions::utils::DelayCommand;
 use crate::actions::utils::TakeKnockbackUtil;
-use crate::actions::DeserializeCommandTrait;
-use crate::actions::SerializeCommandTrait;
 use crate::actions::TileActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
@@ -31,7 +25,8 @@ use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 // Steps forward and sweeps at the start of next turn.
-#[derive(Debug)]
+#[derive(Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub struct ForwardHeavyAction;
 
 impl DirectionActionTrait for ForwardHeavyAction {
@@ -85,13 +80,12 @@ impl CommandTrait for ForwardHeavyCommand {
 }
 
 #[derive(Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug, TypeName))]
+#[archive_attr(derive(Debug))]
 pub(crate) struct ForwardHeavyFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
 }
 
-#[archive_dyn(deserialize)]
 impl CommandTrait for ForwardHeavyFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         BorrowedFloorUpdate::new(floor)
@@ -138,19 +132,9 @@ impl CommandTrait for ForwardHeavyFollowup {
     }
 }
 
-// TODO: Figure out how to resolve `private_interfaces` warning. Maybe commands should be public but not constructable?
-#[allow(private_interfaces)]
-impl CommandTrait for Archived<ForwardHeavyFollowup> {
-    fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        // Deserialize and do. Not zero-copy, but whatever.
-        Deserialize::<ForwardHeavyFollowup, _>::deserialize(self, &mut Infallible)
-            .unwrap()
-            .do_action(floor)
-    }
-}
-
 // Steps forward and sweeps at the start of next turn.
-#[derive(Debug)]
+#[derive(Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub struct TrackingAction;
 
 impl TileActionTrait for TrackingAction {
@@ -186,13 +170,12 @@ impl TileActionTrait for TrackingAction {
 }
 
 #[derive(Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug, TypeName))]
+#[archive_attr(derive(Debug))]
 pub(crate) struct TrackingFollowup {
     tracking_id: EntityId,
     subject_id: EntityId,
 }
 
-#[archive_dyn(deserialize)]
 impl CommandTrait for TrackingFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         BorrowedFloorUpdate::new(floor)
@@ -227,16 +210,5 @@ impl CommandTrait for TrackingFollowup {
                     FloorUpdate::new(floor).log(start_attack)
                 }
             })
-    }
-}
-
-// TODO: Figure out how to resolve `private_interfaces` warning. Maybe commands should be public but not constructable?
-#[allow(private_interfaces)]
-impl CommandTrait for Archived<TrackingFollowup> {
-    fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        // Deserialize and do. Not zero-copy, but whatever.
-        Deserialize::<TrackingFollowup, _>::deserialize(self, &mut Infallible)
-            .unwrap()
-            .do_action(floor)
     }
 }

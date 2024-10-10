@@ -2,16 +2,13 @@ use std::borrow::Cow;
 use std::rc::Rc;
 
 use rkyv::Archive;
-use rkyv::Archived;
 use rkyv::Deserialize;
-use rkyv::Infallible;
 use rkyv::Serialize;
-use rkyv_dyn::archive_dyn;
-use rkyv_typename::TypeName;
 
 use super::events::AttackHitEvent;
 use super::events::PrepareAttackEvent;
 use super::events::StartAttackEvent;
+use super::static_dispatch::SerializableAction;
 use super::static_dispatch::SerializableCommand;
 use super::utils::DelayCommand;
 use super::ActionTrait;
@@ -19,10 +16,6 @@ use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
 use super::SerializableUnaimedAction;
-use crate::actions::DeserializeActionTrait;
-use crate::actions::DeserializeCommandTrait;
-use crate::actions::SerializeActionTrait;
-use crate::actions::SerializeCommandTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -32,7 +25,8 @@ use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
 
 // Hits once, then queues another.
-#[derive(Debug)]
+#[derive(Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub struct DoubleHitAction;
 
 impl DirectionActionTrait for DoubleHitAction {
@@ -107,13 +101,12 @@ impl CommandTrait for DoubleHitCommand {
 }
 
 #[derive(Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug, TypeName))]
+#[archive_attr(derive(Debug))]
 pub(crate) struct DoubleHitFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
 }
 
-#[archive_dyn(deserialize)]
 impl CommandTrait for DoubleHitFollowup {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         BorrowedFloorUpdate::new(floor)
@@ -152,19 +145,9 @@ impl CommandTrait for DoubleHitFollowup {
     }
 }
 
-// TODO: Figure out how to resolve `private_interfaces` warning. Maybe commands should be public but not constructable?
-#[allow(private_interfaces)]
-impl CommandTrait for Archived<DoubleHitFollowup> {
-    fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        // Deserialize and do. Not zero-copy, but whatever.
-        Deserialize::<DoubleHitFollowup, _>::deserialize(self, &mut Infallible)
-            .unwrap()
-            .do_action(floor)
-    }
-}
-
 // Waits a turn, then lets the user do a big attack or exit stance.
-#[derive(Debug)]
+#[derive(Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
 pub struct EnterStanceAction;
 
 impl ActionTrait for EnterStanceAction {
@@ -184,7 +167,7 @@ impl CommandTrait for EnterStanceCommand {
         subject_clone.state = EntityState::RestrictedActions {
             next_turn: floor.get_current_turn() + 1,
             restricted_actions: vec![SerializableUnaimedAction::None(
-                super::static_dispatch::SerializableAction::External(Rc::new(ExitStanceAction)),
+                SerializableAction::ExitStance(Rc::new(ExitStanceAction)),
             )],
         };
 
@@ -193,17 +176,10 @@ impl CommandTrait for EnterStanceCommand {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug, TypeName))]
+#[archive_attr(derive(Debug))]
 pub struct ExitStanceAction;
 
-#[archive_dyn(deserialize)]
 impl ActionTrait for ExitStanceAction {
-    fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(ExitStanceCommand { subject_id }))
-    }
-}
-
-impl ActionTrait for Archived<ExitStanceAction> {
     fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
         Some(Box::new(ExitStanceCommand { subject_id }))
     }
