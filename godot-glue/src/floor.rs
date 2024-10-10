@@ -111,6 +111,7 @@ impl ActiveFloor {
             health: 10,
             max_energy: 6,
             energy: 6,
+            moveset: Vec::new(),
             strategy: Strategy::Follow(FollowStrategy {}),
             is_player_controlled,
             is_player_friendly,

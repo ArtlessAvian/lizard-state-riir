@@ -5,10 +5,6 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
-use crate::actions::characters::max_tegu::ForwardHeavyAction;
-use crate::actions::characters::max_tegu::TrackingAction;
-use crate::actions::example::DoubleHitAction;
-use crate::actions::example::EnterStanceAction;
 use crate::actions::upcast_indirection::Upcast;
 use crate::actions::CommandTrait;
 use crate::actions::SerializableAction;
@@ -54,6 +50,8 @@ pub struct Entity {
     pub max_energy: i8,
     pub energy: i8,
 
+    pub moveset: Vec<SerializableAction>,
+
     // TODO: AI. Roughly should be a type that tries a sequence of actions, and on success may mutate its own clone and return the FloorUpdate.
     // Should not be wrapped in Option. A "NullAI" should just wait in place forever.
     pub strategy: Strategy,
@@ -83,12 +81,11 @@ impl Entity {
                 .map(|x| UnaimedAction::from(x.clone()))
                 .collect()
         } else {
-            vec![
-                UnaimedAction::Direction(Rc::new(DoubleHitAction {})),
-                UnaimedAction::None(Rc::new(EnterStanceAction {})),
-                UnaimedAction::Direction(Rc::new(ForwardHeavyAction {})),
-                UnaimedAction::Tile(Rc::new(TrackingAction {})),
-            ]
+            self.moveset
+                .clone()
+                .into_iter()
+                .map(UnaimedAction::from)
+                .collect()
         }
     }
 

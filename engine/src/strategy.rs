@@ -75,22 +75,22 @@ pub struct StandAndFightStrategy;
 
 impl StrategyTrait for StandAndFightStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
-        let in_range = original.entities.iter().find(|(id, entity)| {
-            entity.pos.distance(original.entities[subject_id].pos) <= 2 && *id != subject_id
-        });
+        // let in_range = original.entities.iter().find(|(id, entity)| {
+        //     entity.pos.distance(original.entities[subject_id].pos) <= 2 && *id != subject_id
+        // });
 
-        if let Some(other) = in_range {
-            let unaimed_action = &original.entities[subject_id].get_actions()[3];
-            let lmao = match unaimed_action {
-                crate::actions::UnaimedAction::Tile(hi_this_is_temporary) => {
-                    hi_this_is_temporary.verify_action(original, subject_id, other.1.pos)
-                }
-                _ => None,
-            };
-            if let Some(command) = lmao {
-                return command.do_action(original);
-            }
-        }
+        // if let Some(other) = in_range {
+        //     let unaimed_action = &original.entities[subject_id].get_actions()[3];
+        //     let lmao = match unaimed_action {
+        //         crate::actions::UnaimedAction::Tile(hi_this_is_temporary) => {
+        //             hi_this_is_temporary.verify_action(original, subject_id, other.1.pos)
+        //         }
+        //         _ => None,
+        //     };
+        //     if let Some(command) = lmao {
+        //         return command.do_action(original);
+        //     }
+        // }
 
         WaitAction {}
             .verify_action(original, subject_id)
