@@ -3,7 +3,6 @@ mod actionset;
 
 use std::rc::Rc;
 
-use engine::actions::SerializableUnaimedAction;
 use engine::strategy::FollowStrategy;
 use engine::strategy::RushdownStrategy;
 use engine::strategy::StandAndFightStrategy;
@@ -25,10 +24,8 @@ pub struct EntityInitializer {
     health: i8,
     #[export]
     max_energy: i8,
-    /// Unforunate indirection.
-    /// Nested resources are fine, but some tool is trying to read it?
     #[export]
-    actions: GString,
+    actions: Option<Gd<ActionSet>>,
     #[export]
     strategy: StrategyName,
     #[export]
@@ -43,13 +40,11 @@ pub struct EntityInitializer {
 impl EntityInitializer {
     #[must_use]
     pub fn to_entity(&self) -> engine::entity::Entity {
-        let moveset: Vec<SerializableUnaimedAction> = if self.actions.is_empty() {
-            Vec::new()
-        } else {
-            try_load::<ActionSet>(self.actions.clone())
-                .map(|x| x.bind().to_vec())
-                .unwrap_or_default()
-        };
+        let moveset = self
+            .actions
+            .as_ref()
+            .map(|x| x.bind().to_vec())
+            .unwrap_or_default();
 
         engine::entity::Entity {
             state: engine::entity::EntityState::Ok { next_turn: 0 },
@@ -75,6 +70,25 @@ impl EntityInitializer {
         })
     }
 }
+
+// #[godot_api]
+// impl IResource for EntityInitializer {
+//     fn set_property(&mut self, property: StringName, value: Variant) -> bool {
+//         godot_print!("HI IM IN HERE");
+//         if property == "actions".into() {
+//             if value.is_nil() {
+//                 self.actions = None;
+//                 return true;
+//             }
+//             if let Ok(unwrap) = value.try_to::<Gd<ActionSet>>() {
+//                 self.actions = Some(unwrap);
+//                 return true;
+//             }
+//             return false;
+//         }
+//         return false;
+//     }
+// }
 
 #[derive(GodotConvert, Var, Export, Default)]
 #[godot(via = GString)]

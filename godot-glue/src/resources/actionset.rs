@@ -15,13 +15,14 @@ pub(super) struct GodotWrappedAction {
 pub struct ActionSet {
     base: Base<Resource>,
     #[export]
-    actions: Array<Gd<Resource>>, // hopefully all impl MoveTrait
+    actions: Array<Option<Gd<Resource>>>, // hopefully all impl MoveTrait
 }
 
 impl ActionSet {
     pub fn to_vec(&self) -> Vec<SerializableUnaimedAction> {
         self.actions
             .iter_shared()
+            .flatten()
             .map(|mut x| {
                 x.call("wrap".into(), &[])
                     .to::<Gd<GodotWrappedAction>>()
