@@ -1,0 +1,12 @@
+[gd_resource type="ActionSet" load_steps=5 format=3 uid="uid://cqt478jfk2jqs"]
+
+[sub_resource type="DoubleHit" id="DoubleHit_cjqsy"]
+
+[sub_resource type="EnterStance" id="EnterStance_m3blq"]
+
+[sub_resource type="ForwardHeavy" id="ForwardHeavy_p8q7g"]
+
+[sub_resource type="Tracking" id="Tracking_qkeh8"]
+
+[resource]
+actions = Array[Resource]([SubResource("DoubleHit_cjqsy"), SubResource("EnterStance_m3blq"), SubResource("ForwardHeavy_p8q7g"), SubResource("Tracking_qkeh8")])

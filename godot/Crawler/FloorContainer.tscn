@@ -9,6 +9,7 @@
 [sub_resource type="EntityInitializer" id="EntityInitializer_daood"]
 health = 10
 max_energy = 6
+actions = "res://Crawler/FloorView/Entity/tegu/MaxMoveset.tres"
 is_player_controlled = true
 is_player_friendly = true
 passthrough = "Tegu"

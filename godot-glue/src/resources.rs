@@ -1,9 +1,8 @@
+mod action;
+mod actionset;
+
 use std::rc::Rc;
 
-use engine::actions::characters::max_tegu::ForwardHeavyAction;
-use engine::actions::characters::max_tegu::TrackingAction;
-use engine::actions::example::DoubleHitAction;
-use engine::actions::example::EnterStanceAction;
 use engine::actions::SerializableUnaimedAction;
 use engine::strategy::FollowStrategy;
 use engine::strategy::RushdownStrategy;
@@ -12,11 +11,12 @@ use engine::strategy::Strategy;
 use engine::strategy::WanderStrategy;
 use godot::prelude::*;
 
+use self::actionset::ActionSet;
 use crate::floor::snapshot::EntitySnapshot;
 use crate::positional::AbsolutePosition;
 
 #[derive(GodotClass, Debug)]
-#[class(tool, init, base=Resource)]
+#[class(init, base=Resource)]
 pub struct EntityInitializer {
     base: Base<Resource>,
     #[export]
@@ -25,6 +25,10 @@ pub struct EntityInitializer {
     health: i8,
     #[export]
     max_energy: i8,
+    /// Unforunate indirection.
+    /// Nested resources are fine, but some tool is trying to read it?
+    #[export]
+    actions: GString,
     #[export]
     strategy: StrategyName,
     #[export]
@@ -39,12 +43,13 @@ pub struct EntityInitializer {
 impl EntityInitializer {
     #[must_use]
     pub fn to_entity(&self) -> engine::entity::Entity {
-        let moveset: Vec<SerializableUnaimedAction> = vec![
-            DoubleHitAction {}.into(),
-            EnterStanceAction {}.into(),
-            ForwardHeavyAction {}.into(),
-            TrackingAction {}.into(),
-        ];
+        let moveset: Vec<SerializableUnaimedAction> = if self.actions.is_empty() {
+            Vec::new()
+        } else {
+            try_load::<ActionSet>(self.actions.clone())
+                .map(|x| x.bind().to_vec())
+                .unwrap_or_default()
+        };
 
         engine::entity::Entity {
             state: engine::entity::EntityState::Ok { next_turn: 0 },
