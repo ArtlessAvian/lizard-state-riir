@@ -22,17 +22,6 @@ jobs:
     - run: cargo build --verbose
     - run: cargo test --verbose
 
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: taiki-e/install-action@cargo-llvm-cov
-      - run: cargo llvm-cov --html --all-features --workspace
-      - uses: actions/upload-artifact@v4
-        with:
-          name: rust-coverage
-          path: target/llvm-cov/html
-
   mutants:
     # From: https://mutants.rs/ci.html
     runs-on: ubuntu-latest

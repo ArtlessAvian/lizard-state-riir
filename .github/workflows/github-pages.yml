@@ -9,19 +9,30 @@ env:
   GODOT_VERSION: 4.3
 
 jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - run: cargo llvm-cov --html --all-features --workspace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rust-coverage
+          path: target/llvm-cov/html
+
   godot-web-export:
     runs-on: ubuntu-latest
     container:
       image: barichello/godot-ci:4.3
     steps:
+      - uses: actions/setup-python@v5
       - uses: mymindstorm/setup-emsdk@v14
         with:
           # pinned by godot/gdextension.
           version: 3.1.19
           actions-cache-folder: emsdk-cache
 
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
           lfs: true
       - name: Write Commit Hash
@@ -31,12 +42,10 @@ jobs:
           rustup update nightly
           cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
 
-      - name: Setup Godot
+      - name: Godot Web Export
         run: |
           mkdir -v -p ~/.local/share/godot/templates
           mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
-      - name: Web Build
-        run: |
           mkdir -v -p build/web
           godot -v --export "HTML5" ./build/web/index.html
 
@@ -52,7 +61,6 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: rust-coverage
-          github-token: ${{ secrets.GH_PAT }}
       - uses: actions/download-artifact@v4
         with:
           name: godot-web-export

@@ -1,6 +1,5 @@
 /target
 .vscode/
-.cargo/
 
 lcov.info
 mutants.out/
