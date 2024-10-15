@@ -41,7 +41,10 @@ jobs:
         rustup component add rust-src --toolchain nightly
         rustup target add wasm32-unknown-emscripten --toolchain nightly
         cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
-
+    
+    # Local target so godot doesn't complain about parse errors
+    - run: cargo +nightly build -Zbuild-std
+        
     - uses: actions/upload-artifact@v4
       with:
         name: wasm-library
@@ -71,7 +74,7 @@ jobs:
           mkdir -v -p ~/.local/share/godot/export_templates/
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
           mkdir -v -p build/web
-          godot -v --headless --path godot/ --export-debug "HTML5" ./build/web/index.html
+          godot -v --headless --path godot/ --export-debug "Web" ./build/web/index.html
 
       - uses: actions/upload-artifact@v4
         with:
