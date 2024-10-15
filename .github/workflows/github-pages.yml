@@ -36,8 +36,8 @@ jobs:
         lfs: true
 
     - run: |
-        rustup update nightly
-        cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
+        rustup component add rust-src --toolchain nightly
+        cargo +nightly build -v -Zbuild-std --target wasm32-unknown-emscripten
 
     - uses: actions/upload-artifact@v4
       with:
@@ -47,6 +47,7 @@ jobs:
 
   godot-web-export:
     runs-on: ubuntu-latest
+    needs: [ wasm-build ]
     container:
       image: barichello/godot-ci:4.3
     steps:
@@ -75,6 +76,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    needs: [ coverage, godot-web-export ]
     steps:
       - uses: actions/download-artifact@v4
         with:
