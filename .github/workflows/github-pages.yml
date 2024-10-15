@@ -58,7 +58,9 @@ jobs:
         with:
           lfs: true
       - name: Write Commit Hash
-        run: git log -1 --format=reference > godot/ci-version.txt
+        run: |
+          git config --global --add safe.directory *
+          git log -1 --format=reference > godot/ci-version.txt
       - uses: actions/download-artifact@v4
         with:
           name: wasm-library
@@ -69,7 +71,7 @@ jobs:
           mkdir -v -p ~/.local/share/godot/templates
           mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
           mkdir -v -p build/web
-          godot -v --export "HTML5" ./build/web/index.html
+          godot -v --path godot/ --export-debug "HTML5" ./build/web/index.html
 
       - uses: actions/upload-artifact@v4
         with:
