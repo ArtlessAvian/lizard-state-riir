@@ -26,6 +26,8 @@ jobs:
       image: barichello/godot-ci:4.3
     steps:
       - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
       - uses: mymindstorm/setup-emsdk@v14
         with:
           # pinned by godot/gdextension.
