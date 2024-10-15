@@ -59,7 +59,7 @@ jobs:
           lfs: true
       - name: Write Commit Hash
         run: |
-          git config --global --add safe.directory .
+          git config --global --add safe.directory "*"
           git log -1 --format=reference > godot/ci-version.txt
       - uses: actions/download-artifact@v4
         with:
