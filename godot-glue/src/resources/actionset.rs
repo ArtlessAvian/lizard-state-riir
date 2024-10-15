@@ -15,13 +15,14 @@ pub(super) struct GodotWrappedAction {
 pub struct ActionSet {
     base: Base<Resource>,
     #[export]
-    actions: Array<Gd<Resource>>, // hopefully all impl MoveTrait
+    actions: Array<Option<Gd<Resource>>>, // hopefully all impl MoveTrait
 }
 
 impl ActionSet {
     pub fn to_vec(&self) -> Vec<SerializableUnaimedAction> {
         self.actions
             .iter_shared()
+            .flatten()
             .map(|mut x| {
                 x.call("wrap".into(), &[])
                     .to::<Gd<GodotWrappedAction>>()
@@ -30,5 +31,55 @@ impl ActionSet {
                     .clone()
             })
             .collect()
+    }
+}
+
+#[godot_api]
+impl IResource for ActionSet {
+    // Only returns false, since we're using this to verify and not do properties.
+    fn set_property(&mut self, property: StringName, value: Variant) -> bool {
+        if property != "actions".into() {
+            // we're just looking to verify actions.
+            return false;
+        }
+        if let Ok(cast) = value.try_to::<Array<Option<Gd<Resource>>>>() {
+            if let Some(i) = cast
+                .iter_shared()
+                .position(|x| x.is_some_and(|y| !y.has_method("wrap".into())))
+            {
+                godot_error!(
+                    "action[{}] does not have method wrap, in ActionSet {}",
+                    i,
+                    self.base().get_path()
+                );
+                return false;
+            }
+
+            if let Some(i) = cast.iter_shared().position(|x| {
+                x.is_some_and(|y| {
+                    y.clone()
+                        .call("wrap".into(), &[])
+                        .try_to::<Gd<GodotWrappedAction>>()
+                        .is_err()
+                })
+            }) {
+                godot_error!(
+                    "action[{}] does not have method wrap, in ActionSet {}",
+                    i,
+                    self.base().get_path()
+                );
+                return false;
+            }
+
+            if let Some(i) = cast.iter_shared().position(|x| x.is_none()) {
+                godot_warn!(
+                    "action[{}] is null, in ActionSet {}",
+                    i,
+                    self.base().get_path()
+                );
+                return false;
+            }
+        }
+        false
     }
 }
