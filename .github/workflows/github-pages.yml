@@ -1,0 +1,63 @@
+# References from 2shady4u/godot-cpp-ci
+
+name: "Github Pages"
+
+on:
+  push
+
+env:
+  GODOT_VERSION: 4.3
+
+jobs:
+  godot-web-export:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          # pinned by godot/gdextension.
+          version: 3.1.19
+          actions-cache-folder: emsdk-cache
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Write Commit Hash
+        run: git log -1 --format=reference > godot/ci-version.txt
+  
+      - run: |
+          rustup update nightly
+          cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
+
+      - name: Setup Godot
+        run: |
+          mkdir -v -p ~/.local/share/godot/templates
+          mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
+      - name: Web Build
+        run: |
+          mkdir -v -p build/web
+          godot -v --export "HTML5" ./build/web/index.html
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: godot-web-export
+          path: build/web
+          if-no-files-found: error
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: rust-coverage
+          github-token: ${{ secrets.GH_PAT }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: godot-web-export
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@releases/v4
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: build/web # The folder the action should deploy.
