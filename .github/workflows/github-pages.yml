@@ -20,29 +20,45 @@ jobs:
           name: rust-coverage
           path: target/llvm-cov/html
 
+  wasm-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.x
+    - uses: mymindstorm/setup-emsdk@v14
+      with:
+        # pinned by godot/gdextension.
+        version: 3.1.19
+        actions-cache-folder: emsdk-cache
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+
+    - run: |
+        rustup update nightly
+        cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: wasm-library
+        path: target
+        if-no-files-found: error
+
   godot-web-export:
     runs-on: ubuntu-latest
     container:
       image: barichello/godot-ci:4.3
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-      - uses: mymindstorm/setup-emsdk@v14
-        with:
-          # pinned by godot/gdextension.
-          version: 3.1.19
-          actions-cache-folder: emsdk-cache
-
       - uses: actions/checkout@v2
         with:
           lfs: true
       - name: Write Commit Hash
         run: git log -1 --format=reference > godot/ci-version.txt
-  
-      - run: |
-          rustup update nightly
-          cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-library
+          path: target/
 
       - name: Godot Web Export
         run: |
@@ -63,6 +79,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: rust-coverage
+          path: coverage
       - uses: actions/download-artifact@v4
         with:
           name: godot-web-export
