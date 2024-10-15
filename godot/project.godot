@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Lizard State 2"
 run/main_scene="res://Crawler/FloorContainer.tscn"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
 [importer_defaults]

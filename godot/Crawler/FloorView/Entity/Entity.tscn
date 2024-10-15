@@ -50,41 +50,7 @@ tracks/2/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_xa0to"]
 _data = {
-&"RESET": SubResource("Animation_n3kfw")
-}
-
-[sub_resource type="Animation" id="Animation_yyjnj"]
-resource_name = "Hurt"
-length = 0.0500018
-step = 0.0166667
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite3D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [1]
-}
-
-[sub_resource type="Animation" id="Animation_7tdug"]
-resource_name = "StateCommitted"
-length = 0.001
-step = 0.0166667
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite3D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [2]
+"RESET": SubResource("Animation_n3kfw")
 }
 
 [sub_resource type="Animation" id="Animation_dr4du"]
@@ -121,8 +87,8 @@ tracks/0/keys = {
 "values": [1]
 }
 
-[sub_resource type="Animation" id="Animation_et8y6"]
-resource_name = "StateKnockdown"
+[sub_resource type="Animation" id="Animation_7tdug"]
+resource_name = "StateCommitted"
 length = 0.001
 step = 0.0166667
 tracks/0/type = "value"
@@ -135,36 +101,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [3]
-}
-
-[sub_resource type="Animation" id="Animation_ait06"]
-resource_name = "KnockedDown"
-length = 0.166669
-step = 0.0166667
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("AnimatedSprite3D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.0833333),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [1, 3]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("AnimatedSprite3D:position")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.0833335, 0.166667),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector3(0, 0, 0), Vector3(0, 0.3, 0), Vector3(0, 0, 0)]
+"values": [2]
 }
 
 [sub_resource type="Animation" id="Animation_fjuaq"]
@@ -208,15 +145,78 @@ tracks/2/keys = {
 "values": [0]
 }
 
+[sub_resource type="Animation" id="Animation_yyjnj"]
+resource_name = "Hurt"
+length = 0.0500018
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+
+[sub_resource type="Animation" id="Animation_ait06"]
+resource_name = "KnockedDown"
+length = 0.166669
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0833333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [1, 3]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite3D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.0833335, 0.166667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0.3, 0), Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_et8y6"]
+resource_name = "StateKnockdown"
+length = 0.001
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [3]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ue4a2"]
 _data = {
-&"StateOk": SubResource("Animation_dr4du"),
-&"StateHitstun": SubResource("Animation_vo2u8"),
-&"StateCommitted": SubResource("Animation_7tdug"),
-&"Attack": SubResource("Animation_fjuaq"),
-&"Hurt": SubResource("Animation_yyjnj"),
-&"KnockedDown": SubResource("Animation_ait06"),
-&"StateKnockdown": SubResource("Animation_et8y6")
+"Attack": SubResource("Animation_fjuaq"),
+"Hurt": SubResource("Animation_yyjnj"),
+"KnockedDown": SubResource("Animation_ait06"),
+"StateCommitted": SubResource("Animation_7tdug"),
+"StateHitstun": SubResource("Animation_vo2u8"),
+"StateKnockdown": SubResource("Animation_et8y6"),
+"StateOk": SubResource("Animation_dr4du")
 }
 
 [sub_resource type="PrismMesh" id="PrismMesh_1gh1x"]
@@ -238,8 +238,8 @@ script = ExtResource("1_r4emd")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-&"": SubResource("AnimationLibrary_xa0to"),
-&"Entity": SubResource("AnimationLibrary_ue4a2")
+"": SubResource("AnimationLibrary_xa0to"),
+"Entity": SubResource("AnimationLibrary_ue4a2")
 }
 
 [node name="Arrow" type="Node3D" parent="."]
