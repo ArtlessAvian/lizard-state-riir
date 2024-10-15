@@ -68,10 +68,10 @@ jobs:
 
       - name: Godot Web Export
         run: |
-          mkdir -v -p ~/.local/share/godot/templates
-          mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
+          mkdir -v -p ~/.local/share/godot/export_templates/
+          mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
           mkdir -v -p build/web
-          godot -v --path godot/ --export-debug "HTML5" ./build/web/index.html
+          godot -v --headless --path godot/ --export-debug "HTML5" ./build/web/index.html
 
       - uses: actions/upload-artifact@v4
         with:
