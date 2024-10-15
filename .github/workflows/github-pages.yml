@@ -36,8 +36,10 @@ jobs:
         lfs: true
 
     - run: |
+        rustup toolchain install nightly
         rustup component add rust-src --toolchain nightly
-        cargo +nightly build -v -Zbuild-std --target wasm32-unknown-emscripten
+        rustup target add wasm32-unknown-emscripten --toolchain nightly
+        cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
 
     - uses: actions/upload-artifact@v4
       with:
