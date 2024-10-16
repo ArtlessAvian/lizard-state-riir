@@ -22,13 +22,6 @@ jobs:
     - run: cargo build --verbose
     - run: cargo test --verbose
 
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: taiki-e/install-action@cargo-llvm-cov
-      - run: cargo llvm-cov --all-features --workspace >> $GITHUB_STEP_SUMMARY
-
   mutants:
     # From: https://mutants.rs/ci.html
     runs-on: ubuntu-latest
