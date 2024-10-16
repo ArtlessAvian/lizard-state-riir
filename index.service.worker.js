@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1729067253|4418305';
+const CACHE_VERSION = '1729067810|4471987';
 /** @type {string} */
 const CACHE_PREFIX = 'Lizard State 2-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
