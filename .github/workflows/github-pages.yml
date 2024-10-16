@@ -42,15 +42,11 @@ jobs:
         rustup component add rust-src --toolchain nightly
         rustup target add wasm32-unknown-emscripten --toolchain nightly
         cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
-    - name: build local target library
-      run: cargo +nightly build
 
     - uses: actions/upload-artifact@v4
       with:
         name: glue-library
-        path: |
-          target/**/godot_glue.wasm
-          target/**/libgodot_glue.so
+        path: target/**/godot_glue.wasm
         if-no-files-found: error
     
   godot-web-export:
