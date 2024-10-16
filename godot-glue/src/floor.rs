@@ -54,7 +54,7 @@ impl ActiveFloor {
     // TODO: Sort of temporary. Maybe make a builder?
     // And a corresponding scene in Godot to match.
     #[func]
-    pub fn set_map(&mut self, gridmap: Gd<godot::engine::GridMap>) {
+    pub fn set_map(&mut self, gridmap: Gd<godot::classes::GridMap>) {
         let tiles = gridmap
             .get_used_cells()
             .iter_shared()
@@ -79,7 +79,7 @@ impl ActiveFloor {
     // TODO: Sort of temporary. Maybe make a builder?
     // And a corresponding scene in Godot to match.
     #[func]
-    pub fn set_map_2d(&mut self, tilemap: Gd<godot::engine::TileMap>) {
+    pub fn set_map_2d(&mut self, tilemap: Gd<godot::classes::TileMap>) {
         let tiles = tilemap
             .get_used_cells(0)
             .iter_shared()
@@ -125,7 +125,7 @@ impl ActiveFloor {
             .into_iter()
             .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
             .collect();
-        self.log.extend_array(temp);
+        self.log.extend_array(&temp);
 
         EntityId::new(id, &mut self.id_bijection)
     }
@@ -144,7 +144,7 @@ impl ActiveFloor {
             .into_iter()
             .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
             .collect();
-        self.log.extend_array(temp);
+        self.log.extend_array(&temp);
 
         EntityId::new(id, &mut self.id_bijection)
     }
@@ -175,7 +175,7 @@ impl ActiveFloor {
                 .into_iter()
                 .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
                 .collect();
-            self.log.extend_array(temp);
+            self.log.extend_array(&temp);
 
             return true;
         }
@@ -192,7 +192,7 @@ impl ActiveFloor {
             .into_iter()
             .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
             .collect();
-        self.log.extend_array(temp);
+        self.log.extend_array(&temp);
     }
 
     #[func]
