@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Thanks to https://forum.godotengine.org/t/how-to-strip-editor-specific-code-from-build-in-godot-4-2/41978/4
 
