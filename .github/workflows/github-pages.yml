@@ -43,7 +43,7 @@ jobs:
         cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
     
     # Local target so godot doesn't complain about parse errors
-    - run: cargo +nightly build -Zbuild-std
+    - run: cargo +nightly build
         
     - uses: actions/upload-artifact@v4
       with:
