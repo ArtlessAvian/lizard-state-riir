@@ -70,6 +70,7 @@ jobs:
       - run: ls -R target
 
       - run: ./.github/preprocess-gdscript
+        working-directory: .
 
       - name: Godot Web Export
         run: |
