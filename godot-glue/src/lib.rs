@@ -16,9 +16,11 @@ pub mod positional;
 /// Not intended for saving an existing game.
 pub mod resources;
 
+#[cfg(feature = "profiling")]
 use std::default::Default;
 
 use godot::prelude::*;
+#[cfg(feature = "profiling")]
 use tracing_subscriber::layer::SubscriberExt;
 
 struct MyExtension;
@@ -27,14 +29,18 @@ struct MyExtension;
 unsafe impl ExtensionLibrary for MyExtension {
     fn on_level_init(level: InitLevel) {
         if matches!(level, InitLevel::Scene) {
-            // TODO: Find a better entrypoint(?), since this also needlessly runs on the editor.
+            godot_print!("Hello from Lizard State Godot Glue!");
 
-            println!("subscribing to tracy!");
-            let ignore_result = tracing::subscriber::set_global_default(
-                tracing_subscriber::registry().with(tracing_tracy::TracyLayer::default()),
-            );
-            if ignore_result.is_err() {
-                println!("already subscribed!");
+            #[cfg(feature = "profiling")]
+            {
+                // TODO: Find a better entrypoint(?), since this also needlessly runs on the editor.
+                godot_print!("subscribing to tracy!");
+                let ignore_result = tracing::subscriber::set_global_default(
+                    tracing_subscriber::registry().with(tracing_tracy::TracyLayer::default()),
+                );
+                if ignore_result.is_err() {
+                    godot_print!("already subscribed!");
+                }
             }
         }
     }
