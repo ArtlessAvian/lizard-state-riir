@@ -36,21 +36,22 @@ jobs:
         actions-cache-folder: emsdk-cache
     - run: emcc -v
 
-    - run: |
+    - name: build wasm library
+      run: |
         rustup toolchain install nightly
         rustup component add rust-src --toolchain nightly
         rustup target add wasm32-unknown-emscripten --toolchain nightly
         cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
-    
-    # Local target so godot doesn't complain about parse errors
-    - run: cargo +nightly build
-        
+    - name: build local target library
+      run: cargo +nightly build
     - uses: actions/upload-artifact@v4
       with:
-        name: wasm-library
-        path: target
+        name: glue-library
+        path: |
+          target/**/libgodot_glue.wasm
+          target/**/libgodot_glue.so
         if-no-files-found: error
-
+    
   godot-web-export:
     runs-on: ubuntu-latest
     needs: [ wasm-build ]
@@ -66,8 +67,9 @@ jobs:
           git log -1 --format=reference > godot/ci-version.txt
       - uses: actions/download-artifact@v4
         with:
-          name: wasm-library
-          path: target/
+          name: glue-library
+          path: target
+      - run: ls -R target
 
       - name: Godot Web Export
         run: |
