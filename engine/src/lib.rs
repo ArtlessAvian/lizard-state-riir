@@ -29,6 +29,7 @@
 // TODO: This is genuinely a problem, but we probably want to move to propogating Result eventually.
 #![allow(clippy::missing_panics_doc)]
 #![warn(clippy::clone_on_ref_ptr)]
+#![allow(clippy::used_underscore_binding)]
 
 /// Defining action related traits, and implementations of that trait.
 pub mod actions;
