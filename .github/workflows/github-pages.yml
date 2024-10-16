@@ -69,6 +69,8 @@ jobs:
           path: target
       - run: ls -R target
 
+      - run: ./.github/preprocess-gdscript
+
       - name: Godot Web Export
         run: |
           mkdir -v -p ~/.local/share/godot/export_templates/
