@@ -101,10 +101,10 @@ impl PartialEq for PartialPath {
     }
 }
 
-pub struct PathfindingContext {
+pub struct PathfindingContext<'a> {
     // Config stuff. Don't mess with this after construction.
-    blocked: Box<dyn FnMut(AbsolutePosition) -> bool>,
-    heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32>,
+    blocked: Box<dyn FnMut(AbsolutePosition) -> bool + 'a>,
+    heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a>,
     // Partial information that gets filled out over calls.
     // Imagine the Floyd-Warshall algorithm's matrix.
     known_distance: SymmetricMatrix<AbsolutePosition, u32>,
@@ -115,11 +115,11 @@ pub struct PathfindingContext {
     step_between: SymmetricMatrix<AbsolutePosition, AbsolutePosition>,
 }
 
-impl PathfindingContext {
+impl<'a> PathfindingContext<'a> {
     #[must_use]
     pub fn new(
-        blocked: Box<dyn FnMut(AbsolutePosition) -> bool>,
-        heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32>,
+        blocked: Box<dyn FnMut(AbsolutePosition) -> bool + 'a>,
+        heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a>,
     ) -> Self {
         Self {
             blocked,
@@ -245,9 +245,19 @@ impl PathfindingContext {
             None
         }
     }
+
+    // TODO: Probably make this part of find_path.
+    #[must_use]
+    pub fn get_distance(
+        &self,
+        start: AbsolutePosition,
+        destination: AbsolutePosition,
+    ) -> Option<u32> {
+        self.known_distance.get((start, destination)).copied()
+    }
 }
 
-impl Debug for PathfindingContext {
+impl Debug for PathfindingContext<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PathfindingContext")
             .field("known_distance", &self.known_distance)

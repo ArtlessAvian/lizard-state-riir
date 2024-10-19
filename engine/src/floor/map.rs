@@ -37,7 +37,7 @@ pub struct FloorMap {
     // TODO: Link tiles' lifetime to pathfinder's lifetime.
     // TODO: Figure out rkyv interaction with pathfinder.
     #[with(Skip)]
-    pub pathfinder: Rc<OnceCell<RefCell<PathfindingContext>>>,
+    pub pathfinder: Rc<OnceCell<RefCell<PathfindingContext<'static>>>>,
     pub default: FloorTile,
 }
 

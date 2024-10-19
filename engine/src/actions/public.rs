@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -18,6 +20,7 @@ use crate::entity::EntityState;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::pathfinding::PathfindingContext;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
@@ -242,6 +245,7 @@ pub struct GotoCommand {
 
 impl CommandTrait for GotoCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        // TODO: Clean up terrible, terrible nesting.
         let subject_pos = floor.entities[self.subject_id].pos;
         let verify_action = floor
             .map
@@ -255,12 +259,48 @@ impl CommandTrait for GotoCommand {
                         dy: (target.y - subject_pos.y).clamp(-1, 1),
                     },
                 )
+            })
+            .or_else(|| {
+                let map = floor.map.clone();
+                let entities = floor.entities.clone();
+                let context = Rc::clone(&map.pathfinder);
+                let pathfinder = context.get()?.borrow();
+                let mut step_around = PathfindingContext::new(
+                    Box::new(move |pos| {
+                        !map.get_tile(&pos).is_tile_floor()
+                            || entities
+                                .iter()
+                                .any(|e| e.1.pos == pos && self.subject_id != e.0)
+                    }),
+                    Box::new(move |start, destination| {
+                        pathfinder.get_distance(start, destination).unwrap_or_else(
+                            // fallback. heuristic becomes inconsistent (but still admissible)
+                            || AbsolutePosition::distance(start, destination),
+                        )
+                    }),
+                );
+
+                if step_around.find_path(subject_pos, self.tile) {
+                    step_around
+                        .get_step(subject_pos, self.tile)
+                        .and_then(|target| {
+                            StepAction.verify_action(
+                                floor,
+                                self.subject_id,
+                                RelativePosition {
+                                    dx: (target.x - subject_pos.x).clamp(-1, 1),
+                                    dy: (target.y - subject_pos.y).clamp(-1, 1),
+                                },
+                            )
+                        })
+                } else {
+                    None
+                }
             });
 
         match verify_action {
             None => {
-                // Give up immediately.
-                // Even when pathfinding is implemented, a failed step should probably mean to stop.
+                // Give up immediately, a failed step is not retryable.
                 let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
                 subject_clone.state = EntityState::Ok {
                     next_turn: floor.get_current_turn(),

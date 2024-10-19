@@ -194,12 +194,11 @@ impl Floor {
     // I don't think NPCs should *need* to reorder their turns, its cool if its in, its whatever if it isn't.
     #[must_use]
     pub fn get_next_entity(&self) -> Option<EntityId> {
-        return self
-            .entities
+        self.entities
             .iter()
             .filter(|(_, e)| e.get_next_turn().is_some())
             .min_by_key(|(_, e)| e.get_next_turn())
-            .map(|(id, _)| id);
+            .map(|(id, _)| id)
     }
 
     // If there are no turntaking entities, the next turn can safely be 0 without "going back in time".
