@@ -14,7 +14,20 @@ use crate::strategy::Strategy;
 /// An opaque index into an `EntitySet`.
 //
 // TODO: Remove Default.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize, Default)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Archive,
+    Serialize,
+    Deserialize,
+    Default,
+)]
 #[archive_attr(derive(Debug, PartialEq, Eq, Hash))]
 pub struct EntityId(usize);
 

@@ -106,6 +106,14 @@ impl<T, Payload> Writer<T, Payload> {
     }
 
     #[must_use]
+    pub fn log_each(mut self, lines: impl Iterator<Item = Payload>) -> Self {
+        for line in lines {
+            self.log.push(line);
+        }
+        self
+    }
+
+    #[must_use]
     pub fn log_option(mut self, line: Option<Payload>) -> Self {
         if let Some(line) = line {
             self.log.push(line);
