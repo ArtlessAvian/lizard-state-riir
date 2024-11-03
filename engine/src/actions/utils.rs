@@ -21,49 +21,54 @@ pub struct TakeKnockbackUtil {
 
 impl CommandTrait for TakeKnockbackUtil {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        // TODO: Cleanup.
-        let mut updated = (floor.entities[self.entity]).clone();
+        let now = floor.get_current_turn();
 
-        let mut knocked_down = Vec::new();
-
-        let mut last_valid_position = updated.pos;
-        for offset in Segment::calculate_relative(self.vector)
+        let swept_tiles = Segment::calculate_relative(self.vector)
             .0
             .into_iter()
-            .skip(1)
-        {
-            if floor.map.is_tile_floor(&(updated.pos + offset)) {
-                last_valid_position = updated.pos + offset;
-                if let Some(in_the_way) = floor.occupiers.get(updated.pos + offset) {
-                    let mut clone = floor.entities[in_the_way].clone();
-                    clone.state = EntityState::Knockdown {
-                        next_turn: updated
-                            .get_next_turn()
-                            .expect("Entity taking knockback should be a turntaker."),
-                    };
-                    knocked_down.push((in_the_way, clone));
-                }
-            } else {
-                break;
-            }
-        }
-        updated.pos = last_valid_position;
+            .map(|offset| floor.entities[self.entity].pos + offset)
+            .take_while(|tile| floor.map.is_tile_floor(tile))
+            .collect::<Vec<_>>();
 
-        let knocked_down_ids: Vec<_> = knocked_down.iter().map(|x| x.0).collect();
+        let knocked_over = swept_tiles
+            .iter()
+            .filter_map(|tile| floor.occupiers.get(*tile))
+            .filter(|id| *id != self.entity)
+            .collect::<Vec<_>>();
 
-        let mut all_updated = vec![(self.entity, updated)];
-        all_updated.append(&mut knocked_down);
+        let after_knockdowns = knocked_over
+            .iter()
+            .map(|id| {
+                let mut clone = floor.entities[*id].clone();
+                clone.state = EntityState::Knockdown { next_turn: now };
+                (*id, clone)
+            })
+            .collect::<Vec<_>>();
 
-        let mut update = floor
-            .update_entities(all_updated)
-            .log(FloorEvent::KnockbackEvent(KnockbackEvent {
-                subject: self.entity,
-                tile: last_valid_position,
-            }));
-        for id in knocked_down_ids {
-            update = update.log(FloorEvent::KnockdownEvent(KnockdownEvent { subject: id }));
-        }
-        update
+        let final_position = *swept_tiles
+            .last()
+            .expect("Entity's current position should be a floor, which is part of the segment");
+
+        let after_knockback = {
+            let mut clone = floor.entities[self.entity].clone();
+            clone.pos = final_position;
+            clone
+        };
+
+        floor
+            .update_entities(after_knockdowns)
+            .bind(|floor| floor.update_entity((self.entity, after_knockback)))
+            .log({
+                FloorEvent::KnockbackEvent(KnockbackEvent {
+                    subject: self.entity,
+                    tile: final_position,
+                })
+            })
+            .log_each(
+                knocked_over
+                    .iter()
+                    .map(|id| FloorEvent::KnockdownEvent(KnockdownEvent { subject: *id })),
+            )
     }
 }
 
@@ -269,6 +274,7 @@ mod tests {
             }
             .do_action(&floor)
         });
+        // TODO: Remove event ordering strictness.
         assert_eq!(
             update.get_contents().entities[id].pos,
             AbsolutePosition::new(1, 0)
