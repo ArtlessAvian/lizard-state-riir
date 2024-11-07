@@ -89,14 +89,14 @@ fn add_panic() {
     let occupiers = Occupiers::new();
 
     let first = entities.add(Entity {
-        state: crate::entity::EntityState::Ok { next_turn: 1 },
+        state: crate::entity::EntityState::Ok { next_round: 1 },
         pos: AbsolutePosition::new(10, 10),
         ..Default::default()
     });
     let occupiers = occupiers.add_entity((first, &entities[first]));
 
     let second = entities.add(Entity {
-        state: crate::entity::EntityState::Ok { next_turn: 1 },
+        state: crate::entity::EntityState::Ok { next_round: 1 },
         pos: entities[first].pos,
         ..Default::default()
     });
@@ -114,14 +114,14 @@ fn update_panic() {
     let occupiers = Occupiers::new();
 
     let first = entities.add(Entity {
-        state: EntityState::Ok { next_turn: 1 },
+        state: EntityState::Ok { next_round: 1 },
         pos: AbsolutePosition::new(10, 10),
         ..Default::default()
     });
     let occupiers = occupiers.add_entity((first, &entities[first]));
 
     let second = entities.add(Entity {
-        state: EntityState::Ok { next_turn: 1 },
+        state: EntityState::Ok { next_round: 1 },
         pos: AbsolutePosition::new(15, 15),
         ..Default::default()
     });
@@ -146,14 +146,14 @@ fn update_knockdown() {
     let occupiers = Occupiers::new();
 
     let first = entities.add(Entity {
-        state: EntityState::Ok { next_turn: 1 },
+        state: EntityState::Ok { next_round: 1 },
         pos: AbsolutePosition::new(10, 10),
         ..Default::default()
     });
     let occupiers = occupiers.add_entity((first, &entities[first]));
 
     let second = entities.add(Entity {
-        state: EntityState::Ok { next_turn: 1 },
+        state: EntityState::Ok { next_round: 1 },
         pos: AbsolutePosition::new(15, 15),
         ..Default::default()
     });
@@ -161,7 +161,7 @@ fn update_knockdown() {
 
     let mut second_update = entities[second].clone();
     second_update.pos = entities[first].pos;
-    second_update.state = EntityState::Knockdown { next_turn: 1 };
+    second_update.state = EntityState::Knockdown { next_round: 1 };
 
     assert!(second_update.get_occupied_position().is_none());
 

@@ -40,9 +40,6 @@ impl From<EntityId> for i32 {
 /// An entity as it exists in a Floor.
 /// Not aware of the floor (and therefore of other entities)
 ///
-/// As part of a floor, an Entity has an `id`, a `next_turn` to optionally participate in turntaking,
-/// and a `position` and `state.`
-///
 /// Outside a Floor, entities have a statline (`health`, etc.) and some constant data (`max_health`, etc.).
 // TODO: Split into an EntityData. Wrap with Entity when added to a Floor?
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
@@ -110,14 +107,14 @@ impl Entity {
     }
 
     #[must_use]
-    pub fn get_next_turn(&self) -> Option<u32> {
+    pub fn get_next_round(&self) -> Option<u32> {
         match self.state {
-            EntityState::Ok { next_turn, .. }
-            | EntityState::Committed { next_turn, .. }
-            | EntityState::ConfirmCommand { next_turn, .. }
-            | EntityState::RestrictedActions { next_turn, .. }
-            | EntityState::Hitstun { next_turn, .. }
-            | EntityState::Knockdown { next_turn, .. } => Some(next_turn),
+            EntityState::Ok { next_round, .. }
+            | EntityState::Committed { next_round, .. }
+            | EntityState::ConfirmCommand { next_round, .. }
+            | EntityState::RestrictedActions { next_round, .. }
+            | EntityState::Hitstun { next_round, .. }
+            | EntityState::Knockdown { next_round, .. } => Some(next_round),
             EntityState::Dead => None,
         }
     }
@@ -247,12 +244,12 @@ impl<'a> IntoIterator for &'a mut EntitySet {
 #[archive_attr(derive(Debug))]
 pub enum EntityState {
     Ok {
-        next_turn: u32,
+        next_round: u32,
     },
     /// On the entities next turn, run `queued_command` automatically.
     /// When the entity is hit, it becomes a counterhit.
     Committed {
-        next_turn: u32,
+        next_round: u32,
         // Rc for Clone.
         queued_command: SerializableCommand,
     },
@@ -264,25 +261,25 @@ pub enum EntityState {
     //       just hold on to the command and repeat it, rather than the command
     //       requeueing itself.
     ConfirmCommand {
-        next_turn: u32,
+        next_round: u32,
         to_confirm: SerializableCommand,
     },
     RestrictedActions {
-        next_turn: u32,
+        next_round: u32,
         // On the entities next turn, action must be chosen from a set.
         restricted_actions: Vec<SerializableUnaimedAction>,
     },
 
     // Inactionable states below.
     /// On next turn, go into knockdown.
-    /// If hit in this state, `next_turn` gets extended.
+    /// If hit in this state, `next_round` gets extended.
     /// If there are no more extensions, go into knockdown immediately.
     Hitstun {
-        next_turn: u32,
+        next_round: u32,
         extensions: u32, // Counts down to 0.
     },
     Knockdown {
-        next_turn: u32,
+        next_round: u32,
     },
     Dead,
 }
@@ -290,7 +287,7 @@ pub enum EntityState {
 #[cfg(test)]
 impl Default for EntityState {
     fn default() -> Self {
-        Self::Ok { next_turn: 0 }
+        Self::Ok { next_round: 0 }
     }
 }
 

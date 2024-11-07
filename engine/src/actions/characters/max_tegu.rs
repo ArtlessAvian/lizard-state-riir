@@ -98,7 +98,7 @@ impl CommandTrait for ForwardHeavyFollowup {
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {
-                    next_turn: floor.get_current_turn(),
+                    next_round: floor.get_current_round(),
                 };
                 subject_update.energy -= 1;
                 let event = FloorEvent::StartAttack(StartAttackEvent {
@@ -201,7 +201,7 @@ impl CommandTrait for TrackingFollowup {
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {
-                    next_turn: floor.get_current_turn() + 2,
+                    next_round: floor.get_current_round() + 2,
                 };
                 subject_update.energy -= 1;
                 floor.update_entity((self.subject_id, subject_update))

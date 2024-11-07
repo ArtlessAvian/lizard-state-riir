@@ -143,7 +143,7 @@ impl CommandTrait for DoubleHitFollowup {
             .bind(|floor| {
                 let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
                 subject_clone.state = EntityState::Ok {
-                    next_turn: floor.get_current_turn() + 1,
+                    next_round: floor.get_current_round() + 1,
                 };
                 floor.update_entity((self.subject_id, subject_clone))
             })
@@ -182,7 +182,7 @@ impl CommandTrait for EnterStanceCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::RestrictedActions {
-            next_turn: floor.get_current_turn() + 1,
+            next_round: floor.get_current_round() + 1,
             restricted_actions: vec![ExitStanceAction.into()],
         };
 
@@ -215,7 +215,7 @@ impl CommandTrait for ExitStanceCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
-            next_turn: floor.get_current_turn(),
+            next_round: floor.get_current_round(),
         };
 
         floor.update_entity((self.subject_id, subject_clone))
@@ -234,7 +234,7 @@ fn double_hit() {
     let other_id;
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            state: EntityState::Ok { next_turn: 0 },
+            state: EntityState::Ok { next_round: 0 },
             pos: AbsolutePosition::new(0, 0),
             is_player_controlled: true,
             ..Default::default()
@@ -242,7 +242,7 @@ fn double_hit() {
     });
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            state: EntityState::Ok { next_turn: 100 },
+            state: EntityState::Ok { next_round: 100 },
             pos: AbsolutePosition::new(1, 0),
             ..Default::default()
         })

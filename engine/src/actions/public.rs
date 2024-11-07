@@ -45,7 +45,7 @@ impl CommandTrait for WaitCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
-            next_turn: floor.get_current_turn() + 1,
+            next_round: floor.get_current_round() + 1,
         };
         subject_clone.energy = i8::min(subject_clone.energy + 1, subject_clone.max_energy);
 
@@ -104,7 +104,7 @@ impl CommandTrait for StepCommand {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
         subject_clone.state = EntityState::Ok {
-            next_turn: floor.get_current_turn() + 1,
+            next_round: floor.get_current_round() + 1,
         };
 
         BorrowedFloorUpdate::new(floor)
@@ -154,7 +154,7 @@ impl CommandTrait for BumpCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
-            next_turn: floor.get_current_turn() + 1,
+            next_round: floor.get_current_round() + 1,
         };
 
         let object_ref = &floor.entities[self.object_index];
@@ -162,8 +162,8 @@ impl CommandTrait for BumpCommand {
         object_clone.health -= 1;
 
         object_clone.state = EntityState::Ok {
-            next_turn: subject_clone
-                .get_next_turn()
+            next_round: subject_clone
+                .get_next_round()
                 .expect("bump command subject just took their turn")
                 + 1,
         };
@@ -303,7 +303,7 @@ impl CommandTrait for GotoCommand {
                 // Give up immediately, a failed step is not retryable.
                 let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
                 subject_clone.state = EntityState::Ok {
-                    next_turn: floor.get_current_turn(),
+                    next_round: floor.get_current_round(),
                 };
                 floor.update_entity((self.subject_id, subject_clone))
             }
@@ -313,14 +313,14 @@ impl CommandTrait for GotoCommand {
                     let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
                     subject_clone.state = if floor.entities[self.subject_id].pos == self.tile {
                         EntityState::Ok {
-                            next_turn: subject_clone
-                                .get_next_turn()
+                            next_round: subject_clone
+                                .get_next_round()
                                 .expect("This entity just took a step so it has a next turn."),
                         }
                     } else {
                         EntityState::ConfirmCommand {
-                            next_turn: subject_clone
-                                .get_next_turn()
+                            next_round: subject_clone
+                                .get_next_round()
                                 .expect("This entity just took a step so it has a next turn."),
                             to_confirm: self.clone().into(),
                         }
@@ -343,9 +343,11 @@ pub struct TryToStandUpAction;
 impl ActionTrait for TryToStandUpAction {
     fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
         match floor.entities[subject_id].state {
-            EntityState::Knockdown { next_turn } => Some(Box::new(TryToStandUpCommand {
+            EntityState::Knockdown {
+                next_round: current_round,
+            } => Some(Box::new(TryToStandUpCommand {
                 subject_id,
-                now: next_turn,
+                now: current_round,
             })),
             _ => None,
         }
@@ -367,13 +369,13 @@ impl CommandTrait for TryToStandUpCommand {
         {
             let mut clone = floor.entities[self.subject_id].clone();
             clone.state = EntityState::Knockdown {
-                next_turn: self.now + 1,
+                next_round: self.now + 1,
             };
             floor.update_entity((self.subject_id, clone))
         } else {
             let mut clone = floor.entities[self.subject_id].clone();
             clone.state = EntityState::Ok {
-                next_turn: self.now,
+                next_round: self.now,
             };
             floor.update_entity((self.subject_id, clone))
         }
@@ -391,14 +393,14 @@ fn bump_test() {
     let other_id;
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            state: EntityState::Ok { next_turn: 0 },
+            state: EntityState::Ok { next_round: 0 },
             pos: AbsolutePosition::new(0, 0),
             ..Default::default()
         })
     });
     (update, other_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            state: EntityState::Ok { next_turn: 0 },
+            state: EntityState::Ok { next_round: 0 },
             pos: AbsolutePosition::new(1, 0),
             ..Default::default()
         })
@@ -440,7 +442,7 @@ fn goto_test() {
     let player_id;
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {
-            state: EntityState::Ok { next_turn: 0 },
+            state: EntityState::Ok { next_round: 0 },
             pos: AbsolutePosition::new(0, 0),
             ..Default::default()
         })
@@ -469,7 +471,7 @@ fn goto_test() {
     let (floor, _) = update.into_both();
     assert!(matches!(
         floor.entities[player_id].state,
-        EntityState::Ok { next_turn: 5 }
+        EntityState::Ok { next_round: 5 }
     ));
     assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 3));
 }

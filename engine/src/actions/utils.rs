@@ -21,7 +21,7 @@ pub struct TakeKnockbackUtil {
 
 impl CommandTrait for TakeKnockbackUtil {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let now = floor.get_current_turn();
+        let now = floor.get_current_round();
 
         let swept_tiles = Segment::calculate_relative(self.vector)
             .0
@@ -40,7 +40,7 @@ impl CommandTrait for TakeKnockbackUtil {
             .iter()
             .map(|id| {
                 let mut clone = floor.entities[*id].clone();
-                clone.state = EntityState::Knockdown { next_turn: now };
+                clone.state = EntityState::Knockdown { next_round: now };
                 (*id, clone)
             })
             .collect::<Vec<_>>();
@@ -79,7 +79,7 @@ pub struct MultiKnockbackUtil {
 
 impl CommandTrait for MultiKnockbackUtil {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let now = floor.get_current_turn();
+        let now = floor.get_current_round();
 
         let each_swept_tiles = self
             .all_displacements
@@ -110,7 +110,7 @@ impl CommandTrait for MultiKnockbackUtil {
             .iter()
             .map(|id| {
                 let mut clone = floor.entities[*id].clone();
-                clone.state = EntityState::Knockdown { next_turn: now };
+                clone.state = EntityState::Knockdown { next_round: now };
                 (*id, clone)
             })
             .collect::<Vec<_>>();
@@ -152,7 +152,7 @@ impl CommandTrait for MultiKnockbackUtil {
                 let mut clone = floor.entities[*id].clone();
                 clone.pos = *thing;
                 if conflict_knockdowns.contains(id) {
-                    clone.state = EntityState::Knockdown { next_turn: now }
+                    clone.state = EntityState::Knockdown { next_round: now }
                 }
                 (*id, clone)
             })
@@ -192,7 +192,7 @@ impl CommandTrait for DelayCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = floor.entities[self.subject_id].clone();
         subject_clone.state = EntityState::Committed {
-            next_turn: floor.get_current_turn() + self.turns,
+            next_round: floor.get_current_round() + self.turns,
             queued_command: self.queued_command.clone(),
         };
 
@@ -288,7 +288,7 @@ mod tests {
         );
         assert!(matches!(
             update.get_contents().entities[other].state,
-            EntityState::Knockdown { next_turn: 0 }
+            EntityState::Knockdown { next_round: 0 }
         ));
         assert_eq!(
             update.get_log()[1],
@@ -372,7 +372,7 @@ mod tests {
         );
         assert!(matches!(
             update.get_contents().entities[other].state,
-            EntityState::Knockdown { next_turn: 0 }
+            EntityState::Knockdown { next_round: 0 }
         ));
         assert_eq!(
             update.get_log()[1],
@@ -433,7 +433,7 @@ mod tests {
         );
         assert!(matches!(
             update.get_contents().entities[other].state,
-            EntityState::Knockdown { next_turn: 0 }
+            EntityState::Knockdown { next_round: 0 }
         ));
         assert_eq!(
             update.get_log()[2],

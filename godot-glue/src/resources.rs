@@ -52,7 +52,7 @@ impl EntityInitializer {
         };
 
         engine::entity::Entity {
-            state: engine::entity::EntityState::Ok { next_turn: 0 },
+            state: engine::entity::EntityState::Ok { next_round: 0 },
             pos: self.position.into(),
             health: self.health,
             max_energy: self.max_energy,

@@ -55,8 +55,8 @@ impl StrategyTrait for WanderStrategy {
             subject_id,
             #[allow(clippy::cast_possible_wrap, clippy::unreadable_literal)]
             RelativePosition::new(
-                ((original.get_current_turn() ^ 0xfedcba) % 3) as i32 - 1,
-                ((original.get_current_turn() ^ 0xabcdef) % 3) as i32 - 1,
+                ((original.get_current_round() ^ 0xfedcba) % 3) as i32 - 1,
+                ((original.get_current_round() ^ 0xabcdef) % 3) as i32 - 1,
             ),
         ) {
             return x.do_action(original);

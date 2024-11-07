@@ -105,7 +105,7 @@ impl ActiveFloor {
     ) -> Gd<EntityId> {
         let (update, id) = self.internal.add_entity(EntityInternal {
             state: EntityState::Ok {
-                next_turn: self.internal.get_current_turn(),
+                next_round: self.internal.get_current_round(),
             },
             pos: AbsolutePosition::new(pos.x, pos.y),
             health: 10,
@@ -198,7 +198,7 @@ impl ActiveFloor {
     #[func]
     #[must_use]
     pub fn get_time(&self) -> u32 {
-        self.internal.get_current_turn()
+        self.internal.get_current_round()
     }
 }
 

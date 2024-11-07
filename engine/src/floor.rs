@@ -193,20 +193,26 @@ impl Floor {
     // Alternatively, add "pass turn to partner."
     // I don't think NPCs should *need* to reorder their turns, its cool if its in, its whatever if it isn't.
     #[must_use]
-    pub fn get_next_entity(&self) -> Option<EntityId> {
-        self.entities
-            .iter()
-            .filter(|(_, e)| e.get_next_turn().is_some())
-            .min_by_key(|(_, e)| e.get_next_turn())
-            .map(|(id, _)| id)
+    pub fn get_current_entity(&self) -> Option<EntityId> {
+        self.get_current_turn().map(|x| x.1)
     }
 
     // If there are no turntaking entities, the next turn can safely be 0 without "going back in time".
     #[must_use]
-    pub fn get_current_turn(&self) -> u32 {
-        self.get_next_entity()
-            .and_then(|e| self.entities[e].get_next_turn())
-            .unwrap_or(0)
+    pub fn get_current_round(&self) -> u32 {
+        self.get_current_turn().map_or(0, |x| x.0)
+    }
+
+    // TODO: Return set of entities?
+    #[must_use]
+    pub fn get_current_turn(&self) -> Option<(u32, EntityId)>
+    where
+        EntityId: Ord,
+    {
+        self.entities
+            .iter()
+            .filter_map(|(id, e)| (e.get_next_round().map(|x| (x, id))))
+            .min()
     }
 
     /// # Errors
@@ -220,7 +226,7 @@ impl Floor {
     // Also maybe we wrap EntityId with something to signify its their turn.
     // This again raises the question, does it need to be your turn to run a Command?
     pub fn take_npc_turn(&self) -> Result<FloorUpdate, TurntakingError> {
-        let next_id = self.get_next_entity();
+        let next_id = self.get_current_entity();
         if next_id.is_none() {
             return Result::Err(TurntakingError::NoTurntakers);
         }
@@ -273,7 +279,7 @@ fn serialize_deserialize() {
     let floor = floor
         .add_entity(Entity {
             state: EntityState::Ok {
-                next_turn: 0x2aaa_aaaa,
+                next_round: 0x2aaa_aaaa,
             },
             pos: AbsolutePosition::new(0x3bbb_bbbb, 0x4ccc_cccc),
             health: 0x5d,
