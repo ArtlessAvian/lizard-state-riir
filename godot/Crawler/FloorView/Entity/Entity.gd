@@ -74,6 +74,9 @@ func snapshot_to_idle_animation(snapshot):
 	if snapshot.get_state_name() == "Committed":
 		return "Entity/StateCommitted"
 	if snapshot.get_state_name() == "Ok":
+		# TODO: Indicate "moving next turn"
+		return "Entity/StateOk"
+	if snapshot.get_state_name() == "ConfirmCommand":
 		return "Entity/StateOk"
 	printerr("Unknown entity state ", snapshot.get_state_name())
 	return "Entity/StateOk"

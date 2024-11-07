@@ -19,8 +19,8 @@ func _get_configuration_warnings() -> PackedStringArray:
 
 
 func _process(delta):
-	var camera_direction
-	var camera_up
+	var camera_direction: Vector3
+	var camera_up: Vector3
 	if not Engine.is_editor_hint() and get_viewport().get_camera_3d() is Camera3D:
 		var camera = get_viewport().get_camera_3d()
 		camera_direction = -camera.global_basis.z
@@ -34,6 +34,11 @@ func _process(delta):
 		camera_up = Vector3.UP
 
 	self.global_basis = Basis.looking_at(camera_direction, camera_up)
+	# HACK: Alternatively, grow taller to maintain visual height, without losing coordinate system
+	#var cam_dir_drop_y = camera_direction * Vector3(1, 0, 1)
+	#self.global_basis = Basis.looking_at(cam_dir_drop_y, camera_up)
+	#self.global_basis *= Basis.from_scale(Vector3(1, 1 / sqrt(1 - camera_direction.y * camera_direction.y), 1))
+
 	spin_around(camera_direction)
 
 
