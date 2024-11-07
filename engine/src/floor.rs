@@ -8,6 +8,7 @@ use rkyv::Deserialize;
 use rkyv::Serialize;
 
 use crate::actions::events::FloorEvent;
+use crate::actions::public::KnockdownAfterJuggleAction;
 use crate::actions::public::TryToStandUpAction;
 use crate::actions::ActionTrait;
 use crate::actions::CommandTrait;
@@ -243,11 +244,16 @@ impl Floor {
                     .expect("only fails if entity is not knockdown state")
                     .do_action(self))
             }
+            EntityState::Hitstun { .. } => {
+                return Ok(KnockdownAfterJuggleAction
+                    .verify_action(self, next_id)
+                    .expect("only fails if entity is not hitstun state")
+                    .do_action(self))
+            }
             EntityState::Dead => unreachable!("turn taker cannot be dead"),
             EntityState::Ok { .. }
             | EntityState::ConfirmCommand { .. }
-            | EntityState::RestrictedActions { .. }
-            | EntityState::Hitstun { .. } => (),
+            | EntityState::RestrictedActions { .. } => (),
         }
 
         if self.entities[next_id].is_player_controlled {

@@ -1,3 +1,4 @@
+use std::num::NonZero;
 use std::rc::Rc;
 
 use rkyv::Archive;
@@ -8,6 +9,7 @@ use super::events::AttackHitEvent;
 use super::events::MoveEvent;
 use super::events::StartAttackEvent;
 use super::static_dispatch::SerializableCommand;
+use super::utils;
 use super::utils::TakeKnockbackUtil;
 use super::ActionTrait;
 use super::CommandTrait;
@@ -139,6 +141,7 @@ impl DirectionActionTrait for BumpAction {
             dir,
             subject_id,
             object_index: floor.occupiers.get(floor.entities[subject_id].pos + dir)?,
+            now: floor.get_current_turn()?,
         }))
     }
 }
@@ -148,6 +151,7 @@ struct BumpCommand {
     dir: RelativePosition,
     subject_id: EntityId,
     object_index: EntityId,
+    now: (u32, EntityId),
 }
 
 impl CommandTrait for BumpCommand {
@@ -157,40 +161,42 @@ impl CommandTrait for BumpCommand {
             next_round: floor.get_current_round() + 1,
         };
 
-        let object_ref = &floor.entities[self.object_index];
-        let mut object_clone: Entity = object_ref.clone();
-        object_clone.health -= 1;
+        let object_update = utils::start_juggle(
+            floor,
+            self.object_index,
+            self.now,
+            NonZero::<u32>::new(1).unwrap(),
+        );
+        let object_update = object_update.map(|mut x| {
+            x.health -= 1;
+            x
+        });
 
-        object_clone.state = EntityState::Ok {
-            next_round: subject_clone
-                .get_next_round()
-                .expect("bump command subject just took their turn")
-                + 1,
-        };
-
-        BorrowedFloorUpdate::new(floor)
-            .log(FloorEvent::StartAttack(StartAttackEvent {
-                subject: self.subject_id,
-                tile: subject_clone.pos + self.dir,
-            }))
-            .log(FloorEvent::AttackHit(AttackHitEvent {
-                subject: self.subject_id,
-                target: self.object_index,
-                damage: 1,
-            }))
-            .bind(|floor| {
-                floor.update_entities(Vec::from([
-                    (self.subject_id, subject_clone),
-                    (self.object_index, object_clone),
-                ]))
-            })
-            .bind(|floor| {
-                TakeKnockbackUtil {
-                    entity: self.object_index,
-                    vector: self.dir,
-                }
-                .do_action(&floor)
-            })
+        object_update.bind(|object_clone: Entity| {
+            BorrowedFloorUpdate::new(floor)
+                .log(FloorEvent::StartAttack(StartAttackEvent {
+                    subject: self.subject_id,
+                    tile: subject_clone.pos + self.dir,
+                }))
+                .log(FloorEvent::AttackHit(AttackHitEvent {
+                    subject: self.subject_id,
+                    target: self.object_index,
+                    damage: 1,
+                }))
+                .bind(|floor| {
+                    floor.update_entities(Vec::from([
+                        (self.subject_id, subject_clone),
+                        (self.object_index, object_clone),
+                    ]))
+                })
+                .bind(|floor| {
+                    TakeKnockbackUtil {
+                        entity: self.object_index,
+                        vector: self.dir,
+                    }
+                    .do_action(&floor)
+                })
+        })
     }
 }
 
@@ -379,6 +385,39 @@ impl CommandTrait for TryToStandUpCommand {
             };
             floor.update_entity((self.subject_id, clone))
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct KnockdownAfterJuggleAction;
+
+impl ActionTrait for KnockdownAfterJuggleAction {
+    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+        match floor.entities[subject_id].state {
+            EntityState::Hitstun { next_round, .. } => {
+                Some(Box::new(KnockdownAfterJuggleCommand {
+                    subject_id,
+                    now: next_round,
+                }))
+            }
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct KnockdownAfterJuggleCommand {
+    subject_id: EntityId,
+    now: u32,
+}
+
+impl CommandTrait for KnockdownAfterJuggleCommand {
+    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+        let mut clone = floor.entities[self.subject_id].clone();
+        clone.state = EntityState::Knockdown {
+            next_round: self.now + 1,
+        };
+        floor.update_entity((self.subject_id, clone))
     }
 }
 

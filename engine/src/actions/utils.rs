@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::num::NonZero;
 
 use super::events::FloorEvent;
 use super::events::KnockbackEvent;
@@ -12,6 +13,7 @@ use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::algorithms::Segment;
 use crate::positional::RelativePosition;
+use crate::writer::Writer;
 
 #[derive(Debug)]
 pub struct TakeKnockbackUtil {
@@ -200,6 +202,44 @@ impl CommandTrait for DelayCommand {
             .update_entity((self.subject_id, subject_clone))
             .log_option(self.event.clone())
     }
+}
+
+#[must_use]
+pub fn start_juggle(
+    floor: &Floor,
+    hit_id: EntityId,
+    now: (u32, EntityId),
+    stun_turns: NonZero<u32>,
+) -> Writer<Entity, FloorEvent> {
+    let coming_turn = now.0 + 1 + u32::from(hit_id < now.1);
+
+    let hit_clone = Entity {
+        state: match floor.entities[hit_id].state {
+            EntityState::Ok { .. }
+            | EntityState::Committed { .. }
+            | EntityState::ConfirmCommand { .. }
+            | EntityState::RestrictedActions { .. } => EntityState::Hitstun {
+                next_round: coming_turn + stun_turns.get(),
+                extensions: 1,
+            },
+            EntityState::Hitstun { extensions, .. } => match extensions {
+                0 => EntityState::Knockdown {
+                    next_round: coming_turn,
+                },
+                nonzero => EntityState::Hitstun {
+                    next_round: coming_turn + 1,
+                    extensions: nonzero - 1,
+                },
+            },
+            EntityState::Knockdown { .. } => EntityState::Ok {
+                next_round: coming_turn,
+            },
+            EntityState::Dead => unreachable!(),
+        },
+        ..floor.entities[hit_id].clone()
+    };
+
+    Writer::new(hit_clone)
 }
 
 #[cfg(test)]

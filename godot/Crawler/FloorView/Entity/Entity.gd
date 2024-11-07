@@ -73,4 +73,7 @@ func snapshot_to_idle_animation(snapshot):
 		return "Entity/StateHitstun"
 	if snapshot.get_state_name() == "Committed":
 		return "Entity/StateCommitted"
+	if snapshot.get_state_name() == "Ok":
+		return "Entity/StateOk"
+	printerr("Unknown entity state ", snapshot.get_state_name())
 	return "Entity/StateOk"
