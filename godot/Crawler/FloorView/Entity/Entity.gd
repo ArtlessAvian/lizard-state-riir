@@ -37,6 +37,20 @@ func is_animating() -> bool:
 	return $AnimationPlayer.is_playing()
 
 
+func is_important_animating() -> bool:
+	if movement_tween is Tween and movement_tween.is_valid():
+		return true
+	return (
+		$AnimationPlayer.is_playing()
+		and (
+			$AnimationPlayer.current_animation
+			in [
+				"Entity/Attack",
+			]
+		)
+	)
+
+
 func sync_with(snapshot: EntitySnapshot):
 	if snapshot.get_passthrough() != "":
 		# TODO: Figure out something smarter than string comparison

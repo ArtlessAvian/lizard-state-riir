@@ -172,31 +172,30 @@ impl CommandTrait for BumpCommand {
             x
         });
 
-        object_update.bind(|object_clone: Entity| {
-            BorrowedFloorUpdate::new(floor)
-                .log(FloorEvent::StartAttack(StartAttackEvent {
-                    subject: self.subject_id,
-                    tile: subject_clone.pos + self.dir,
-                }))
-                .log(FloorEvent::AttackHit(AttackHitEvent {
-                    subject: self.subject_id,
-                    target: self.object_index,
-                    damage: 1,
-                }))
-                .bind(|floor| {
-                    floor.update_entities(Vec::from([
-                        (self.subject_id, subject_clone),
-                        (self.object_index, object_clone),
-                    ]))
-                })
-                .bind(|floor| {
-                    TakeKnockbackUtil {
-                        entity: self.object_index,
-                        vector: self.dir,
-                    }
-                    .do_action(&floor)
-                })
-        })
+        BorrowedFloorUpdate::new(floor)
+            .log(FloorEvent::StartAttack(StartAttackEvent {
+                subject: self.subject_id,
+                tile: subject_clone.pos + self.dir,
+            }))
+            .log(FloorEvent::AttackHit(AttackHitEvent {
+                subject: self.subject_id,
+                target: self.object_index,
+                damage: 1,
+            }))
+            .zip(object_update)
+            .bind(|(floor, object_clone)| {
+                floor.update_entities(Vec::from([
+                    (self.subject_id, subject_clone),
+                    (self.object_index, object_clone),
+                ]))
+            })
+            .bind(|floor| {
+                TakeKnockbackUtil {
+                    entity: self.object_index,
+                    vector: self.dir,
+                }
+                .do_action(&floor)
+            })
     }
 }
 

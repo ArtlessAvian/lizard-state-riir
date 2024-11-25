@@ -74,7 +74,7 @@ func clear_queue(delta, floor: ActiveFloor):
 			event_index += 1
 
 		elif event is PrepareAttackEvent:
-			if id_to_node.values().any(func(x): return x.is_animating()):
+			if id_to_node.values().any(func(x): return x.is_important_animating()):
 				return
 
 			# TODO: Replace with actual animation player.
@@ -115,6 +115,14 @@ func clear_queue(delta, floor: ActiveFloor):
 
 			event_index += 1
 
+		elif event is JuggleHitEvent:
+			var target = id_to_node[event.target]
+
+			var animation = target.get_node("AnimationPlayer") as AnimationPlayer
+			animation.play("Entity/GetJuggled")
+
+			event_index += 1
+
 		elif event is SeeMapEvent:
 			test_visions[event.subject] = event.vision
 
@@ -132,7 +140,7 @@ func clear_queue(delta, floor: ActiveFloor):
 
 		elif event is KnockbackEvent:
 			var subject = id_to_node[event.subject]
-			if subject.is_animating():
+			if subject.is_important_animating():
 				return
 
 			var tile = Vector3(event.tile.x, 0, event.tile.y)

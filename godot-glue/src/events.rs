@@ -38,6 +38,7 @@ impl FloorEvent {
                 StartAttackEvent::new(id_bijection, x).to_variant()
             }
             FloorEventInternal::AttackHit(x) => AttackHitEvent::new(id_bijection, x).to_variant(),
+            FloorEventInternal::JuggleHit(x) => JuggleHitEvent::new(id_bijection, x).to_variant(),
             FloorEventInternal::SeeMap(x) => SeeMapEvent::new(id_bijection, x).to_variant(),
             FloorEventInternal::KnockbackEvent(x) => {
                 KnockbackEvent::new(id_bijection, x).to_variant()
@@ -132,6 +133,24 @@ impl AttackHitEvent {
             subject: EntityId::new(event.subject, id_bijection),
             target: EntityId::new(event.target, id_bijection),
             damage: event.damage,
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct JuggleHitEvent {
+    #[var(get)]
+    target: Gd<EntityId>,
+}
+
+impl JuggleHitEvent {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::JuggleHitEvent,
+    ) -> Gd<Self> {
+        Gd::from_object(Self {
+            target: EntityId::new(event.target, id_bijection),
         })
     }
 }

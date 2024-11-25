@@ -14,6 +14,7 @@ pub enum FloorEvent {
     PrepareAttack(PrepareAttackEvent),
     StartAttack(StartAttackEvent),
     AttackHit(AttackHitEvent),
+    JuggleHit(JuggleHitEvent),
     SeeMap(SeeMapEvent),
     KnockbackEvent(KnockbackEvent),
     KnockdownEvent(KnockdownEvent),
@@ -42,6 +43,11 @@ pub struct AttackHitEvent {
     pub subject: EntityId,
     pub target: EntityId,
     pub damage: i32,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct JuggleHitEvent {
+    pub target: EntityId,
 }
 
 #[derive(PartialEq, Eq, Clone)]
