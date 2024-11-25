@@ -24,7 +24,7 @@ impl ActionSet {
             .iter_shared()
             .flatten()
             .map(|mut x| {
-                x.call("wrap".into(), &[])
+                x.call("wrap", &[])
                     .to::<Gd<GodotWrappedAction>>()
                     .bind()
                     .action
@@ -45,7 +45,7 @@ impl IResource for ActionSet {
         if let Ok(cast) = value.try_to::<Array<Option<Gd<Resource>>>>() {
             if let Some(i) = cast
                 .iter_shared()
-                .position(|x| x.is_some_and(|y| !y.has_method("wrap".into())))
+                .position(|x| x.is_some_and(|y| !y.has_method("wrap")))
             {
                 godot_error!(
                     "action[{}] does not have method wrap, in ActionSet {}",
@@ -58,7 +58,7 @@ impl IResource for ActionSet {
             if let Some(i) = cast.iter_shared().position(|x| {
                 x.is_some_and(|y| {
                     y.clone()
-                        .call("wrap".into(), &[])
+                        .call("wrap", &[])
                         .try_to::<Gd<GodotWrappedAction>>()
                         .is_err()
                 })

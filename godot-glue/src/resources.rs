@@ -46,7 +46,7 @@ impl EntityInitializer {
         let moveset: Vec<SerializableUnaimedAction> = if self.actions.is_empty() {
             Vec::new()
         } else {
-            try_load::<ActionSet>(self.actions.clone())
+            try_load::<ActionSet>(&self.actions)
                 .map(|x| x.bind().to_vec())
                 .unwrap_or_default()
         };
