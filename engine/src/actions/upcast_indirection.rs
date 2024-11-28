@@ -60,4 +60,8 @@ impl CommandTrait for Upcast<dyn SerializeCommandTrait> {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
         self.0.do_action(floor)
     }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        self.0.get_tile_hints(floor)
+    }
 }

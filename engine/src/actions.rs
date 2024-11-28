@@ -130,6 +130,7 @@ pub trait DirectionActionTrait: Debug {
 #[archive_dyn(deserialize)]
 pub trait CommandTrait: Debug {
     fn do_action(&self, floor: &Floor) -> FloorUpdate;
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition>;
 }
 
 /// An action that never verifies to a command.

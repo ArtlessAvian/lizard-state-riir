@@ -83,6 +83,13 @@ impl CommandTrait for ForwardHeavyCommand {
                 }))
             })
     }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        vec![
+            floor.entities[self.subject_id].pos + self.dir,
+            floor.entities[self.subject_id].pos + 2 * self.dir,
+        ]
+    }
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
@@ -135,6 +142,10 @@ impl CommandTrait for ForwardHeavyFollowup {
                         }),
                 )
             })
+    }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        vec![floor.entities[self.subject_id].pos + self.dir]
     }
 }
 
@@ -229,6 +240,10 @@ impl CommandTrait for TrackingFollowup {
                     FloorUpdate::new(floor).log(start_attack)
                 }
             })
+    }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        vec![floor.entities[self.subject_id].pos]
     }
 }
 

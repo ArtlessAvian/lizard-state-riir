@@ -25,6 +25,7 @@ use super::SerializeTileActionTrait;
 use super::TileActionTrait;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::positional::AbsolutePosition;
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
@@ -104,6 +105,17 @@ impl CommandTrait for SerializableCommand {
             SerializableCommand::TrackingFollowup(x) => x.do_action(floor),
             SerializableCommand::Goto(x) => x.do_action(floor),
             SerializableCommand::External(rc) => rc.do_action(floor),
+        }
+    }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        #[allow(clippy::clone_on_ref_ptr)]
+        match self {
+            SerializableCommand::DoubleHitFollowup(x) => x.get_tile_hints(floor),
+            SerializableCommand::ForwardHeavyFollowup(x) => x.get_tile_hints(floor),
+            SerializableCommand::TrackingFollowup(x) => x.get_tile_hints(floor),
+            SerializableCommand::Goto(x) => x.get_tile_hints(floor),
+            SerializableCommand::External(rc) => rc.get_tile_hints(floor),
         }
     }
 }

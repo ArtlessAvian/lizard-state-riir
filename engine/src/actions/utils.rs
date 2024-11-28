@@ -14,6 +14,7 @@ use crate::entity::EntityState;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::algorithms::Segment;
+use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 use crate::writer::Writer;
 
@@ -73,6 +74,15 @@ impl CommandTrait for TakeKnockbackUtil {
                     .iter()
                     .map(|id| FloorEvent::KnockdownEvent(KnockdownEvent { subject: *id })),
             )
+    }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        Segment::calculate_relative(self.vector)
+            .0
+            .into_iter()
+            .map(|offset| floor.entities[self.entity].pos + offset)
+            .take_while(|tile| floor.map.is_tile_floor(tile))
+            .collect::<Vec<_>>()
     }
 }
 
@@ -182,6 +192,30 @@ impl CommandTrait for MultiKnockbackUtil {
                     .map(|id| FloorEvent::KnockdownEvent(KnockdownEvent { subject: *id })),
             )
     }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        let each_swept_tiles = self
+            .all_displacements
+            .iter()
+            .map(|(id, displacement)| {
+                (
+                    *id,
+                    Segment::calculate_relative(*displacement)
+                        .0
+                        .into_iter()
+                        .map(|offset| floor.entities[*id].pos + offset)
+                        .take_while(|tile| floor.map.is_tile_floor(tile))
+                        .collect::<Vec<_>>(),
+                )
+            })
+            .collect::<Vec<_>>();
+
+        let swept_tiles = each_swept_tiles
+            .iter()
+            .flat_map(|(_, segment)| segment.iter());
+
+        swept_tiles.copied().collect()
+    }
 }
 
 #[derive(Debug)]
@@ -203,6 +237,10 @@ impl CommandTrait for DelayCommand {
         floor
             .update_entity((self.subject_id, subject_clone))
             .log_option(self.event.clone())
+    }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        self.queued_command.get_tile_hints(floor)
     }
 }
 

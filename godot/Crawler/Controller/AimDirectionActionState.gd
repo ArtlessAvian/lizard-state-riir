@@ -2,6 +2,7 @@ extends "StateInterface.gd"
 
 var action
 var absolute_position
+var command
 
 
 func _init(floor_container: FloorContainer, action: DirectionAction):
@@ -35,7 +36,7 @@ func _godot_input(floor_container: FloorContainer, event: InputEvent) -> Variant
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			var player = floor_container.active_floor.get_entity_by_id(floor_container.player_id)
-			var command = action.to_command(
+			command = action.to_command(
 				floor_container.active_floor,
 				floor_container.player_id,
 				project_mouse_to_tile(floor_container.get_viewport()) - player.get_pos()
@@ -56,7 +57,29 @@ func godot_input_without_transition(floor_container: FloorContainer, event: Inpu
 			floor_container.find_child("Cursor").position = Vector3(
 				self.absolute_position.x, 0.01, self.absolute_position.y
 			)
+			var player = floor_container.active_floor.get_entity_by_id(floor_container.player_id)
+			command = action.to_command(
+				floor_container.active_floor,
+				floor_container.player_id,
+				absolute_position - player.get_pos()
+			)
+			if command:
+				var ui = floor_container.find_child("UITiles") as GridMap
+				ui.clear()
+				for vec2i in command.get_tile_hints(floor_container.active_floor):
+					ui.set_cell_item(Vector3i(vec2i.x, 0, vec2i.y), 0)
 
 	if event is InputEventMouseMotion:
 		var projected = project_mouse_to_tile(floor_container.get_viewport())
 		floor_container.find_child("Cursor").position = Vector3(projected.x, 0.01, projected.y)
+		var player = floor_container.active_floor.get_entity_by_id(floor_container.player_id)
+		command = action.to_command(
+			floor_container.active_floor,
+			floor_container.player_id,
+			project_mouse_to_tile(floor_container.get_viewport()) - player.get_pos()
+		)
+		if command:
+			var ui = floor_container.find_child("UITiles") as GridMap
+			ui.clear()
+			for vec2i in command.get_tile_hints(floor_container.active_floor):
+				ui.set_cell_item(Vector3i(vec2i.x, 0, vec2i.y), 0)

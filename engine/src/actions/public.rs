@@ -54,6 +54,10 @@ impl CommandTrait for WaitCommand {
 
         floor.update_entity((self.subject_id, subject_clone))
     }
+
+    fn get_tile_hints(&self, _: &Floor) -> Vec<AbsolutePosition> {
+        Vec::new()
+    }
 }
 
 /// Moves one space.
@@ -116,6 +120,10 @@ impl CommandTrait for StepCommand {
                 tile: subject_clone.pos,
             }))
             .bind(|floor| floor.update_entity((self.subject_id, subject_clone)))
+    }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        vec![floor.entities[self.subject_id].pos + self.dir]
     }
 }
 
@@ -197,6 +205,10 @@ impl CommandTrait for BumpCommand {
                 }
                 .do_action(&floor)
             })
+    }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        vec![floor.entities[self.subject_id].pos + self.dir]
     }
 }
 
@@ -335,6 +347,25 @@ impl CommandTrait for GotoCommand {
                 }),
         }
     }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        let context = Rc::clone(&floor.map.pathfinder);
+        context
+            .get()
+            .and_then(|pathfinder| {
+                let _ = pathfinder
+                    .borrow_mut()
+                    .find_path(floor.entities[self.subject_id].pos, self.tile);
+                let mut path = Vec::new();
+                let mut current = floor.entities[self.subject_id].pos;
+                while current != self.tile {
+                    path.push(current);
+                    current = pathfinder.borrow().get_step(current, self.tile)?;
+                }
+                Some(path)
+            })
+            .unwrap_or_default()
+    }
 }
 
 impl From<GotoCommand> for SerializableCommand {
@@ -390,6 +421,10 @@ impl CommandTrait for TryToStandUpCommand {
                 }))
         }
     }
+
+    fn get_tile_hints(&self, _: &Floor) -> Vec<AbsolutePosition> {
+        Vec::new()
+    }
 }
 
 #[derive(Debug)]
@@ -422,6 +457,10 @@ impl CommandTrait for KnockdownAfterJuggleCommand {
             next_round: self.now + 1,
         };
         floor.update_entity((self.subject_id, clone))
+    }
+
+    fn get_tile_hints(&self, _: &Floor) -> Vec<AbsolutePosition> {
+        Vec::new()
     }
 }
 

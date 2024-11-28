@@ -22,6 +22,7 @@ use crate::entity::EntityState;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 // Hits once, then queues another.
@@ -103,6 +104,10 @@ impl CommandTrait for DoubleHitCommand {
                 .do_action(&floor)
             })
     }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        vec![floor.entities[self.subject_id].pos + self.dir]
+    }
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
@@ -148,6 +153,10 @@ impl CommandTrait for DoubleHitFollowup {
                 floor.update_entity((self.subject_id, subject_clone))
             })
     }
+
+    fn get_tile_hints(&self, floor: &Floor) -> Vec<AbsolutePosition> {
+        vec![floor.entities[self.subject_id].pos + self.dir]
+    }
 }
 
 impl From<DoubleHitFollowup> for SerializableCommand {
@@ -188,6 +197,10 @@ impl CommandTrait for EnterStanceCommand {
 
         floor.update_entity((self.subject_id, subject_clone))
     }
+
+    fn get_tile_hints(&self, _: &Floor) -> Vec<AbsolutePosition> {
+        Vec::new()
+    }
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
@@ -219,6 +232,10 @@ impl CommandTrait for ExitStanceCommand {
         };
 
         floor.update_entity((self.subject_id, subject_clone))
+    }
+
+    fn get_tile_hints(&self, _: &Floor) -> Vec<AbsolutePosition> {
+        Vec::new()
     }
 }
 

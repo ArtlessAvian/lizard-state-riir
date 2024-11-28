@@ -127,4 +127,13 @@ impl Command {
     pub fn new(command: Rc<dyn CommandTrait>) -> Gd<Self> {
         Gd::from_object(Self { command })
     }
+
+    #[func]
+    pub fn get_tile_hints(&self, floor: Gd<ActiveFloor>) -> Array<Vector2i> {
+        self.command
+            .get_tile_hints(&floor.bind().internal)
+            .into_iter()
+            .map(|x| Vector2i::new(x.x, x.y))
+            .collect()
+    }
 }

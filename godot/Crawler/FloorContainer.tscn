@@ -1,7 +1,8 @@
-[gd_scene load_steps=18 format=3 uid="uid://d00xpnofgcnrt"]
+[gd_scene load_steps=23 format=3 uid="uid://d00xpnofgcnrt"]
 
 [ext_resource type="Script" path="res://Crawler/FloorContainer.gd" id="1_6nk2a"]
 [ext_resource type="PackedScene" uid="uid://1ug7wykfxdyt" path="res://Crawler/FloorView/FloorView.tscn" id="2_1cpv2"]
+[ext_resource type="Shader" uid="uid://cp88diwlqssuc" path="res://Crawler/FloorView/highlight.tres" id="3_d5gxf"]
 [ext_resource type="Texture2D" uid="uid://72f3e0vompvu" path="res://Crawler/cursor.png" id="3_gvpdr"]
 [ext_resource type="PackedScene" uid="uid://dykg3353qu8wv" path="res://Crawler/MVP-Scaled.tscn" id="4_bjt5q"]
 [ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="5_ueg1a"]
@@ -85,6 +86,31 @@ max_energy = 6
 strategy = "StandAndFight"
 passthrough = "Enemy2"
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7wgje"]
+render_priority = 0
+shader = ExtResource("3_d5gxf")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_o054p"]
+material = SubResource("ShaderMaterial_7wgje")
+size = Vector2(1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_e7q8o"]
+size = Vector3(1, 0.5, 1)
+
+[sub_resource type="MeshLibrary" id="MeshLibrary_f44g8"]
+item/0/name = ""
+item/0/mesh = SubResource("PlaneMesh_o054p")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/shapes = []
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1
+item/1/name = ""
+item/1/mesh = SubResource("BoxMesh_e7q8o")
+item/1/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+item/1/shapes = []
+item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/1/navigation_layers = 1
+
 [sub_resource type="Theme" id="Theme_nvbww"]
 default_font = ExtResource("5_ueg1a")
 
@@ -93,6 +119,19 @@ script = ExtResource("1_6nk2a")
 entity_initializers = Array[EntityInitializer]([SubResource("EntityInitializer_daood"), SubResource("EntityInitializer_dd0o1"), SubResource("EntityInitializer_xrjo1"), SubResource("EntityInitializer_hw1ny"), SubResource("EntityInitializer_s2ngo"), SubResource("EntityInitializer_rhbro"), SubResource("EntityInitializer_87o3v"), SubResource("EntityInitializer_l85gf"), SubResource("EntityInitializer_tvc7b"), SubResource("EntityInitializer_s42vx"), SubResource("EntityInitializer_i7kh1")])
 
 [node name="FloorView" parent="." instance=ExtResource("2_1cpv2")]
+
+[node name="UITiles" type="GridMap" parent="."]
+editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
+Match rotation with ../Map.
+
+TODO: Figure out how to draw in same position pass?"
+mesh_library = SubResource("MeshLibrary_f44g8")
+cell_size = Vector3(1, 9999, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+metadata/_edit_lock_ = true
+metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="Cursor" type="Sprite3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.333, 0, 0.01, 0)
