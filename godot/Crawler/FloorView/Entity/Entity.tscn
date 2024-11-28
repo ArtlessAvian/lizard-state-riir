@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://26cefkj35wuf"]
+[gd_scene load_steps=27 format=3 uid="uid://26cefkj35wuf"]
 
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/DiscardBasis.gd" id="1_dh5rl"]
 [ext_resource type="Script" path="res://Crawler/FloorView/Entity/Entity.gd" id="1_r4emd"]
@@ -106,6 +106,47 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_xdj7d"]
+resource_name = "GetJuggleLimited"
+length = 0.333336
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.333336),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [1, 3]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite3D:position")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.133333, 0.2, 0.333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0.5, 0), Vector3(0, 0.5, 0), Vector3(0, 0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite3D:look_dir_offset")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.333336),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 2.0]
 }
 
 [sub_resource type="Animation" id="Animation_3lbeh"]
@@ -263,16 +304,47 @@ tracks/0/keys = {
 "values": [0]
 }
 
+[sub_resource type="Animation" id="Animation_oic1w"]
+resource_name = "Wakeup"
+length = 0.2
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [3, 0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite3D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0.208, 0), Vector3(0, 0, 0)]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ue4a2"]
 _data = {
 &"Attack": SubResource("Animation_fjuaq"),
+&"GetJuggleLimited": SubResource("Animation_xdj7d"),
 &"GetJuggled": SubResource("Animation_3lbeh"),
 &"Hurt": SubResource("Animation_yyjnj"),
 &"KnockedDown": SubResource("Animation_ait06"),
 &"StateCommitted": SubResource("Animation_7tdug"),
 &"StateHitstun": SubResource("Animation_vo2u8"),
 &"StateKnockdown": SubResource("Animation_et8y6"),
-&"StateOk": SubResource("Animation_dr4du")
+&"StateOk": SubResource("Animation_dr4du"),
+&"Wakeup": SubResource("Animation_oic1w")
 }
 
 [sub_resource type="PrismMesh" id="PrismMesh_1gh1x"]

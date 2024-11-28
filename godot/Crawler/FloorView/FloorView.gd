@@ -123,6 +123,14 @@ func clear_queue(delta, floor: ActiveFloor):
 
 			event_index += 1
 
+		elif event is JuggleLimitEvent:
+			var target = id_to_node[event.target]
+
+			var animation = target.get_node("AnimationPlayer") as AnimationPlayer
+			animation.play("Entity/GetJuggleLimited")
+
+			event_index += 1
+
 		elif event is SeeMapEvent:
 			test_visions[event.subject] = event.vision
 
@@ -161,6 +169,15 @@ func clear_queue(delta, floor: ActiveFloor):
 			var subject = id_to_node[event.subject]
 			var animation = subject.get_node("AnimationPlayer") as AnimationPlayer
 			animation.play(&"Entity/KnockedDown")
+
+			event_index += 1
+
+		elif event is WakeupEvent:
+			var subject = id_to_node[event.subject]
+			if subject.is_important_animating():
+				return
+			var animation = subject.get_node("AnimationPlayer") as AnimationPlayer
+			animation.play(&"Entity/Wakeup")
 
 			event_index += 1
 

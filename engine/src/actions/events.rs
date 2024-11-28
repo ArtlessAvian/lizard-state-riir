@@ -15,9 +15,11 @@ pub enum FloorEvent {
     StartAttack(StartAttackEvent),
     AttackHit(AttackHitEvent),
     JuggleHit(JuggleHitEvent),
+    JuggleLimit(JuggleLimitEvent),
     SeeMap(SeeMapEvent),
     KnockbackEvent(KnockbackEvent),
     KnockdownEvent(KnockdownEvent),
+    Wakeup(WakeupEvent),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -50,6 +52,11 @@ pub struct JuggleHitEvent {
     pub target: EntityId,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct JuggleLimitEvent {
+    pub target: EntityId,
+}
+
 #[derive(PartialEq, Eq, Clone)]
 pub struct SeeMapEvent {
     pub subject: EntityId,
@@ -73,5 +80,10 @@ pub struct KnockbackEvent {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct KnockdownEvent {
+    pub subject: EntityId,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct WakeupEvent {
     pub subject: EntityId,
 }

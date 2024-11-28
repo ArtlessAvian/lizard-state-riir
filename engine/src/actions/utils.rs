@@ -3,6 +3,7 @@ use std::num::NonZero;
 
 use super::events::FloorEvent;
 use super::events::JuggleHitEvent;
+use super::events::JuggleLimitEvent;
 use super::events::KnockbackEvent;
 use super::events::KnockdownEvent;
 use super::static_dispatch::SerializableCommand;
@@ -223,13 +224,12 @@ pub fn start_juggle(
             extensions: 1,
         })
         .log(FloorEvent::JuggleHit(JuggleHitEvent { target: hit_id })),
+
         EntityState::Hitstun { extensions, .. } => match extensions {
             0 => Writer::new(EntityState::Knockdown {
                 next_round: coming_turn,
             })
-            .log(FloorEvent::KnockdownEvent(KnockdownEvent {
-                subject: hit_id,
-            })),
+            .log(FloorEvent::JuggleLimit(JuggleLimitEvent { target: hit_id })),
             nonzero => Writer::new(EntityState::Hitstun {
                 next_round: coming_turn + 1,
                 extensions: nonzero - 1,

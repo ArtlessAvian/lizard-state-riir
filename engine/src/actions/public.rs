@@ -8,6 +8,7 @@ use rkyv::Serialize;
 use super::events::AttackHitEvent;
 use super::events::MoveEvent;
 use super::events::StartAttackEvent;
+use super::events::WakeupEvent;
 use super::static_dispatch::SerializableCommand;
 use super::utils;
 use super::utils::TakeKnockbackUtil;
@@ -382,7 +383,11 @@ impl CommandTrait for TryToStandUpCommand {
             clone.state = EntityState::Ok {
                 next_round: self.now,
             };
-            floor.update_entity((self.subject_id, clone))
+            floor
+                .update_entity((self.subject_id, clone))
+                .log(FloorEvent::Wakeup(WakeupEvent {
+                    subject: self.subject_id,
+                }))
         }
     }
 }

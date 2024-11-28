@@ -39,13 +39,18 @@ impl FloorEvent {
             }
             FloorEventInternal::AttackHit(x) => AttackHitEvent::new(id_bijection, x).to_variant(),
             FloorEventInternal::JuggleHit(x) => JuggleHitEvent::new(id_bijection, x).to_variant(),
+            FloorEventInternal::JuggleLimit(x) => {
+                JuggleLimitEvent::new(id_bijection, x).to_variant()
+            }
             FloorEventInternal::SeeMap(x) => SeeMapEvent::new(id_bijection, x).to_variant(),
             FloorEventInternal::KnockbackEvent(x) => {
                 KnockbackEvent::new(id_bijection, x).to_variant()
             }
             FloorEventInternal::KnockdownEvent(x) => {
                 KnockdownEvent::new(id_bijection, x).to_variant()
-            } // default => Variant::nil(),
+            }
+            FloorEventInternal::Wakeup(x) => WakeupEvent::new(id_bijection, x).to_variant(),
+            // default => Variant::nil(),
         }
     }
 }
@@ -157,6 +162,24 @@ impl JuggleHitEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
+pub struct JuggleLimitEvent {
+    #[var(get)]
+    target: Gd<EntityId>,
+}
+
+impl JuggleLimitEvent {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::JuggleLimitEvent,
+    ) -> Gd<Self> {
+        Gd::from_object(Self {
+            target: EntityId::new(event.target, id_bijection),
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
 pub struct SeeMapEvent {
     #[var(get)]
     subject: Gd<EntityId>,
@@ -217,6 +240,24 @@ impl KnockdownEvent {
     fn new(
         id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
         event: engine::actions::events::KnockdownEvent,
+    ) -> Gd<Self> {
+        Gd::from_object(Self {
+            subject: EntityId::new(event.subject, id_bijection),
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct WakeupEvent {
+    #[var(get)]
+    subject: Gd<EntityId>,
+}
+
+impl WakeupEvent {
+    fn new(
+        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        event: engine::actions::events::WakeupEvent,
     ) -> Gd<Self> {
         Gd::from_object(Self {
             subject: EntityId::new(event.subject, id_bijection),
