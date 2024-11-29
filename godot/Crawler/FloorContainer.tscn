@@ -10,7 +10,7 @@
 health = 10
 max_energy = 6
 actions = "res://Crawler/FloorView/Entity/tegu/MaxMoveset.tres"
-is_player_controlled = true
+strategy = "Follow"
 is_player_friendly = true
 passthrough = "Tegu"
 
@@ -18,7 +18,9 @@ passthrough = "Tegu"
 position = Vector2i(3, 0)
 health = 10
 max_energy = 6
+actions = "res://Crawler/FloorView/Entity/axolotl/NanoMoveset.tres"
 strategy = "Follow"
+is_player_controlled = true
 is_player_friendly = true
 passthrough = "Axolotl"
 

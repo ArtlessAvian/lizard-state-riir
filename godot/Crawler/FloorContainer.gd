@@ -30,6 +30,8 @@ func _ready():
 			player_id = id
 			$FloorView.id_to_node[player_id] = find_child("Entity")
 
+	$FloorView.sync_with_engine(active_floor)
+
 	#active_floor.add_entity_at(Vector2i(3, 0), false, true)
 	#
 	# Entities from old game.

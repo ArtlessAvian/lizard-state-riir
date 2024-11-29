@@ -1,0 +1,6 @@
+[gd_resource type="ActionSet" load_steps=2 format=3 uid="uid://bdyv3202g5qia"]
+
+[sub_resource type="EnterSmiteStance" id="EnterSmiteStance_jgqds"]
+
+[resource]
+actions = Array[Resource]([SubResource("EnterSmiteStance_jgqds")])

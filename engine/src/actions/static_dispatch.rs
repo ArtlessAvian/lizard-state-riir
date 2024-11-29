@@ -5,6 +5,8 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
+use super::characters::axolotl_nano::EnterSmiteStanceAction;
+use super::characters::axolotl_nano::StanceSmiteAction;
 use super::characters::max_tegu::ForwardHeavyAction;
 use super::characters::max_tegu::ForwardHeavyFollowup;
 use super::characters::max_tegu::TrackingAction;
@@ -31,6 +33,7 @@ use crate::floor::FloorUpdate;
 pub enum SerializableAction {
     EnterStance(EnterStanceAction),
     ExitStance(ExitStanceAction),
+    StanceSmite(StanceSmiteAction),
     External(Rc<dyn SerializeActionTrait>),
 }
 
@@ -38,6 +41,7 @@ pub enum SerializableAction {
 #[archive_attr(derive(Debug))]
 pub enum SerializableTileAction {
     Tracking(TrackingAction),
+    EnterSmiteStance(EnterSmiteStanceAction),
     External(Rc<dyn SerializeTileActionTrait>),
 }
 
@@ -64,6 +68,7 @@ impl From<SerializableAction> for Rc<dyn ActionTrait> {
         match val {
             SerializableAction::EnterStance(x) => Rc::new(x),
             SerializableAction::ExitStance(x) => Rc::new(x),
+            SerializableAction::StanceSmite(x) => Rc::new(x),
             SerializableAction::External(rc) => Rc::new(Upcast::new(rc)),
         }
     }
@@ -73,6 +78,7 @@ impl From<SerializableTileAction> for Rc<dyn TileActionTrait> {
     fn from(val: SerializableTileAction) -> Self {
         match val {
             SerializableTileAction::Tracking(x) => Rc::new(x),
+            SerializableTileAction::EnterSmiteStance(x) => Rc::new(x),
             SerializableTileAction::External(rc) => Rc::new(Upcast::new(rc)),
         }
     }

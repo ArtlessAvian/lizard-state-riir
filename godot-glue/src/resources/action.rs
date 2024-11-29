@@ -1,3 +1,4 @@
+use engine::actions::characters::axolotl_nano::EnterSmiteStanceAction;
 use engine::actions::characters::max_tegu::ForwardHeavyAction;
 use engine::actions::characters::max_tegu::TrackingAction;
 use engine::actions::example::DoubleHitAction;
@@ -30,3 +31,5 @@ expose_action_to_godot!(DoubleHit, DoubleHitAction);
 expose_action_to_godot!(EnterStance, EnterStanceAction);
 expose_action_to_godot!(ForwardHeavy, ForwardHeavyAction);
 expose_action_to_godot!(Tracking, TrackingAction);
+
+expose_action_to_godot!(EnterSmiteStance, EnterSmiteStanceAction);
