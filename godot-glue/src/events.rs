@@ -1,10 +1,8 @@
-use std::collections::HashMap;
-
 use engine::actions::events::FloorEvent as FloorEventInternal;
-use engine::entity::EntityId as EntityIdInternal;
 use godot::prelude::*;
 
 use crate::floor::EntityId;
+use crate::floor::EntityIdCache;
 use crate::positional::AbsolutePosition;
 
 /// A statement about something that happened in the game.
@@ -24,22 +22,19 @@ use crate::positional::AbsolutePosition;
 pub struct FloorEvent;
 
 macro_rules! floor_event_to_variant {
-    (($id_bijection:ident, $event:ident), $(($enum:ident, $eventty:ty),)*) => {
+    (($id_cache:ident, $event:ident), $(($enum:ident, $eventty:ty),)*) => {
         match $event {
             $(
-                FloorEventInternal::$enum(x) => <$eventty>::new($id_bijection, x).to_variant(),
+                FloorEventInternal::$enum(x) => <$eventty>::new($id_cache, x).to_variant(),
             )*
         }
     };
 }
 
 impl FloorEvent {
-    pub fn to_variant(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
-        event: FloorEventInternal,
-    ) -> Variant {
+    pub fn to_variant(id_cache: &mut EntityIdCache, event: FloorEventInternal) -> Variant {
         floor_event_to_variant!(
-            (id_bijection, event),
+            (id_cache, event),
             (Move, MoveEvent),
             (PrepareAttack, PrepareAttackEvent),
             (StartAttack, StartAttackEvent),
@@ -64,12 +59,9 @@ pub struct MoveEvent {
 }
 
 impl MoveEvent {
-    fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
-        event: engine::actions::events::MoveEvent,
-    ) -> Gd<Self> {
+    fn new(id_cache: &mut EntityIdCache, event: engine::actions::events::MoveEvent) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, id_bijection),
+            subject: id_cache.get_or_insert(event.subject),
             tile: event.tile.into(),
         })
     }
@@ -86,11 +78,11 @@ pub struct StartAttackEvent {
 
 impl StartAttackEvent {
     fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        id_cache: &mut EntityIdCache,
         event: engine::actions::events::StartAttackEvent,
     ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, id_bijection),
+            subject: id_cache.get_or_insert(event.subject),
             tile: event.tile.into(),
         })
     }
@@ -107,11 +99,11 @@ pub struct PrepareAttackEvent {
 
 impl PrepareAttackEvent {
     fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        id_cache: &mut EntityIdCache,
         event: engine::actions::events::PrepareAttackEvent,
     ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, id_bijection),
+            subject: id_cache.get_or_insert(event.subject),
             tile: event.tile.into(),
         })
     }
@@ -130,12 +122,12 @@ pub struct AttackHitEvent {
 
 impl AttackHitEvent {
     fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        id_cache: &mut EntityIdCache,
         event: engine::actions::events::AttackHitEvent,
     ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, id_bijection),
-            target: EntityId::new(event.target, id_bijection),
+            subject: id_cache.get_or_insert(event.subject),
+            target: id_cache.get_or_insert(event.target),
             damage: event.damage,
         })
     }
@@ -150,11 +142,11 @@ pub struct JuggleHitEvent {
 
 impl JuggleHitEvent {
     fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        id_cache: &mut EntityIdCache,
         event: engine::actions::events::JuggleHitEvent,
     ) -> Gd<Self> {
         Gd::from_object(Self {
-            target: EntityId::new(event.target, id_bijection),
+            target: id_cache.get_or_insert(event.target),
         })
     }
 }
@@ -168,11 +160,11 @@ pub struct JuggleLimitEvent {
 
 impl JuggleLimitEvent {
     fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        id_cache: &mut EntityIdCache,
         event: engine::actions::events::JuggleLimitEvent,
     ) -> Gd<Self> {
         Gd::from_object(Self {
-            target: EntityId::new(event.target, id_bijection),
+            target: id_cache.get_or_insert(event.target),
         })
     }
 }
@@ -187,12 +179,9 @@ pub struct SeeMapEvent {
 }
 
 impl SeeMapEvent {
-    fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
-        event: engine::actions::events::SeeMapEvent,
-    ) -> Gd<Self> {
+    fn new(id_cache: &mut EntityIdCache, event: engine::actions::events::SeeMapEvent) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, id_bijection),
+            subject: id_cache.get_or_insert(event.subject),
             vision: event
                 .vision
                 .iter()
@@ -218,11 +207,11 @@ pub struct KnockbackEvent {
 
 impl KnockbackEvent {
     fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        id_cache: &mut EntityIdCache,
         event: engine::actions::events::KnockbackEvent,
     ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, id_bijection),
+            subject: id_cache.get_or_insert(event.subject),
             tile: event.tile.into(),
         })
     }
@@ -237,11 +226,11 @@ pub struct KnockdownEvent {
 
 impl KnockdownEvent {
     fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
+        id_cache: &mut EntityIdCache,
         event: engine::actions::events::KnockdownEvent,
     ) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, id_bijection),
+            subject: id_cache.get_or_insert(event.subject),
         })
     }
 }
@@ -254,12 +243,9 @@ pub struct WakeupEvent {
 }
 
 impl WakeupEvent {
-    fn new(
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
-        event: engine::actions::events::WakeupEvent,
-    ) -> Gd<Self> {
+    fn new(id_cache: &mut EntityIdCache, event: engine::actions::events::WakeupEvent) -> Gd<Self> {
         Gd::from_object(Self {
-            subject: EntityId::new(event.subject, id_bijection),
+            subject: id_cache.get_or_insert(event.subject),
         })
     }
 }

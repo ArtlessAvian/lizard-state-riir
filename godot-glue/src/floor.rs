@@ -33,7 +33,7 @@ pub struct ActiveFloor {
     pub internal: FloorInternal,
     #[export]
     log: VariantArray,
-    pub id_bijection: HashMap<EntityIdInternal, Gd<EntityId>>,
+    pub id_cache: EntityIdCache,
 }
 
 #[godot_api]
@@ -46,7 +46,7 @@ impl ActiveFloor {
         Gd::from_object(ActiveFloor {
             internal: self.internal.clone(),
             log: self.log.duplicate_shallow(),
-            id_bijection: self.id_bijection.clone(),
+            id_cache: self.id_cache.clone(),
         })
     }
 
@@ -122,11 +122,11 @@ impl ActiveFloor {
 
         let temp = log
             .into_iter()
-            .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
+            .map(|ev| FloorEvent::to_variant(&mut self.id_cache, ev))
             .collect();
         self.log.extend_array(&temp);
 
-        EntityId::new(id, &mut self.id_bijection)
+        self.id_cache.get_or_insert(id)
     }
 
     #[func]
@@ -141,11 +141,11 @@ impl ActiveFloor {
 
         let temp = log
             .into_iter()
-            .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
+            .map(|ev| FloorEvent::to_variant(&mut self.id_cache, ev))
             .collect();
         self.log.extend_array(&temp);
 
-        EntityId::new(id, &mut self.id_bijection)
+        self.id_cache.get_or_insert(id)
     }
 
     #[func]
@@ -153,7 +153,7 @@ impl ActiveFloor {
         self.internal
             .entities
             .iter_ids()
-            .map(|e| EntityId::new(e, &mut self.id_bijection))
+            .map(|e| self.id_cache.get_or_insert(e))
             .collect()
     }
 
@@ -172,7 +172,7 @@ impl ActiveFloor {
             self.internal = next;
             let temp = log
                 .into_iter()
-                .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
+                .map(|ev| FloorEvent::to_variant(&mut self.id_cache, ev))
                 .collect();
             self.log.extend_array(&temp);
 
@@ -189,7 +189,7 @@ impl ActiveFloor {
 
         let temp = log
             .into_iter()
-            .map(|ev| FloorEvent::to_variant(&mut self.id_bijection, ev))
+            .map(|ev| FloorEvent::to_variant(&mut self.id_cache, ev))
             .collect();
         self.log.extend_array(&temp);
     }
@@ -215,15 +215,12 @@ pub struct EntityId {
     _use_constructor: (),
 }
 
-impl EntityId {
-    // Every id has one internal by definition.
-    // The hashmap ensures every internal has one id.
-    // So its a bijection.
-    pub fn new(
-        id: EntityIdInternal,
-        id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
-    ) -> Gd<Self> {
-        id_bijection
+#[derive(Clone, Default)]
+pub struct EntityIdCache(HashMap<EntityIdInternal, Gd<EntityId>>);
+
+impl EntityIdCache {
+    pub fn get_or_insert(&mut self, id: EntityIdInternal) -> Gd<EntityId> {
+        self.0
             .entry(id)
             .or_insert_with(|| {
                 Gd::from_object(EntityId {
