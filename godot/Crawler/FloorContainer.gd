@@ -68,6 +68,9 @@ func do_transition(transition: Variant):
 
 func run_engine(frame_start: int):
 	while true:
+		if len(active_floor.log) - $FloorView.event_index > 100:
+			assert(false, "Too many events! Player softlocked?")
+			break
 		if not active_floor.take_npc_turn():
 			break
 		if Time.get_ticks_usec() - frame_start > 1000000.0 / 30:

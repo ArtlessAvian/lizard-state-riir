@@ -106,15 +106,44 @@ pub struct FollowStrategy;
 impl StrategyTrait for FollowStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         // TODO: Add teams/friendliness to the game.
-        let in_range = original.entities.iter().find(|(id, entity)| {
-            entity.pos.distance(original.entities[subject_id].pos) <= 6 && *id != subject_id
-        });
-
         let subject = &original.entities[subject_id];
 
-        if let Some(other) = in_range {
-            if subject.pos.distance(other.1.pos) > 2 {
-                if let Some(step_to) = original.map.get_step(subject.pos, other.1.pos) {
+        let in_range = original
+            .entities
+            .iter()
+            .filter(|(id, entity)| entity.pos.distance(subject.pos) <= 6 && *id != subject_id)
+            .collect::<Vec<_>>();
+
+        let ally_in_range = in_range
+            .iter()
+            .find(|(_id, entity)| entity.is_allied(subject));
+
+        if let Some((_, ally)) = ally_in_range {
+            // If ally is too far, stepping is priority
+            if subject.pos.distance(ally.pos) > 4 {
+                if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
+                    if let Some(x) =
+                        StepAction.verify_action(original, subject_id, step_to - subject.pos)
+                    {
+                        return x.do_action(original);
+                    }
+                }
+            }
+        }
+
+        if let Some((_, enemy)) = in_range
+            .iter()
+            .find(|(_, entity)| !entity.is_allied(subject) && entity.pos.distance(subject.pos) == 1)
+        {
+            if let Some(x) = BumpAction.verify_action(original, subject_id, enemy.pos - subject.pos)
+            {
+                return x.do_action(original);
+            }
+        }
+
+        if let Some((_ally_id, ally)) = ally_in_range {
+            if subject.pos.distance(ally.pos) > 2 {
+                if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
                     if let Some(x) =
                         StepAction.verify_action(original, subject_id, step_to - subject.pos)
                     {
@@ -139,9 +168,12 @@ impl StrategyTrait for RushdownStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         let subject = &original.entities[subject_id];
 
-        let in_range = original.entities.iter().find(|(id, entity)| {
-            entity.pos.distance(subject.pos) <= 6 && *id != subject_id && !subject.is_allied(entity)
-        });
+        let in_range = original
+            .entities
+            .iter()
+            .filter(|(id, entity)| *id != subject_id && !subject.is_allied(entity))
+            .min_by_key(|(_, entity)| entity.pos.distance(subject.pos))
+            .filter(|(_, entity)| entity.pos.distance(subject.pos) <= 6);
 
         if let Some(other) = in_range {
             if subject.pos.distance(other.1.pos) > 1 {
