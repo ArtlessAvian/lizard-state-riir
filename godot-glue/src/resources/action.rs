@@ -6,66 +6,27 @@ use godot::prelude::*;
 
 use super::actionset::GodotWrappedAction;
 
-#[derive(GodotClass, Debug)]
-#[class(init, base=Resource)]
-pub struct DoubleHit {
-    base: Base<Resource>,
+macro_rules! expose_action_to_godot {
+    ( $type:ident, $cons:expr ) => {
+        #[derive(GodotClass, Debug)]
+        #[class(init, base=Resource)]
+        pub struct $type {
+            base: Base<Resource>,
+        }
+
+        #[godot_api]
+        impl $type {
+            #[func]
+            fn wrap() -> Gd<GodotWrappedAction> {
+                Gd::from_object(GodotWrappedAction {
+                    action: $cons.into(),
+                })
+            }
+        }
+    };
 }
 
-#[godot_api]
-impl DoubleHit {
-    #[func]
-    fn wrap() -> Gd<GodotWrappedAction> {
-        Gd::from_object(GodotWrappedAction {
-            action: DoubleHitAction.into(),
-        })
-    }
-}
-
-#[derive(GodotClass, Debug)]
-#[class(init, base=Resource)]
-pub struct EnterStance {
-    base: Base<Resource>,
-}
-
-#[godot_api]
-impl EnterStance {
-    #[func]
-    fn wrap() -> Gd<GodotWrappedAction> {
-        Gd::from_object(GodotWrappedAction {
-            action: EnterStanceAction.into(),
-        })
-    }
-}
-
-#[derive(GodotClass, Debug)]
-#[class(init, base=Resource)]
-pub struct ForwardHeavy {
-    base: Base<Resource>,
-}
-
-#[godot_api]
-impl ForwardHeavy {
-    #[func]
-    fn wrap() -> Gd<GodotWrappedAction> {
-        Gd::from_object(GodotWrappedAction {
-            action: ForwardHeavyAction.into(),
-        })
-    }
-}
-
-#[derive(GodotClass, Debug)]
-#[class(init, base=Resource)]
-pub struct Tracking {
-    base: Base<Resource>,
-}
-
-#[godot_api]
-impl Tracking {
-    #[func]
-    fn wrap() -> Gd<GodotWrappedAction> {
-        Gd::from_object(GodotWrappedAction {
-            action: TrackingAction.into(),
-        })
-    }
-}
+expose_action_to_godot!(DoubleHit, DoubleHitAction);
+expose_action_to_godot!(EnterStance, EnterStanceAction);
+expose_action_to_godot!(ForwardHeavy, ForwardHeavyAction);
+expose_action_to_godot!(Tracking, TrackingAction);

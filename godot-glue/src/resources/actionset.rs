@@ -38,7 +38,7 @@ impl ActionSet {
 impl IResource for ActionSet {
     // Only returns false, since we're using this to verify and not do properties.
     fn set_property(&mut self, property: StringName, value: Variant) -> bool {
-        if property != "actions".into() {
+        if property != c"actions".into() {
             // we're just looking to verify actions.
             return false;
         }
