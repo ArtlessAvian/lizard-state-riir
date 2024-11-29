@@ -23,34 +23,34 @@ use crate::positional::AbsolutePosition;
 // No schema, no static analysis. Avoids repeated marshalling.
 pub struct FloorEvent;
 
+macro_rules! floor_event_to_variant {
+    (($id_bijection:ident, $event:ident), $(($enum:ident, $eventty:ty),)*) => {
+        match $event {
+            $(
+                FloorEventInternal::$enum(x) => <$eventty>::new($id_bijection, x).to_variant(),
+            )*
+        }
+    };
+}
+
 impl FloorEvent {
     pub fn to_variant(
         id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
         event: FloorEventInternal,
     ) -> Variant {
-        match event {
-            FloorEventInternal::Move(x) => MoveEvent::new(id_bijection, x).to_variant(),
-            FloorEventInternal::PrepareAttack(x) => {
-                PrepareAttackEvent::new(id_bijection, x).to_variant()
-            }
-            FloorEventInternal::StartAttack(x) => {
-                StartAttackEvent::new(id_bijection, x).to_variant()
-            }
-            FloorEventInternal::AttackHit(x) => AttackHitEvent::new(id_bijection, x).to_variant(),
-            FloorEventInternal::JuggleHit(x) => JuggleHitEvent::new(id_bijection, x).to_variant(),
-            FloorEventInternal::JuggleLimit(x) => {
-                JuggleLimitEvent::new(id_bijection, x).to_variant()
-            }
-            FloorEventInternal::SeeMap(x) => SeeMapEvent::new(id_bijection, x).to_variant(),
-            FloorEventInternal::KnockbackEvent(x) => {
-                KnockbackEvent::new(id_bijection, x).to_variant()
-            }
-            FloorEventInternal::KnockdownEvent(x) => {
-                KnockdownEvent::new(id_bijection, x).to_variant()
-            }
-            FloorEventInternal::Wakeup(x) => WakeupEvent::new(id_bijection, x).to_variant(),
-            // default => Variant::nil(),
-        }
+        floor_event_to_variant!(
+            (id_bijection, event),
+            (Move, MoveEvent),
+            (PrepareAttack, PrepareAttackEvent),
+            (StartAttack, StartAttackEvent),
+            (AttackHit, AttackHitEvent),
+            (JuggleHit, JuggleHitEvent),
+            (JuggleLimit, JuggleLimitEvent),
+            (SeeMap, SeeMapEvent),
+            (KnockbackEvent, KnockbackEvent),
+            (KnockdownEvent, KnockdownEvent),
+            (Wakeup, WakeupEvent),
+        )
     }
 }
 
