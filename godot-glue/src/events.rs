@@ -10,7 +10,6 @@ use crate::positional::AbsolutePosition;
 /// A statement about something that happened in the game.
 ///
 /// Not necessary to understand the state of the game, but rather what happened between states.
-
 // Some options, from strict to dynamic.
 // # Wrapper for each case, store in VariantArray. Getter for each field.
 // This preserves schema. Godot can do static analysis! But it will need to deduce the type first, eg InputEvent.

@@ -29,23 +29,8 @@ impl<K: Hash + Ord + Copy, V: Copy> SymmetricMatrix<K, V> {
     }
 
     fn insert(&mut self, k: (K, K), v: V) -> Option<V> {
-        match self.0.entry(k.0) {
-            std::collections::hash_map::Entry::Occupied(mut entry) => {
-                entry.get_mut().insert(k.1, v);
-            }
-            std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(HashMap::new()).insert(k.1, v);
-            }
-        }
-
-        match self.0.entry(k.1) {
-            std::collections::hash_map::Entry::Occupied(mut entry) => {
-                entry.get_mut().insert(k.0, v)
-            }
-            std::collections::hash_map::Entry::Vacant(entry) => {
-                entry.insert(HashMap::new()).insert(k.0, v)
-            }
-        }
+        self.0.entry(k.0).or_default().insert(k.1, v);
+        self.0.entry(k.1).or_default().insert(k.0, v)
     }
 
     fn get(&self, k: (K, K)) -> Option<&V> {

@@ -1,6 +1,5 @@
 pub mod snapshot;
 
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::default::Default;
 use std::rc::Rc;
@@ -224,16 +223,16 @@ impl EntityId {
         id: EntityIdInternal,
         id_bijection: &mut HashMap<EntityIdInternal, Gd<EntityId>>,
     ) -> Gd<Self> {
-        match id_bijection.entry(id) {
-            Entry::Occupied(el) => el.get().clone(),
-            Entry::Vacant(slot) => slot
-                .insert(Gd::from_object(EntityId {
+        id_bijection
+            .entry(id)
+            .or_insert_with(|| {
+                Gd::from_object(EntityId {
                     id,
                     petname: petname::Petnames::default().generate_one(2, "-").into(),
                     _use_constructor: (),
-                }))
-                .clone(),
-        }
+                })
+            })
+            .clone()
     }
 }
 

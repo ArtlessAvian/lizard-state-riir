@@ -227,11 +227,9 @@ impl Floor {
     // Also maybe we wrap EntityId with something to signify its their turn.
     // This again raises the question, does it need to be your turn to run a Command?
     pub fn take_npc_turn(&self) -> Result<FloorUpdate, TurntakingError> {
-        let next_id = self.get_current_entity();
-        if next_id.is_none() {
-            return Result::Err(TurntakingError::NoTurntakers);
-        }
-        let next_id = next_id.unwrap();
+        let next_id = self
+            .get_current_entity()
+            .ok_or(TurntakingError::NoTurntakers)?;
 
         // Return early depending on state.
         match &self.entities[next_id].state {

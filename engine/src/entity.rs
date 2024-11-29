@@ -31,12 +31,6 @@ use crate::strategy::Strategy;
 #[archive_attr(derive(Debug, PartialEq, Eq, Hash))]
 pub struct EntityId(usize);
 
-impl From<EntityId> for i32 {
-    fn from(value: EntityId) -> Self {
-        value.0.try_into().unwrap()
-    }
-}
-
 /// An entity as it exists in a Floor.
 /// Not aware of the floor (and therefore of other entities)
 ///
