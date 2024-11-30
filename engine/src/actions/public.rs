@@ -6,6 +6,7 @@ use rkyv::Deserialize;
 use rkyv::Serialize;
 
 use super::events::AttackHitEvent;
+use super::events::KnockdownEvent;
 use super::events::MoveEvent;
 use super::events::StartAttackEvent;
 use super::events::WakeupEvent;
@@ -421,7 +422,11 @@ impl CommandTrait for KnockdownAfterJuggleCommand {
         clone.state = EntityState::Knockdown {
             next_round: self.now + 1,
         };
-        floor.update_entity((self.subject_id, clone))
+        floor
+            .update_entity((self.subject_id, clone))
+            .log(FloorEvent::KnockdownEvent(KnockdownEvent {
+                subject: self.subject_id,
+            }))
     }
 }
 

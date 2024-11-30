@@ -8,6 +8,7 @@ use crate::actions::public::WaitAction;
 use crate::actions::ActionTrait;
 use crate::actions::DirectionActionTrait;
 use crate::entity::EntityId;
+use crate::entity::EntityState;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
@@ -135,7 +136,14 @@ impl StrategyTrait for FollowStrategy {
             .iter()
             .find(|(_, entity)| !entity.is_allied(subject) && entity.pos.distance(subject.pos) == 1)
         {
-            if let Some(x) = BumpAction.verify_action(original, subject_id, enemy.pos - subject.pos)
+            if matches!(enemy.state, EntityState::Knockdown { .. }) {
+                if let Some(x) =
+                    StepAction.verify_action(original, subject_id, -(enemy.pos - subject.pos))
+                {
+                    return x.do_action(original);
+                }
+            } else if let Some(x) =
+                BumpAction.verify_action(original, subject_id, enemy.pos - subject.pos)
             {
                 return x.do_action(original);
             }

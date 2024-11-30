@@ -4,6 +4,7 @@ pub mod fov;
 use std::collections::HashSet;
 use std::ops::Add;
 use std::ops::Mul;
+use std::ops::Neg;
 use std::ops::Sub;
 
 use rkyv::Archive;
@@ -51,6 +52,14 @@ impl Mul<RelativePosition> for i32 {
             dx: rhs.dx * self,
             dy: rhs.dy * self,
         }
+    }
+}
+
+impl Neg for RelativePosition {
+    type Output = RelativePosition;
+
+    fn neg(self) -> Self::Output {
+        -1 * self
     }
 }
 
