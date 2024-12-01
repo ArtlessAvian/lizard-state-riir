@@ -67,15 +67,16 @@ func do_transition(transition: Variant):
 
 
 func run_engine(frame_start: int):
-	while true:
+	for _i in range(100):
 		if len(active_floor.log) - $FloorView.event_index > 100:
 			assert(false, "Too many events! Player softlocked?")
-			break
+			return
 		if not active_floor.take_npc_turn():
-			break
+			return
 		if Time.get_ticks_usec() - frame_start > 1000000.0 / 30:
 			push_error("Engine taking too long!")
-			break
+			return
+	assert(false, "Too many turns! Player softlocked?")
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

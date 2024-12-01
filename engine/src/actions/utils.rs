@@ -260,7 +260,7 @@ mod tests {
 
     #[test]
     fn knockback_basic() {
-        let floor = Floor::default();
+        let floor = Floor::new_minimal();
         let (update, id) = floor.add_entity(Entity::default());
 
         let update = update.bind(|floor| {
@@ -304,7 +304,7 @@ mod tests {
 
     #[test]
     fn knockback_intheway() {
-        let floor = Floor::default();
+        let floor = Floor::new_minimal();
         let (update, id) = floor.add_entity(Entity::default());
         let (update, other) = update.bind_with_side_output(|floor| {
             floor.add_entity(Entity {
@@ -344,7 +344,7 @@ mod tests {
 
     #[test]
     fn multiknockback_basic() {
-        let floor = Floor::default();
+        let floor = Floor::new_minimal();
         let (update, id) = floor.add_entity(Entity::default());
         let (update, other) = update.bind_with_side_output(|floor| {
             floor.add_entity(Entity {
@@ -389,7 +389,7 @@ mod tests {
 
     #[test]
     fn multiknockback_intheway() {
-        let floor = Floor::default();
+        let floor = Floor::new_minimal();
         let (update, id) = floor.add_entity(Entity::default());
         let (update, other) = update.bind_with_side_output(|floor| {
             floor.add_entity(Entity {
@@ -428,7 +428,7 @@ mod tests {
 
     #[test]
     fn multiknockback_conflicts() {
-        let floor = Floor::default();
+        let floor = Floor::new_minimal();
         let floor = floor.set_map(FloorMap::new_with_tiles(
             [
                 (AbsolutePosition::new(0, 0), FloorTile::FLOOR),

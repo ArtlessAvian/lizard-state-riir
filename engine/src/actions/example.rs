@@ -229,7 +229,7 @@ fn double_hit() {
     use crate::floor::TurntakingError;
     use crate::positional::AbsolutePosition;
 
-    let mut update = FloorUpdate::new(Floor::new());
+    let mut update = FloorUpdate::new(Floor::new_minimal());
     let player_id;
     let other_id;
     (update, player_id) = update.bind_with_side_output(|floor| {

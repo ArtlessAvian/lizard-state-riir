@@ -1,4 +1,5 @@
 pub mod map;
+pub mod mutators;
 pub mod occupiers;
 
 use std::collections::HashMap;
@@ -18,6 +19,7 @@ use crate::entity::EntitySet;
 use crate::entity::EntityState;
 use crate::floor::map::vision::FloorMapVision;
 use crate::floor::map::FloorMap;
+use crate::floor::mutators::DeadStateMutator;
 use crate::floor::occupiers::Occupiers;
 use crate::strategy::StrategyTrait;
 use crate::writer::Writer;
@@ -64,6 +66,8 @@ pub struct Floor {
     pub occupiers: Occupiers,
     pub map: FloorMap,
 
+    pub dying: Option<DeadStateMutator>,
+
     // TODO: Wrap current behavior with inner class?
     // Outer class/enum can select between this or a full vision mode. (or literally nothing? for testing?)
     pub vision: Option<FloorMapVision>,
@@ -71,12 +75,25 @@ pub struct Floor {
 
 impl Floor {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new_with_all_systems() -> Self {
         Floor {
             entities: EntitySet::new(),
             occupiers: Occupiers::new(),
             map: FloorMap::new_empty(),
+            dying: Some(DeadStateMutator),
             vision: Some(FloorMapVision::new()),
+        }
+    }
+
+    // For testing. If you want to enable specific things, mutate or construct.
+    #[must_use]
+    pub fn new_minimal() -> Self {
+        Floor {
+            entities: EntitySet::new(),
+            occupiers: Occupiers::new(),
+            map: FloorMap::new_empty(),
+            dying: None,
+            vision: None,
         }
     }
 
@@ -103,6 +120,7 @@ impl Floor {
                     entities: next_entities,
                     occupiers: next_occupiers,
                     map: self.map.clone(),
+                    dying: self.dying.clone(),
                     vision: next_vision,
                 })
             }),
@@ -125,6 +143,7 @@ impl Floor {
             entities: self.entities.clone(),
             occupiers: self.occupiers.clone(),
             map,
+            dying: self.dying.clone(),
             vision: self.vision.clone(), // TODO: determine if this makes sense?
         }
     }
@@ -148,11 +167,16 @@ impl Floor {
 
     // TODO: Figure out nicer API that isn't so annoying for the caller.
     #[must_use]
-    pub fn update_entities_map(&self, new_set: HashMap<EntityId, Entity>) -> FloorUpdate {
+    pub fn update_entities_map(&self, mut new_set: HashMap<EntityId, Entity>) -> FloorUpdate {
         let old_set = new_set
             .keys()
             .map(|id| (*id, &self.entities[*id]))
             .collect::<Vec<(EntityId, &Entity)>>();
+
+        let log = self
+            .dying
+            .as_ref()
+            .map(|some| some.mutate_entities(&mut new_set));
 
         let mut next_entities = self.entities.clone();
         for (new_id, new) in new_set {
@@ -175,16 +199,19 @@ impl Floor {
             }
         }
 
-        self.vision
-            .as_ref()
-            .map_or(Writer::new(None), |x| {
-                x.update_entities(&new_ref_set, &self.map).map(Some)
-            })
-            .bind(|next_vision| {
+        // TODO: Fix monad manipulation from hell.
+        Writer::transpose(log)
+            .zip(Writer::transpose(
+                self.vision
+                    .as_ref()
+                    .map(|x| x.update_entities(&new_ref_set, &self.map)),
+            ))
+            .bind(|(next_dying, next_vision)| {
                 FloorUpdate::new(Floor {
                     entities: next_entities,
                     occupiers: next_occupiers,
                     map: self.map.clone(),
+                    dying: next_dying,
                     vision: next_vision,
                 })
             })
@@ -265,7 +292,8 @@ impl Floor {
 
 impl Default for Floor {
     fn default() -> Self {
-        Floor::new()
+        // Honestly this shouldn't be the default. Maybe the default for library users I guess?
+        Floor::new_with_all_systems()
     }
 }
 
@@ -279,7 +307,7 @@ fn serialize_deserialize() {
     use crate::positional::AbsolutePosition;
     use crate::strategy::Strategy;
 
-    let floor = Floor::new();
+    let floor = Floor::new_with_all_systems();
     let floor = floor
         .add_entity(Entity {
             state: EntityState::Ok {
@@ -314,5 +342,5 @@ fn serialize_deserialize() {
     // Oh well.
 
     // Fun stuff.
-    assert_eq!(bytes.len(), 592 * 16);
+    assert_eq!(bytes.len(), 9476);
 }

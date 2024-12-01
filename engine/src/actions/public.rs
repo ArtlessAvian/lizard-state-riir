@@ -436,7 +436,7 @@ fn bump_test() {
     use crate::entity::EntityState;
     use crate::positional::AbsolutePosition;
 
-    let mut update = FloorUpdate::new(Floor::new());
+    let mut update = FloorUpdate::new(Floor::new_minimal());
     let player_id;
     let other_id;
     (update, player_id) = update.bind_with_side_output(|floor| {
@@ -486,7 +486,7 @@ fn goto_test() {
     use crate::entity::EntityState;
     use crate::positional::AbsolutePosition;
 
-    let mut update = FloorUpdate::new(Floor::new());
+    let mut update = FloorUpdate::new(Floor::new_minimal());
     let player_id;
     (update, player_id) = update.bind_with_side_output(|floor| {
         floor.add_entity(Entity {

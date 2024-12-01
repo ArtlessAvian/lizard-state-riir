@@ -181,6 +181,15 @@ func clear_queue(delta, floor: ActiveFloor):
 
 			event_index += 1
 
+		elif event is DieEvent:
+			var subject = id_to_node[event.subject]
+			if subject.is_important_animating():
+				return
+			var animation = subject.get_node("AnimationPlayer") as AnimationPlayer
+			animation.play(&"Entity/StateDead")
+
+			event_index += 1
+
 		else:
 			printerr("Unknown Event! ", event)
 			event_index += 1

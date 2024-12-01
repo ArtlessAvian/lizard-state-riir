@@ -16,6 +16,10 @@ impl<T, Payload> Writer<T, Payload> {
         Self { contents, log }
     }
 
+    pub fn transpose(option: Option<Self>) -> Writer<Option<T>, Payload> {
+        option.map_or(Writer::new(None), |some| some.map(Some))
+    }
+
     pub fn get_contents(&self) -> &T {
         &self.contents
     }

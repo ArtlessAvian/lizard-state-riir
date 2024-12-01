@@ -45,6 +45,7 @@ impl FloorEvent {
             (KnockbackEvent, KnockbackEvent),
             (KnockdownEvent, KnockdownEvent),
             (Wakeup, WakeupEvent),
+            (Die, DieEvent),
         )
     }
 }
@@ -244,6 +245,21 @@ pub struct WakeupEvent {
 
 impl WakeupEvent {
     fn new(id_cache: &mut EntityIdCache, event: engine::actions::events::WakeupEvent) -> Gd<Self> {
+        Gd::from_object(Self {
+            subject: id_cache.get_or_insert(event.subject),
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+struct DieEvent {
+    #[var(get)]
+    subject: Gd<EntityId>,
+}
+
+impl DieEvent {
+    fn new(id_cache: &mut EntityIdCache, event: engine::actions::events::DieEvent) -> Gd<Self> {
         Gd::from_object(Self {
             subject: id_cache.get_or_insert(event.subject),
         })

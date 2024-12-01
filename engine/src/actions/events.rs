@@ -20,6 +20,7 @@ pub enum FloorEvent {
     KnockbackEvent(KnockbackEvent),
     KnockdownEvent(KnockdownEvent),
     Wakeup(WakeupEvent),
+    Die(DieEvent),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -85,5 +86,10 @@ pub struct KnockdownEvent {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct WakeupEvent {
+    pub subject: EntityId,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct DieEvent {
     pub subject: EntityId,
 }
