@@ -120,6 +120,26 @@ impl StrategyTrait for FollowStrategy {
             .find(|(_id, entity)| entity.is_allied(subject));
 
         if let Some((_, ally)) = ally_in_range {
+            // avoid standing on top of the ally
+            if subject.pos.distance(ally.pos) == 0 {
+                for dir in [
+                    RelativePosition::new(1, 0),
+                    RelativePosition::new(0, 1),
+                    RelativePosition::new(-1, 0),
+                    RelativePosition::new(0, -1),
+                    RelativePosition::new(1, 1),
+                    RelativePosition::new(1, -1),
+                    RelativePosition::new(-1, 1),
+                    RelativePosition::new(-1, -1),
+                ] {
+                    if let Some(x) = StepAction.verify_action(original, subject_id, dir) {
+                        return x.do_action(original);
+                    }
+                }
+            }
+        }
+
+        if let Some((_, ally)) = ally_in_range {
             // If ally is too far, stepping is priority
             if subject.pos.distance(ally.pos) > 4 {
                 if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
