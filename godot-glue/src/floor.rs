@@ -8,6 +8,7 @@ use engine::entity::Entity as EntityInternal;
 use engine::entity::EntityId as EntityIdInternal;
 use engine::entity::EntityState;
 use engine::floor::Floor as FloorInternal;
+use engine::floor::FloorEndState;
 use engine::positional::AbsolutePosition;
 use engine::strategy::FollowStrategy;
 use engine::strategy::Strategy;
@@ -18,6 +19,27 @@ use crate::actions::Command;
 use crate::events::FloorEvent;
 use crate::floor::snapshot::EntitySnapshot;
 use crate::resources::EntityInitializer;
+
+#[derive(GodotConvert, Var, Export)]
+#[godot(via = GString)]
+#[derive(Debug)]
+pub enum FloorEndStateName {
+    Undetermined,
+    AnyPartyMemberDowned,
+    AllPartyMembersExited,
+    ExitedButNoFood,
+}
+
+impl From<FloorEndState> for FloorEndStateName {
+    fn from(value: FloorEndState) -> Self {
+        match value {
+            FloorEndState::Undetermined => FloorEndStateName::Undetermined,
+            FloorEndState::AnyPartyMemberDowned => FloorEndStateName::AnyPartyMemberDowned,
+            FloorEndState::AllPartyMembersExited => FloorEndStateName::AllPartyMembersExited,
+            FloorEndState::ExitedButNoFood => FloorEndStateName::ExitedButNoFood,
+        }
+    }
+}
 
 /// The game.
 ///
@@ -198,6 +220,12 @@ impl ActiveFloor {
     #[must_use]
     pub fn get_time(&self) -> u32 {
         self.internal.get_current_round()
+    }
+
+    #[func]
+    #[must_use]
+    pub fn get_end_state(&self) -> FloorEndStateName {
+        self.internal.get_end_state().into()
     }
 }
 

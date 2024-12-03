@@ -71,6 +71,8 @@ func run_engine(frame_start: int):
 		if len(active_floor.log) - $FloorView.event_index > 100:
 			assert(false, "Too many events! Player softlocked?")
 			return
+		if active_floor.get_entity_by_id(player_id).get_state_name() == "Downed":
+			return
 		if not active_floor.take_npc_turn():
 			return
 		if Time.get_ticks_usec() - frame_start > 1000000.0 / 30:
@@ -107,6 +109,8 @@ func _process(delta):
 
 
 func _unhandled_input(event):
+	if active_floor.get_entity_by_id(player_id).get_state_name() == "Downed":
+		return
 	if not $FloorView.desynced_from_floor:
 		var transition = get_current_state()._godot_input(self, event)
 		do_transition(transition)
