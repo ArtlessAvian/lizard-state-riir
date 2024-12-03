@@ -45,7 +45,9 @@ impl FloorEvent {
             (KnockbackEvent, KnockbackEvent),
             (KnockdownEvent, KnockdownEvent),
             (Wakeup, WakeupEvent),
-            (Die, DieEvent),
+            (GetDowned, GetDownedEvent),
+            (Exit, ExitEvent),
+            (MissionFailed, MissionFailedEvent),
         )
     }
 }
@@ -253,15 +255,58 @@ impl WakeupEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-struct DieEvent {
+struct GetDownedEvent {
     #[var(get)]
     subject: Gd<EntityId>,
 }
 
-impl DieEvent {
-    fn new(id_cache: &mut EntityIdCache, event: engine::actions::events::DieEvent) -> Gd<Self> {
+impl GetDownedEvent {
+    fn new(
+        id_cache: &mut EntityIdCache,
+        event: engine::actions::events::GetDownedEvent,
+    ) -> Gd<Self> {
         Gd::from_object(Self {
             subject: id_cache.get_or_insert(event.subject),
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+struct ExitEvent {
+    #[var(get)]
+    subject: Gd<EntityId>,
+}
+
+impl ExitEvent {
+    fn new(id_cache: &mut EntityIdCache, event: engine::actions::events::ExitEvent) -> Gd<Self> {
+        Gd::from_object(Self {
+            subject: id_cache.get_or_insert(event.subject),
+        })
+    }
+}
+
+#[derive(GodotClass)]
+#[class(no_init)]
+struct MissionFailedEvent {
+    #[var(get)]
+    subject: Gd<EntityId>,
+    #[var(get)]
+    downed_party: Array<Gd<EntityId>>,
+}
+
+impl MissionFailedEvent {
+    fn new(
+        id_cache: &mut EntityIdCache,
+        event: engine::actions::events::MissionFailedEvent,
+    ) -> Gd<Self> {
+        Gd::from_object(Self {
+            subject: id_cache.get_or_insert(event.subject),
+            downed_party: event
+                .downed_party
+                .into_iter()
+                .map(|x| id_cache.get_or_insert(x))
+                .collect(),
         })
     }
 }

@@ -4,10 +4,12 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
-use crate::actions::events::DieEvent;
 use crate::actions::events::FloorEvent;
+use crate::actions::events::GetDownedEvent;
+use crate::actions::events::MissionFailedEvent;
 use crate::entity::Entity;
 use crate::entity::EntityId;
+use crate::entity::EntitySet;
 use crate::entity::EntityState;
 use crate::writer::Writer;
 
@@ -25,17 +27,57 @@ impl DownedStateMutator {
     pub fn mutate_entities(
         &self,
         current_round: u32,
+        old_set: &EntitySet,
         new_set: &mut HashMap<EntityId, Entity>,
     ) -> Writer<Self, FloorEvent> {
         let mut out = Writer::new(self.clone());
+
         for (id, e) in new_set.iter_mut() {
             if e.health <= 0 && !matches!(e.state, EntityState::Downed { .. }) {
                 e.state = EntityState::Downed {
                     round_downed: current_round,
                 };
-                out = out.log(FloorEvent::Die(DieEvent { subject: *id }));
+                out = out.log(FloorEvent::GetDowned(GetDownedEvent { subject: *id }));
             }
         }
+
+        let downed_party = new_set
+            .iter()
+            .filter_map(|(id, e)| {
+                if e.is_player_friendly && matches!(e.state, EntityState::Downed { .. }) {
+                    Some(*id)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        if !downed_party.is_empty() {
+            let alive_party = old_set
+                .iter()
+                .filter_map(|(id, e)| {
+                    if e.is_player_friendly && !downed_party.contains(&id) {
+                        Some(id)
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            // Do a better split.
+            if let Some((head, tail)) = alive_party.split_first() {
+                out = out.log(FloorEvent::MissionFailed(MissionFailedEvent {
+                    subject: *head,
+                    downed_party,
+                }));
+                for e in tail {
+                    out = out.log(FloorEvent::MissionFailed(MissionFailedEvent {
+                        subject: *e,
+                        downed_party: Vec::new(),
+                    }));
+                }
+            }
+        }
+
         out
     }
 }

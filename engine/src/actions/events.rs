@@ -20,7 +20,9 @@ pub enum FloorEvent {
     KnockbackEvent(KnockbackEvent),
     KnockdownEvent(KnockdownEvent),
     Wakeup(WakeupEvent),
-    Die(DieEvent),
+    GetDowned(GetDownedEvent),
+    Exit(ExitEvent),
+    MissionFailed(MissionFailedEvent),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -90,6 +92,17 @@ pub struct WakeupEvent {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct DieEvent {
+pub struct GetDownedEvent {
     pub subject: EntityId,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct ExitEvent {
+    pub subject: EntityId,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct MissionFailedEvent {
+    pub subject: EntityId,
+    pub downed_party: Vec<EntityId>,
 }

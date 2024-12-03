@@ -389,6 +389,7 @@ libraries = {
 }
 
 [node name="Arrow" type="Node3D" parent="."]
+visible = false
 
 [node name="Tip" type="MeshInstance3D" parent="Arrow"]
 transform = Transform3D(0.8, 0, 0, 0, 0, -0.1, 0, 0.3, 0, 0, 0, 0.3)

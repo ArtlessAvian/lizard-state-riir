@@ -7,3 +7,4 @@ func _process(_delta: float) -> void:
 		get_parent().animation, get_parent().frame
 	)
 	self.flip_h = get_parent().flip_h
+	self.visible = get_parent().transparency == 0

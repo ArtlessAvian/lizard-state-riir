@@ -11,6 +11,8 @@ var test_event_delay = 0
 
 var test_visions: Dictionary  # of EntityIds to their most recent vision.
 
+var stop_processing: bool = false
+
 
 func _ready():
 	desynced_from_floor = true
@@ -20,6 +22,9 @@ func _ready():
 
 
 func _process_floor(delta, floor: ActiveFloor):
+	if stop_processing:
+		return
+
 	if test_event_delay > 0:
 		test_event_delay -= delta
 		return
@@ -53,7 +58,7 @@ func _process_floor(delta, floor: ActiveFloor):
 
 
 func clear_queue(delta, floor: ActiveFloor):
-	while event_index < len(floor.log):
+	while event_index < len(floor.log) and !stop_processing:
 		var event = floor.log[event_index]
 
 		if event is MoveEvent:
@@ -181,12 +186,47 @@ func clear_queue(delta, floor: ActiveFloor):
 
 			event_index += 1
 
-		elif event is DieEvent:
+		elif event is GetDownedEvent:
 			var subject = id_to_node[event.subject]
 			if subject.is_important_animating():
 				return
 			var animation = subject.get_node("AnimationPlayer") as AnimationPlayer
 			animation.play(&"Entity/StateDowned")
+
+			event_index += 1
+
+		elif event is MissionFailedEvent:
+			if id_to_node.values().any(func(x): return x.is_animating()):
+				return
+
+			stop_processing = true
+
+			var subject = id_to_node[event.subject]
+			subject.get_node("AnimationPlayer").play("RESET")
+
+			var tween: Tween = subject.create_tween()
+			tween.tween_interval(1)
+			var the_position = subject.position
+			for entity in event.downed_party.map(func(x): return id_to_node[x]):
+				tween.tween_property(
+					subject,
+					"basis",
+					Basis.looking_at(entity.position - the_position, Vector3.UP, true),
+					0
+				)
+				(
+					tween
+					. tween_property(subject, "position", entity.position, 20 / 60.0)
+					. set_trans(Tween.TRANS_EXPO)
+					. set_ease(Tween.EASE_OUT)
+				)
+				tween.tween_interval(0.1)
+				tween.tween_property(entity, "visible", false, 0)
+				tween.tween_interval(0.1)
+
+				the_position = entity.position
+
+			tween.tween_property(subject.get_node("AnimatedSprite3D"), "position:y", 300, 10)
 
 			event_index += 1
 

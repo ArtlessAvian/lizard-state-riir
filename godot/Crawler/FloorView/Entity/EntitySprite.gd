@@ -41,6 +41,8 @@ func _process(delta):
 
 	spin_around(camera_direction)
 
+	#self.transparency = clamp((self.position.y - 4)/2.0, 0, 1)
+
 
 func spin_around(camera_direction):
 	if not self.get_parent():

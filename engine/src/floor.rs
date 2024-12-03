@@ -180,10 +180,9 @@ impl Floor {
             .map(|id| (*id, &self.entities[*id]))
             .collect::<Vec<(EntityId, &Entity)>>();
 
-        let log = self
-            .downing
-            .as_ref()
-            .map(|some| some.mutate_entities(self.get_current_round(), &mut new_set));
+        let log = self.downing.as_ref().map(|some| {
+            some.mutate_entities(self.get_current_round(), &self.entities, &mut new_set)
+        });
 
         let mut next_entities = self.entities.clone();
         for (new_id, new) in new_set {
