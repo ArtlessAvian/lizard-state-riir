@@ -87,8 +87,8 @@ func snapshot_to_idle_animation(snapshot):
 		return "Entity/StateHitstun"
 	if snapshot.get_state_name() == "Committed":
 		return "Entity/StateCommitted"
-	if snapshot.get_state_name() == "Dead":
-		return "Entity/StateDead"
+	if snapshot.get_state_name() == "Downed":
+		return "Entity/StateDowned"
 	if snapshot.get_state_name() == "Ok":
 		# TODO: Indicate "moving next turn"
 		return "Entity/StateOk"

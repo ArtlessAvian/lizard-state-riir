@@ -239,7 +239,7 @@ pub fn start_juggle(
         EntityState::Knockdown { .. } => Writer::new(EntityState::Ok {
             next_round: coming_turn,
         }), // TODO: Log OTG hit.
-        EntityState::Dead => unreachable!(),
+        EntityState::Downed { .. } | EntityState::Exited { .. } => unreachable!(),
     };
 
     state.map(|state| Entity {

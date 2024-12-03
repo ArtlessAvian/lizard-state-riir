@@ -19,17 +19,20 @@ use crate::writer::Writer;
 // (Maybe accelerants purely manage data and do not log. Eg a sorter for fast range queries. slice on x, then filter on y.)
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub struct DeadStateMutator;
+pub struct DownedStateMutator;
 
-impl DeadStateMutator {
+impl DownedStateMutator {
     pub fn mutate_entities(
         &self,
+        current_round: u32,
         new_set: &mut HashMap<EntityId, Entity>,
     ) -> Writer<Self, FloorEvent> {
         let mut out = Writer::new(self.clone());
         for (id, e) in new_set.iter_mut() {
-            if e.health <= 0 && !matches!(e.state, EntityState::Dead) {
-                e.state = EntityState::Dead;
+            if e.health <= 0 && !matches!(e.state, EntityState::Downed { .. }) {
+                e.state = EntityState::Downed {
+                    round_downed: current_round,
+                };
                 out = out.log(FloorEvent::Die(DieEvent { subject: *id }));
             }
         }

@@ -79,7 +79,8 @@ impl EntitySnapshot {
             EntityState::RestrictedActions { .. } => EntityStateName::RestrictedActions,
             EntityState::Hitstun { .. } => EntityStateName::Hitstun,
             EntityState::Knockdown { .. } => EntityStateName::Knockdown,
-            EntityState::Dead => EntityStateName::Dead,
+            EntityState::Downed { .. } => EntityStateName::Downed,
+            EntityState::Exited { .. } => EntityStateName::Exited,
         }
     }
 
@@ -101,5 +102,6 @@ pub enum EntityStateName {
     RestrictedActions,
     Hitstun,
     Knockdown,
-    Dead,
+    Downed,
+    Exited,
 }

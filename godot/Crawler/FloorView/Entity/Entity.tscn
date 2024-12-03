@@ -242,7 +242,7 @@ tracks/0/keys = {
 }
 
 [sub_resource type="Animation" id="Animation_4wy6x"]
-resource_name = "StateDead"
+resource_name = "StateDowned"
 length = 0.001
 step = 0.0166667
 tracks/0/type = "value"
@@ -358,7 +358,7 @@ _data = {
 &"Hurt": SubResource("Animation_yyjnj"),
 &"KnockedDown": SubResource("Animation_ait06"),
 &"StateCommitted": SubResource("Animation_7tdug"),
-&"StateDead": SubResource("Animation_4wy6x"),
+&"StateDowned": SubResource("Animation_4wy6x"),
 &"StateHitstun": SubResource("Animation_vo2u8"),
 &"StateKnockdown": SubResource("Animation_et8y6"),
 &"StateOk": SubResource("Animation_dr4du"),

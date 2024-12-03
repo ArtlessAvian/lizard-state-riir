@@ -186,7 +186,7 @@ func clear_queue(delta, floor: ActiveFloor):
 			if subject.is_important_animating():
 				return
 			var animation = subject.get_node("AnimationPlayer") as AnimationPlayer
-			animation.play(&"Entity/StateDead")
+			animation.play(&"Entity/StateDowned")
 
 			event_index += 1
 

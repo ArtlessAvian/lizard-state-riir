@@ -19,7 +19,7 @@ use crate::entity::EntitySet;
 use crate::entity::EntityState;
 use crate::floor::map::vision::FloorMapVision;
 use crate::floor::map::FloorMap;
-use crate::floor::mutators::DeadStateMutator;
+use crate::floor::mutators::DownedStateMutator;
 use crate::floor::occupiers::Occupiers;
 use crate::strategy::StrategyTrait;
 use crate::writer::Writer;
@@ -28,6 +28,13 @@ use crate::writer::Writer;
 pub enum TurntakingError {
     PlayerTurn { who: EntityId },
     NoTurntakers,
+}
+
+pub enum FloorEndState {
+    Undetermined,
+    AnyPartyMemberDowned,
+    AllPartyMembersExited,
+    ExitedButNoFood,
 }
 
 // TODO: Move this into the actions module?
@@ -66,7 +73,7 @@ pub struct Floor {
     pub occupiers: Occupiers,
     pub map: FloorMap,
 
-    pub dying: Option<DeadStateMutator>,
+    pub downing: Option<DownedStateMutator>,
 
     // TODO: Wrap current behavior with inner class?
     // Outer class/enum can select between this or a full vision mode. (or literally nothing? for testing?)
@@ -80,7 +87,7 @@ impl Floor {
             entities: EntitySet::new(),
             occupiers: Occupiers::new(),
             map: FloorMap::new_empty(),
-            dying: Some(DeadStateMutator),
+            downing: Some(DownedStateMutator),
             vision: Some(FloorMapVision::new()),
         }
     }
@@ -92,7 +99,7 @@ impl Floor {
             entities: EntitySet::new(),
             occupiers: Occupiers::new(),
             map: FloorMap::new_empty(),
-            dying: None,
+            downing: None,
             vision: None,
         }
     }
@@ -120,7 +127,7 @@ impl Floor {
                     entities: next_entities,
                     occupiers: next_occupiers,
                     map: self.map.clone(),
-                    dying: self.dying.clone(),
+                    downing: self.downing.clone(),
                     vision: next_vision,
                 })
             }),
@@ -143,7 +150,7 @@ impl Floor {
             entities: self.entities.clone(),
             occupiers: self.occupiers.clone(),
             map,
-            dying: self.dying.clone(),
+            downing: self.downing.clone(),
             vision: self.vision.clone(), // TODO: determine if this makes sense?
         }
     }
@@ -174,9 +181,9 @@ impl Floor {
             .collect::<Vec<(EntityId, &Entity)>>();
 
         let log = self
-            .dying
+            .downing
             .as_ref()
-            .map(|some| some.mutate_entities(&mut new_set));
+            .map(|some| some.mutate_entities(self.get_current_round(), &mut new_set));
 
         let mut next_entities = self.entities.clone();
         for (new_id, new) in new_set {
@@ -211,7 +218,7 @@ impl Floor {
                     entities: next_entities,
                     occupiers: next_occupiers,
                     map: self.map.clone(),
-                    dying: next_dying,
+                    downing: next_dying,
                     vision: next_vision,
                 })
             })
@@ -275,7 +282,9 @@ impl Floor {
                     .expect("only fails if entity is not hitstun state")
                     .do_action(self))
             }
-            EntityState::Dead => unreachable!("turn taker cannot be dead"),
+            EntityState::Downed { .. } | EntityState::Exited { .. } => {
+                unreachable!("terminal state entities do not participate in turntaking")
+            }
             EntityState::Ok { .. }
             | EntityState::ConfirmCommand { .. }
             | EntityState::RestrictedActions { .. } => (),
@@ -287,6 +296,26 @@ impl Floor {
 
         // TODO: do something interesting
         Result::Ok(self.entities[next_id].strategy.take_turn(self, next_id))
+    }
+
+    #[must_use]
+    pub fn get_end_state(&self) -> FloorEndState {
+        if self
+            .entities
+            .iter_entities()
+            .any(|e| e.is_player_friendly && matches!(e.state, EntityState::Downed { .. }))
+        {
+            FloorEndState::AnyPartyMemberDowned
+        } else if self
+            .entities
+            .iter_entities()
+            .filter(|e| e.is_player_friendly)
+            .all(|e| matches!(e.state, EntityState::Exited { .. }))
+        {
+            FloorEndState::AllPartyMembersExited
+        } else {
+            FloorEndState::Undetermined
+        }
     }
 }
 

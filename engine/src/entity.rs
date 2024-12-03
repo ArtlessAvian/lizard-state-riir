@@ -42,7 +42,7 @@ pub struct EntityId(usize);
 pub struct Entity {
     // Turntaking and state are highly correlated, and changing one usually implies something about the other.
     // EG: Doing a move, queued or not, should usually unset the queued move.
-    // EG: Being dead means you are not participating in turntaking.
+    // EG: Being downed means you are not participating in turntaking.
     // EG: Taking a hit puts you in hitstun, (unqueues your move if in ok state) AND delays your next action.
     pub state: EntityState,
 
@@ -109,7 +109,7 @@ impl Entity {
             | EntityState::RestrictedActions { next_round, .. }
             | EntityState::Hitstun { next_round, .. }
             | EntityState::Knockdown { next_round, .. } => Some(next_round),
-            EntityState::Dead => None,
+            EntityState::Downed { .. } | EntityState::Exited { .. } => None,
         }
     }
 
@@ -121,7 +121,9 @@ impl Entity {
             | EntityState::ConfirmCommand { .. }
             | EntityState::RestrictedActions { .. }
             | EntityState::Hitstun { .. } => Some(self.pos),
-            EntityState::Knockdown { .. } | EntityState::Dead => None,
+            EntityState::Knockdown { .. }
+            | EntityState::Downed { .. }
+            | EntityState::Exited { .. } => None,
         }
     }
 
@@ -140,7 +142,7 @@ impl Entity {
 /// Elements are wrapped in Rc for efficient `Clone`ing.
 //
 // Remove should never be implemented. If something were to be removed,
-// mark it as dead or exited and remove it from turntaking.
+// mark it as unalive or exited and remove it from turntaking.
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub struct EntitySet(Vec<Rc<Entity>>);
@@ -232,7 +234,7 @@ impl<'a> IntoIterator for &'a mut EntitySet {
 }
 
 /// Logicless container of info.
-// TODO: Maybe split into ALIVE and DEAD.
+// TODO: Maybe split into ALIVE and UNALIVE.
 //       ALIVE would contain next_turn, health, and a further breakdown of state.
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
@@ -264,7 +266,7 @@ pub enum EntityState {
         restricted_actions: Vec<SerializableUnaimedAction>,
     },
 
-    // Inactionable states below.
+    // Inactionable states below. Forces an automatic action handled automatically.
     /// On next turn, go into knockdown.
     /// If hit in this state, `next_round` gets extended.
     /// If there are no more extensions, go into knockdown immediately.
@@ -275,7 +277,18 @@ pub enum EntityState {
     Knockdown {
         next_round: u32,
     },
-    Dead,
+
+    // Terminal states below.
+    /// Incapacitated, but not dead.
+    /// If any party member is downed, the mission is lost.
+    Downed {
+        /// Not useful for game logic.
+        round_downed: u32,
+    },
+    /// Exited the Floor. All party memebers need to all exit for the mission to continue.
+    Exited {
+        round_exited: u32,
+    },
 }
 
 #[cfg(test)]
