@@ -125,3 +125,4 @@ offset_right = 40.0
 offset_bottom = 23.0
 
 [connection signal="floor_dirtied" from="." to="FloorView" method="_on_floor_container_floor_dirtied"]
+[connection signal="done_animating" from="FloorView" to="." method="_on_floor_view_done_animating"]
