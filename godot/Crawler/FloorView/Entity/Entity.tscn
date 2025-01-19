@@ -1,15 +1,15 @@
 [gd_scene load_steps=30 format=3 uid="uid://26cefkj35wuf"]
 
-[ext_resource type="Script" path="res://Crawler/FloorView/Entity/DiscardBasis.gd" id="1_dh5rl"]
-[ext_resource type="Script" path="res://Crawler/FloorView/Entity/Entity.gd" id="1_r4emd"]
+[ext_resource type="Script" uid="uid://dfu8qurdq6nk0" path="res://Crawler/FloorView/Entity/DiscardBasis.gd" id="1_dh5rl"]
+[ext_resource type="Script" uid="uid://uayqjhef6ywt" path="res://Crawler/FloorView/Entity/Entity.gd" id="1_r4emd"]
 [ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="2_sqxtn"]
-[ext_resource type="Script" path="res://Crawler/FloorView/Entity/DamagePopup.gd" id="3_vuf35"]
-[ext_resource type="Script" path="res://Crawler/FloorView/Entity/UnclipTail.gd" id="5_1w3dl"]
-[ext_resource type="Script" path="res://Crawler/FloorView/Entity/EntitySprite.gd" id="5_jvxk3"]
+[ext_resource type="Script" uid="uid://rbt5oukjeyy5" path="res://Crawler/FloorView/Entity/DamagePopup.gd" id="3_vuf35"]
+[ext_resource type="Script" uid="uid://co73gh8paqwme" path="res://Crawler/FloorView/Entity/UnclipTail.gd" id="5_1w3dl"]
+[ext_resource type="Script" uid="uid://cvw0ipao3laer" path="res://Crawler/FloorView/Entity/EntitySprite.gd" id="5_jvxk3"]
 [ext_resource type="SpriteFrames" uid="uid://l5q2pxndfxty" path="res://Crawler/FloorView/Entity/tegu/Tegu.tres" id="5_r6nbe"]
 [ext_resource type="Texture2D" uid="uid://dront5dt74xm8" path="res://Crawler/FloorView/Entity/tegu.png" id="7_o5rlq"]
 [ext_resource type="Texture2D" uid="uid://c4xd5itrnko1v" path="res://smol_star.png" id="9_36qcb"]
-[ext_resource type="Script" path="res://Crawler/FloorView/Entity/Stars.gd" id="10_7jtc7"]
+[ext_resource type="Script" uid="uid://h4gk55x5hxwv" path="res://Crawler/FloorView/Entity/Stars.gd" id="10_7jtc7"]
 
 [sub_resource type="Animation" id="Animation_n3kfw"]
 length = 0.001
