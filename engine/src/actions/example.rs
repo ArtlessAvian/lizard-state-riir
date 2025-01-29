@@ -8,7 +8,6 @@ use super::events::AttackHitEvent;
 use super::events::PrepareAttackEvent;
 use super::events::StartAttackEvent;
 use super::static_dispatch::SerializableAction;
-use super::static_dispatch::SerializableCommand;
 use super::static_dispatch::SerializableDirectionAction;
 use super::utils::DelayCommand;
 use super::ActionTrait;
@@ -147,12 +146,6 @@ impl CommandTrait for DoubleHitFollowup {
                 };
                 floor.update_entity((self.subject_id, subject_clone))
             })
-    }
-}
-
-impl From<DoubleHitFollowup> for SerializableCommand {
-    fn from(val: DoubleHitFollowup) -> Self {
-        SerializableCommand::DoubleHitFollowup(val)
     }
 }
 

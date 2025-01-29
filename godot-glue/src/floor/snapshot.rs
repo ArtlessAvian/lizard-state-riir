@@ -1,6 +1,5 @@
 use std::rc::Rc;
 
-use engine::actions::CommandTrait;
 use engine::entity::Entity;
 use engine::entity::EntityState;
 use godot::prelude::*;
@@ -59,10 +58,7 @@ impl EntitySnapshot {
 
     #[func]
     fn get_command_to_confirm(&self) -> Option<Gd<Command>> {
-        self.entity
-            .get_command_to_confirm()
-            .map(Into::<Rc<dyn CommandTrait>>::into)
-            .map(Command::new)
+        Some(Command::new(Rc::new(self.entity.get_command_to_confirm()?)))
     }
 
     #[func]

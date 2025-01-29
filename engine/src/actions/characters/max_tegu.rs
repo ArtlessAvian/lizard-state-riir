@@ -9,7 +9,6 @@ use super::super::DirectionActionTrait;
 use super::super::FloorEvent;
 use crate::actions::events::PrepareAttackEvent;
 use crate::actions::public::StepAction;
-use crate::actions::static_dispatch::SerializableCommand;
 use crate::actions::static_dispatch::SerializableDirectionAction;
 use crate::actions::static_dispatch::SerializableTileAction;
 use crate::actions::utils::DelayCommand;
@@ -138,12 +137,6 @@ impl CommandTrait for ForwardHeavyFollowup {
     }
 }
 
-impl From<ForwardHeavyFollowup> for SerializableCommand {
-    fn from(value: ForwardHeavyFollowup) -> Self {
-        SerializableCommand::ForwardHeavyFollowup(value)
-    }
-}
-
 // Steps forward and sweeps at the start of next turn.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
@@ -229,11 +222,5 @@ impl CommandTrait for TrackingFollowup {
                     FloorUpdate::new(floor).log(start_attack)
                 }
             })
-    }
-}
-
-impl From<TrackingFollowup> for SerializableCommand {
-    fn from(value: TrackingFollowup) -> Self {
-        SerializableCommand::TrackingFollowup(value)
     }
 }

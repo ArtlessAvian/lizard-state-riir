@@ -10,7 +10,6 @@ use super::events::KnockdownEvent;
 use super::events::MoveEvent;
 use super::events::StartAttackEvent;
 use super::events::WakeupEvent;
-use super::static_dispatch::SerializableCommand;
 use super::utils;
 use super::utils::TakeKnockbackUtil;
 use super::ActionTrait;
@@ -335,12 +334,6 @@ impl CommandTrait for GotoCommand {
                     floor.update_entity((self.subject_id, subject_clone))
                 }),
         }
-    }
-}
-
-impl From<GotoCommand> for SerializableCommand {
-    fn from(value: GotoCommand) -> Self {
-        SerializableCommand::Goto(value)
     }
 }
 
