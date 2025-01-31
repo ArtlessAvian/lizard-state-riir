@@ -222,47 +222,51 @@ impl From<RelativeOctantified> for RelativePosition {
 }
 
 #[cfg(test)]
-#[test]
-fn test_octant_from_into() {
-    for dx in -10..=10 {
-        for dy in -10..=10 {
-            let relative = RelativePosition { dx, dy };
-            assert_eq!(
-                relative,
-                RelativePosition::from(RelativeOctantified::from(relative))
-            );
+mod test {
+    use crate::positional::InsideOctant;
+    use crate::positional::RelativeOctantified;
+    use crate::positional::RelativePosition;
+
+    #[test]
+    fn test_octant_from_into() {
+        for dx in -10..=10 {
+            for dy in -10..=10 {
+                let relative = RelativePosition { dx, dy };
+                assert_eq!(
+                    relative,
+                    RelativePosition::from(RelativeOctantified::from(relative))
+                );
+            }
         }
     }
-}
 
-#[cfg(test)]
-#[test]
-fn imig_wrapping_is_intentional() {
-    assert_eq!(
-        RelativePosition::from(RelativeOctantified {
-            inside: InsideOctant::new(0, u32::MAX),
-            octant: 0
-        }),
-        RelativePosition::new(-1, 0)
-    );
-    assert_eq!(
-        RelativePosition::from(RelativeOctantified {
-            inside: InsideOctant::new(u32::MAX, u32::MAX),
-            octant: 0b111
-        }),
-        RelativePosition::new(1, 1)
-    );
-}
+    #[test]
+    fn imig_wrapping_is_intentional() {
+        assert_eq!(
+            RelativePosition::from(RelativeOctantified {
+                inside: InsideOctant::new(0, u32::MAX),
+                octant: 0
+            }),
+            RelativePosition::new(-1, 0)
+        );
+        assert_eq!(
+            RelativePosition::from(RelativeOctantified {
+                inside: InsideOctant::new(u32::MAX, u32::MAX),
+                octant: 0b111
+            }),
+            RelativePosition::new(1, 1)
+        );
+    }
 
-#[cfg(test)]
-#[test]
-fn list_all_length() {
-    let list = RelativePosition::list_all_length(2);
-    assert_eq!(list.len(), 16);
-    for dx in -3..=3 {
-        for dy in -3..=3 {
-            let delta = RelativePosition::new(dx, dy);
-            assert_eq!(list.contains(&delta), delta.length() == 2);
+    #[test]
+    fn list_all_length() {
+        let list = RelativePosition::list_all_length(2);
+        assert_eq!(list.len(), 16);
+        for dx in -3..=3 {
+            for dy in -3..=3 {
+                let delta = RelativePosition::new(dx, dy);
+                assert_eq!(list.contains(&delta), delta.length() == 2);
+            }
         }
     }
 }

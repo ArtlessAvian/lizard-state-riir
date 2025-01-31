@@ -80,93 +80,96 @@ impl Default for Occupiers {
 }
 
 #[cfg(test)]
-#[test]
-#[should_panic(expected = "New entity occupies same position as existing entity.")]
-fn add_panic() {
+mod test {
+    use super::Occupiers;
+    use crate::entity::Entity;
     use crate::entity::EntitySet;
+    use crate::positional::AbsolutePosition;
 
-    let mut entities = EntitySet::new();
-    let occupiers = Occupiers::new();
+    #[test]
+    #[should_panic(expected = "New entity occupies same position as existing entity.")]
+    fn add_panic() {
+        let mut entities = EntitySet::new();
+        let occupiers = Occupiers::new();
 
-    let first = entities.add(Entity {
-        state: crate::entity::EntityState::Ok { next_round: 1 },
-        pos: AbsolutePosition::new(10, 10),
-        ..Default::default()
-    });
-    let occupiers = occupiers.add_entity((first, &entities[first]));
+        let first = entities.add(Entity {
+            state: crate::entity::EntityState::Ok { next_round: 1 },
+            pos: AbsolutePosition::new(10, 10),
+            ..Default::default()
+        });
+        let occupiers = occupiers.add_entity((first, &entities[first]));
 
-    let second = entities.add(Entity {
-        state: crate::entity::EntityState::Ok { next_round: 1 },
-        pos: entities[first].pos,
-        ..Default::default()
-    });
-    let _should_panic = occupiers.add_entity((second, &entities[second]));
-}
+        let second = entities.add(Entity {
+            state: crate::entity::EntityState::Ok { next_round: 1 },
+            pos: entities[first].pos,
+            ..Default::default()
+        });
+        let _should_panic = occupiers.add_entity((second, &entities[second]));
+    }
 
-#[cfg(test)]
-#[test]
-#[should_panic(expected = "Updated entities occupy same position as another entity.")]
-fn update_panic() {
-    use crate::entity::EntitySet;
-    use crate::entity::EntityState;
+    #[test]
+    #[should_panic(expected = "Updated entities occupy same position as another entity.")]
+    fn update_panic() {
+        use crate::entity::EntitySet;
+        use crate::entity::EntityState;
 
-    let mut entities = EntitySet::new();
-    let occupiers = Occupiers::new();
+        let mut entities = EntitySet::new();
+        let occupiers = Occupiers::new();
 
-    let first = entities.add(Entity {
-        state: EntityState::Ok { next_round: 1 },
-        pos: AbsolutePosition::new(10, 10),
-        ..Default::default()
-    });
-    let occupiers = occupiers.add_entity((first, &entities[first]));
+        let first = entities.add(Entity {
+            state: EntityState::Ok { next_round: 1 },
+            pos: AbsolutePosition::new(10, 10),
+            ..Default::default()
+        });
+        let occupiers = occupiers.add_entity((first, &entities[first]));
 
-    let second = entities.add(Entity {
-        state: EntityState::Ok { next_round: 1 },
-        pos: AbsolutePosition::new(15, 15),
-        ..Default::default()
-    });
-    let occupiers = occupiers.add_entity((second, &entities[second]));
+        let second = entities.add(Entity {
+            state: EntityState::Ok { next_round: 1 },
+            pos: AbsolutePosition::new(15, 15),
+            ..Default::default()
+        });
+        let occupiers = occupiers.add_entity((second, &entities[second]));
 
-    let mut second_update = entities[second].clone();
-    second_update.pos = entities[first].pos;
+        let mut second_update = entities[second].clone();
+        second_update.pos = entities[first].pos;
 
-    let _should_panic = occupiers.update_entities(
-        &vec![(second, &entities[second])],
-        &vec![(second, &second_update)],
-    );
-}
+        let _should_panic = occupiers.update_entities(
+            &vec![(second, &entities[second])],
+            &vec![(second, &second_update)],
+        );
+    }
 
-#[cfg(test)]
-#[test]
-fn update_knockdown() {
-    use crate::entity::EntitySet;
-    use crate::entity::EntityState;
+    #[test]
+    fn update_knockdown() {
+        use crate::entity::EntitySet;
+        use crate::entity::EntityState;
 
-    let mut entities = EntitySet::new();
-    let occupiers = Occupiers::new();
+        let mut entities = EntitySet::new();
+        let occupiers = Occupiers::new();
 
-    let first = entities.add(Entity {
-        state: EntityState::Ok { next_round: 1 },
-        pos: AbsolutePosition::new(10, 10),
-        ..Default::default()
-    });
-    let occupiers = occupiers.add_entity((first, &entities[first]));
+        let first = entities.add(Entity {
+            state: EntityState::Ok { next_round: 1 },
+            pos: AbsolutePosition::new(10, 10),
+            ..Default::default()
+        });
+        let occupiers = occupiers.add_entity((first, &entities[first]));
 
-    let second = entities.add(Entity {
-        state: EntityState::Ok { next_round: 1 },
-        pos: AbsolutePosition::new(15, 15),
-        ..Default::default()
-    });
-    let occupiers = occupiers.add_entity((second, &entities[second]));
+        let second = entities.add(Entity {
+            state: EntityState::Ok { next_round: 1 },
+            pos: AbsolutePosition::new(15, 15),
+            ..Default::default()
+        });
+        let occupiers = occupiers.add_entity((second, &entities[second]));
 
-    let mut second_update = entities[second].clone();
-    second_update.pos = entities[first].pos;
-    second_update.state = EntityState::Knockdown { next_round: 1 };
+        let mut second_update = entities[second].clone();
+        second_update.pos = entities[first].pos;
+        second_update.state = EntityState::Knockdown { next_round: 1 };
 
-    assert!(second_update.get_occupied_position().is_none());
+        assert!(second_update.get_occupied_position().is_none());
 
-    let _occupiers = occupiers.update_entities(
-        &vec![(second, &entities[second])],
-        &vec![(second, &second_update)],
-    );
+        let _occupiers = occupiers.update_entities(
+            &vec![(second, &entities[second])],
+            &vec![(second, &second_update)],
+        );
+    }
 }

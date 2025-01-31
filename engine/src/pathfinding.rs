@@ -251,94 +251,17 @@ impl Debug for PathfindingContext<'_> {
     }
 }
 
-#[test]
-fn permissive_diagonal() {
-    let mut context =
-        PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+#[cfg(test)]
+mod test {
+    use crate::pathfinding::PathfindingContext;
+    use crate::positional::AbsolutePosition;
 
-    let start = AbsolutePosition::new(0, 0);
-    let destination = AbsolutePosition::new(5, 5);
-    assert!(context.find_path(start, destination));
+    #[test]
+    fn permissive_diagonal() {
+        let mut context =
+            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
 
-    assert_eq!(context.known_distance.get((start, destination)), Some(&5));
-    assert_eq!(
-        context.get_step(start, destination),
-        Some(AbsolutePosition::new(1, 1))
-    );
-}
-
-#[test]
-fn permissive_minimize_diagonals() {
-    let mut context =
-        PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
-
-    let start = AbsolutePosition::new(0, 0);
-    let destination = AbsolutePosition::new(5, 0);
-    assert!(context.find_path(start, destination));
-
-    assert_eq!(context.known_distance.get((start, destination)), Some(&5));
-    assert_eq!(
-        context.get_step(start, destination),
-        Some(AbsolutePosition::new(1, 0))
-    );
-}
-
-#[test]
-fn permissive_bad_heuristic() {
-    let mut context = PathfindingContext::new(
-        Box::new(|_| false),
-        // consistently underesimates true distance.
-        // devolves into dijkstra's
-        Box::new(|_, _| 0),
-    );
-
-    let start = AbsolutePosition::new(0, 0);
-    let destination = AbsolutePosition::new(3, 3);
-    assert!(context.find_path(start, destination));
-
-    assert_eq!(context.known_distance.get((start, destination)), Some(&3));
-    assert_eq!(
-        context.get_step(start, destination),
-        Some(AbsolutePosition::new(1, 1))
-    );
-}
-
-#[test]
-fn no_path() {
-    let mut context =
-        PathfindingContext::new(Box::new(|_| true), Box::new(AbsolutePosition::distance));
-
-    assert!(!context.find_path(AbsolutePosition::new(0, 0), AbsolutePosition::new(5, 0)));
-}
-
-#[test]
-fn no_path_infinite_frontier() {
-    let mut context = PathfindingContext::new(
-        Box::new(|pos| pos.x == 1 && pos.y == 1),
-        Box::new(AbsolutePosition::distance),
-    );
-
-    assert!(!context.find_path(AbsolutePosition::new(0, 0), AbsolutePosition::new(1, 1)));
-}
-
-#[test]
-fn resume_run() {
-    let mut context =
-        PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
-
-    let start = AbsolutePosition::new(0, 0);
-    {
-        let destination = AbsolutePosition::new(3, 3);
-        assert!(context.find_path(start, destination));
-
-        assert_eq!(context.known_distance.get((start, destination)), Some(&3));
-        assert_eq!(
-            context.get_step(start, destination),
-            Some(AbsolutePosition::new(1, 1))
-        );
-    }
-
-    {
+        let start = AbsolutePosition::new(0, 0);
         let destination = AbsolutePosition::new(5, 5);
         assert!(context.find_path(start, destination));
 
@@ -348,72 +271,32 @@ fn resume_run() {
             Some(AbsolutePosition::new(1, 1))
         );
     }
-}
 
-#[test]
-fn resume_run_from_middle() {
-    let mut context =
-        PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+    #[test]
+    fn permissive_minimize_diagonals() {
+        let mut context =
+            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
 
-    let destination = AbsolutePosition::new(3, 3);
-    {
-        let start: AbsolutePosition = AbsolutePosition::new(0, 0);
+        let start = AbsolutePosition::new(0, 0);
+        let destination = AbsolutePosition::new(5, 0);
         assert!(context.find_path(start, destination));
 
-        assert_eq!(context.known_distance.get((start, destination)), Some(&3));
+        assert_eq!(context.known_distance.get((start, destination)), Some(&5));
         assert_eq!(
             context.get_step(start, destination),
-            Some(AbsolutePosition::new(1, 1))
+            Some(AbsolutePosition::new(1, 0))
         );
     }
 
-    {
-        let start: AbsolutePosition = AbsolutePosition::new(1, 1);
-        assert!(context.find_path(start, destination));
-
-        assert_eq!(context.known_distance.get((start, destination)), Some(&2));
-        assert_eq!(
-            context.get_step(start, destination),
-            Some(AbsolutePosition::new(2, 2))
+    #[test]
+    fn permissive_bad_heuristic() {
+        let mut context = PathfindingContext::new(
+            Box::new(|_| false),
+            // consistently underesimates true distance.
+            // devolves into dijkstra's
+            Box::new(|_, _| 0),
         );
-    }
-}
 
-#[test]
-fn resume_run_unrelated_destination() {
-    let mut context =
-        PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
-
-    let start: AbsolutePosition = AbsolutePosition::new(0, 0);
-    {
-        let destination = AbsolutePosition::new(3, 3);
-        assert!(context.find_path(start, destination));
-
-        assert_eq!(context.known_distance.get((start, destination)), Some(&3));
-        assert_eq!(
-            context.get_step(start, destination),
-            Some(AbsolutePosition::new(1, 1))
-        );
-    }
-
-    {
-        let destination = AbsolutePosition::new(-3, -3);
-        assert!(context.find_path(start, destination));
-
-        assert_eq!(context.known_distance.get((start, destination)), Some(&3));
-        assert_eq!(
-            context.get_step(start, destination),
-            Some(AbsolutePosition::new(-1, -1))
-        );
-    }
-}
-
-#[test]
-fn resume_run_backwards() {
-    let mut context =
-        PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
-
-    {
         let start = AbsolutePosition::new(0, 0);
         let destination = AbsolutePosition::new(3, 3);
         assert!(context.find_path(start, destination));
@@ -425,23 +308,145 @@ fn resume_run_backwards() {
         );
     }
 
-    {
-        let start = AbsolutePosition::new(5, 5);
-        let destination = AbsolutePosition::new(-2, -2);
-        assert!(context.find_path(start, destination));
+    #[test]
+    fn no_path() {
+        let mut context =
+            PathfindingContext::new(Box::new(|_| true), Box::new(AbsolutePosition::distance));
 
-        assert_eq!(context.known_distance.get((start, destination)), Some(&7));
-        assert_eq!(
-            context.get_step(start, destination),
-            Some(AbsolutePosition::new(4, 4))
-        );
+        assert!(!context.find_path(AbsolutePosition::new(0, 0), AbsolutePosition::new(5, 0)));
     }
-}
 
-#[test]
-fn solve_maze() {
-    // tbh this maze can be solved pretty greedily.
-    let maze = "
+    #[test]
+    fn no_path_infinite_frontier() {
+        let mut context = PathfindingContext::new(
+            Box::new(|pos| pos.x == 1 && pos.y == 1),
+            Box::new(AbsolutePosition::distance),
+        );
+
+        assert!(!context.find_path(AbsolutePosition::new(0, 0), AbsolutePosition::new(1, 1)));
+    }
+
+    #[test]
+    fn resume_run() {
+        let mut context =
+            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+
+        let start = AbsolutePosition::new(0, 0);
+        {
+            let destination = AbsolutePosition::new(3, 3);
+            assert!(context.find_path(start, destination));
+
+            assert_eq!(context.known_distance.get((start, destination)), Some(&3));
+            assert_eq!(
+                context.get_step(start, destination),
+                Some(AbsolutePosition::new(1, 1))
+            );
+        }
+
+        {
+            let destination = AbsolutePosition::new(5, 5);
+            assert!(context.find_path(start, destination));
+
+            assert_eq!(context.known_distance.get((start, destination)), Some(&5));
+            assert_eq!(
+                context.get_step(start, destination),
+                Some(AbsolutePosition::new(1, 1))
+            );
+        }
+    }
+
+    #[test]
+    fn resume_run_from_middle() {
+        let mut context =
+            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+
+        let destination = AbsolutePosition::new(3, 3);
+        {
+            let start: AbsolutePosition = AbsolutePosition::new(0, 0);
+            assert!(context.find_path(start, destination));
+
+            assert_eq!(context.known_distance.get((start, destination)), Some(&3));
+            assert_eq!(
+                context.get_step(start, destination),
+                Some(AbsolutePosition::new(1, 1))
+            );
+        }
+
+        {
+            let start: AbsolutePosition = AbsolutePosition::new(1, 1);
+            assert!(context.find_path(start, destination));
+
+            assert_eq!(context.known_distance.get((start, destination)), Some(&2));
+            assert_eq!(
+                context.get_step(start, destination),
+                Some(AbsolutePosition::new(2, 2))
+            );
+        }
+    }
+
+    #[test]
+    fn resume_run_unrelated_destination() {
+        let mut context =
+            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+
+        let start: AbsolutePosition = AbsolutePosition::new(0, 0);
+        {
+            let destination = AbsolutePosition::new(3, 3);
+            assert!(context.find_path(start, destination));
+
+            assert_eq!(context.known_distance.get((start, destination)), Some(&3));
+            assert_eq!(
+                context.get_step(start, destination),
+                Some(AbsolutePosition::new(1, 1))
+            );
+        }
+
+        {
+            let destination = AbsolutePosition::new(-3, -3);
+            assert!(context.find_path(start, destination));
+
+            assert_eq!(context.known_distance.get((start, destination)), Some(&3));
+            assert_eq!(
+                context.get_step(start, destination),
+                Some(AbsolutePosition::new(-1, -1))
+            );
+        }
+    }
+
+    #[test]
+    fn resume_run_backwards() {
+        let mut context =
+            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+
+        {
+            let start = AbsolutePosition::new(0, 0);
+            let destination = AbsolutePosition::new(3, 3);
+            assert!(context.find_path(start, destination));
+
+            assert_eq!(context.known_distance.get((start, destination)), Some(&3));
+            assert_eq!(
+                context.get_step(start, destination),
+                Some(AbsolutePosition::new(1, 1))
+            );
+        }
+
+        {
+            let start = AbsolutePosition::new(5, 5);
+            let destination = AbsolutePosition::new(-2, -2);
+            assert!(context.find_path(start, destination));
+
+            assert_eq!(context.known_distance.get((start, destination)), Some(&7));
+            assert_eq!(
+                context.get_step(start, destination),
+                Some(AbsolutePosition::new(4, 4))
+            );
+        }
+    }
+
+    #[test]
+    fn solve_maze() {
+        // tbh this maze can be solved pretty greedily.
+        let maze = "
         @#######
         #.##..##
         #.#.##.#
@@ -451,28 +456,31 @@ fn solve_maze() {
         ##.###.#
         ########
     "
-    .split_ascii_whitespace()
-    .enumerate()
-    .flat_map(|(y, line)| {
-        line.chars()
-            .enumerate()
-            .filter(|(_, c)| *c == '#')
-            .map(move |(x, _)| AbsolutePosition::new(x.try_into().unwrap(), y.try_into().unwrap()))
-    })
-    .collect::<std::collections::HashSet<AbsolutePosition>>();
+        .split_ascii_whitespace()
+        .enumerate()
+        .flat_map(|(y, line)| {
+            line.chars()
+                .enumerate()
+                .filter(|(_, c)| *c == '#')
+                .map(move |(x, _)| {
+                    AbsolutePosition::new(x.try_into().unwrap(), y.try_into().unwrap())
+                })
+        })
+        .collect::<std::collections::HashSet<AbsolutePosition>>();
 
-    let mut context = PathfindingContext::new(
-        Box::new(move |pos| maze.contains(&pos)),
-        Box::new(AbsolutePosition::distance),
-    );
+        let mut context = PathfindingContext::new(
+            Box::new(move |pos| maze.contains(&pos)),
+            Box::new(AbsolutePosition::distance),
+        );
 
-    let start = AbsolutePosition::new(0, 0);
-    let destination = AbsolutePosition::new(6, 6);
-    assert!(context.find_path(start, destination));
+        let start = AbsolutePosition::new(0, 0);
+        let destination = AbsolutePosition::new(6, 6);
+        assert!(context.find_path(start, destination));
 
-    assert_eq!(context.known_distance.get((start, destination)), Some(&11));
-    assert_eq!(
-        context.get_step(start, destination),
-        Some(AbsolutePosition::new(1, 1))
-    );
+        assert_eq!(context.known_distance.get((start, destination)), Some(&11));
+        assert_eq!(
+            context.get_step(start, destination),
+            Some(AbsolutePosition::new(1, 1))
+        );
+    }
 }

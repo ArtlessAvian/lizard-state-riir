@@ -105,107 +105,107 @@ impl Segment {
 }
 
 #[cfg(test)]
-#[test]
-fn test_cardinal() {
-    let (seg_octant, none) = Segment::calculate(InsideOctant::new(0, 10));
-    assert!(none.is_none());
+mod test {
+    use crate::positional::algorithms::Segment;
+    use crate::positional::InsideOctant;
+    use crate::positional::RelativePosition;
 
-    for (i, el) in seg_octant.iter().enumerate() {
-        assert_eq!(el.run as usize, i);
-        assert_eq!(el.rise, 0);
+    #[test]
+    fn test_cardinal() {
+        let (seg_octant, none) = Segment::calculate(InsideOctant::new(0, 10));
+        assert!(none.is_none());
+
+        for (i, el) in seg_octant.iter().enumerate() {
+            assert_eq!(el.run as usize, i);
+            assert_eq!(el.rise, 0);
+        }
     }
-}
 
-#[cfg(test)]
-#[test]
-fn test_diagonal() {
-    let (seg_octant, none) = Segment::calculate(InsideOctant::new(10, 10));
-    assert!(none.is_none());
+    #[test]
+    fn test_diagonal() {
+        let (seg_octant, none) = Segment::calculate(InsideOctant::new(10, 10));
+        assert!(none.is_none());
 
-    dbg!(seg_octant.clone());
-    for (i, el) in seg_octant.iter().enumerate() {
-        assert_eq!(el.run as usize, i);
-        assert_eq!(el.rise as usize, i);
+        dbg!(seg_octant.clone());
+        for (i, el) in seg_octant.iter().enumerate() {
+            assert_eq!(el.run as usize, i);
+            assert_eq!(el.rise as usize, i);
+        }
     }
-}
 
-#[cfg(test)]
-#[test]
-fn test_midpoint() {
-    let (seg_octant, some) = Segment::calculate(InsideOctant::new(1, 2));
-    let alt = some.unwrap();
+    #[test]
+    fn test_midpoint() {
+        let (seg_octant, some) = Segment::calculate(InsideOctant::new(1, 2));
+        let alt = some.unwrap();
 
-    assert_eq!(seg_octant[0], alt[0]);
-    assert_ne!(seg_octant[1], alt[1]);
-    assert_eq!(seg_octant[2], alt[2]);
-}
+        assert_eq!(seg_octant[0], alt[0]);
+        assert_ne!(seg_octant[1], alt[1]);
+        assert_eq!(seg_octant[2], alt[2]);
+    }
 
-#[cfg(test)]
-#[test]
-fn test_symmetry() {
-    let target = RelativePosition::new(23, 7);
-    let (mut forwards, none) = Segment::calculate_relative(target);
-    assert!(none.is_none());
+    #[test]
+    fn test_symmetry() {
+        let target = RelativePosition::new(23, 7);
+        let (mut forwards, none) = Segment::calculate_relative(target);
+        assert!(none.is_none());
 
-    let mut backwards = forwards
-        .iter()
-        .map(|x| target + -1 * *x)
-        .collect::<Vec<RelativePosition>>();
+        let mut backwards = forwards
+            .iter()
+            .map(|x| target + -1 * *x)
+            .collect::<Vec<RelativePosition>>();
 
-    forwards.sort();
-    backwards.sort();
-    assert_eq!(forwards, backwards);
-}
+        forwards.sort();
+        backwards.sort();
+        assert_eq!(forwards, backwards);
+    }
 
-#[cfg(test)]
-#[test]
-fn test_symmetry_alt() {
-    let target = RelativePosition::new(24, 7);
+    #[test]
+    fn test_symmetry_alt() {
+        let target = RelativePosition::new(24, 7);
 
-    let (mut forwards, some) = Segment::calculate_relative(target);
-    let mut backwards = some
-        .unwrap()
-        .into_iter()
-        .map(|x| target + -1 * x)
-        .collect::<Vec<RelativePosition>>();
+        let (mut forwards, some) = Segment::calculate_relative(target);
+        let mut backwards = some
+            .unwrap()
+            .into_iter()
+            .map(|x| target + -1 * x)
+            .collect::<Vec<RelativePosition>>();
 
-    forwards.sort();
-    backwards.sort();
-    assert_eq!(forwards, backwards);
-}
+        forwards.sort();
+        backwards.sort();
+        assert_eq!(forwards, backwards);
+    }
 
-#[cfg(test)]
-#[test]
-fn test_annoying_slope() {
-    // Often passes through (x, y + 0.5) for some integers x and y.
-    let target = RelativePosition::new(10, 5);
+    #[test]
+    fn test_annoying_slope() {
+        // Often passes through (x, y + 0.5) for some integers x and y.
+        let target = RelativePosition::new(10, 5);
 
-    let (mut forwards, some) = Segment::calculate_relative(target);
-    let mut backwards = some
-        .unwrap()
-        .into_iter()
-        .map(|x| target + -1 * x)
-        .collect::<Vec<RelativePosition>>();
+        let (mut forwards, some) = Segment::calculate_relative(target);
+        let mut backwards = some
+            .unwrap()
+            .into_iter()
+            .map(|x| target + -1 * x)
+            .collect::<Vec<RelativePosition>>();
 
-    forwards.sort();
-    backwards.sort();
-    assert_eq!(forwards, backwards);
-}
+        forwards.sort();
+        backwards.sort();
+        assert_eq!(forwards, backwards);
+    }
 
-#[cfg(test)]
-#[test]
-fn test_octant() {
-    // Often passes through (x, y + 0.5) for some integers x and y.
-    let target = RelativePosition::new(-5, -10);
+    #[test]
+    fn test_octant() {
+        // Often passes through (x, y + 0.5) for some integers x and y.
+        let target = RelativePosition::new(-5, -10);
 
-    let (mut forwards, some) = Segment::calculate_relative(target);
-    let mut backwards = some
-        .unwrap()
-        .into_iter()
-        .map(|x| target + -1 * x)
-        .collect::<Vec<RelativePosition>>();
+        let (mut forwards, some) = Segment::calculate_relative(target);
+        let mut backwards = some
+            .unwrap()
+            .into_iter()
+            .map(|x| target + -1 * x)
+            .collect::<Vec<RelativePosition>>();
 
-    forwards.sort();
-    backwards.sort();
-    assert_eq!(forwards, backwards);
+        forwards.sort();
+        backwards.sort();
+        assert_eq!(forwards, backwards);
+    }
 }

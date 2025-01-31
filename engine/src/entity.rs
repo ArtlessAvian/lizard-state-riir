@@ -298,17 +298,23 @@ impl Default for EntityState {
     }
 }
 
-#[test]
-fn entity_set_iters() {
-    let mut entities = EntitySet::new();
-    entities.add(Entity::default());
-    entities.add(Entity::default());
+#[cfg(test)]
+mod test {
+    use super::Entity;
+    use super::EntitySet;
 
-    for (pair, other) in entities
-        .iter()
-        .zip(entities.iter_ids().zip(entities.iter_entities()))
-    {
-        assert_eq!(pair.0, other.0);
-        assert!(std::ptr::eq(pair.1, other.1));
+    #[test]
+    fn entity_set_iters() {
+        let mut entities = EntitySet::new();
+        entities.add(Entity::default());
+        entities.add(Entity::default());
+
+        for (pair, other) in entities
+            .iter()
+            .zip(entities.iter_ids().zip(entities.iter_entities()))
+        {
+            assert_eq!(pair.0, other.0);
+            assert!(std::ptr::eq(pair.1, other.1));
+        }
     }
 }

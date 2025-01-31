@@ -216,67 +216,79 @@ impl CommandTrait for ExitStanceCommand {
 }
 
 #[cfg(test)]
-#[test]
-fn double_hit() {
-    use crate::entity::EntityState;
-    use crate::floor::TurntakingError;
-    use crate::positional::AbsolutePosition;
+mod test {
+    use crate::actions::events::AttackHitEvent;
+    use crate::actions::events::FloorEvent;
+    use crate::actions::events::StartAttackEvent;
+    use crate::actions::example::DoubleHitAction;
+    use crate::actions::DirectionActionTrait;
+    use crate::entity::Entity;
+    use crate::floor::Floor;
+    use crate::floor::FloorUpdate;
+    use crate::positional::RelativePosition;
 
-    let mut update = FloorUpdate::new(Floor::new_minimal());
-    let player_id;
-    let other_id;
-    (update, player_id) = update.bind_with_side_output(|floor| {
-        floor.add_entity(Entity {
-            state: EntityState::Ok { next_round: 0 },
-            pos: AbsolutePosition::new(0, 0),
-            is_player_controlled: true,
-            ..Default::default()
-        })
-    });
-    (update, other_id) = update.bind_with_side_output(|floor| {
-        floor.add_entity(Entity {
-            state: EntityState::Ok { next_round: 100 },
-            pos: AbsolutePosition::new(1, 0),
-            ..Default::default()
-        })
-    });
-    update = update
-        .bind(|floor| {
-            DoubleHitAction
-                .verify_action(&floor, player_id, RelativePosition::new(1, 0))
-                .unwrap()
-                .do_action(&floor)
-        })
-        .bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
+    #[test]
+    fn double_hit() {
+        use crate::entity::EntityState;
+        use crate::floor::TurntakingError;
+        use crate::positional::AbsolutePosition;
 
-    let (contents, log) = update.into_both();
-    assert_eq!(
-        contents.take_npc_turn().err(),
-        Some(TurntakingError::PlayerTurn { who: player_id })
-    );
-    assert_eq!(
-        log.into_iter()
-            .filter(|x| matches!(x, FloorEvent::StartAttack(_) | FloorEvent::AttackHit(_)))
-            .collect::<Vec<FloorEvent>>(),
-        vec![
-            FloorEvent::StartAttack(StartAttackEvent {
-                subject: player_id,
-                tile: AbsolutePosition::new(1, 0)
-            }),
-            FloorEvent::AttackHit(AttackHitEvent {
-                subject: player_id,
-                target: other_id,
-                damage: 1,
-            }),
-            FloorEvent::StartAttack(StartAttackEvent {
-                subject: player_id,
-                tile: AbsolutePosition::new(1, 0)
-            }),
-            FloorEvent::AttackHit(AttackHitEvent {
-                subject: player_id,
-                target: other_id,
-                damage: 1,
-            }),
-        ]
-    );
+        let mut update = FloorUpdate::new(Floor::new_minimal());
+        let player_id;
+        let other_id;
+        (update, player_id) = update.bind_with_side_output(|floor| {
+            floor.add_entity(Entity {
+                state: EntityState::Ok { next_round: 0 },
+                pos: AbsolutePosition::new(0, 0),
+                is_player_controlled: true,
+                ..Default::default()
+            })
+        });
+        (update, other_id) = update.bind_with_side_output(|floor| {
+            floor.add_entity(Entity {
+                state: EntityState::Ok { next_round: 100 },
+                pos: AbsolutePosition::new(1, 0),
+                ..Default::default()
+            })
+        });
+        update = update
+            .bind(|floor| {
+                DoubleHitAction
+                    .verify_action(&floor, player_id, RelativePosition::new(1, 0))
+                    .unwrap()
+                    .do_action(&floor)
+            })
+            .bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
+
+        let (contents, log) = update.into_both();
+        assert_eq!(
+            contents.take_npc_turn().err(),
+            Some(TurntakingError::PlayerTurn { who: player_id })
+        );
+        assert_eq!(
+            log.into_iter()
+                .filter(|x| matches!(x, FloorEvent::StartAttack(_) | FloorEvent::AttackHit(_)))
+                .collect::<Vec<FloorEvent>>(),
+            vec![
+                FloorEvent::StartAttack(StartAttackEvent {
+                    subject: player_id,
+                    tile: AbsolutePosition::new(1, 0)
+                }),
+                FloorEvent::AttackHit(AttackHitEvent {
+                    subject: player_id,
+                    target: other_id,
+                    damage: 1,
+                }),
+                FloorEvent::StartAttack(StartAttackEvent {
+                    subject: player_id,
+                    tile: AbsolutePosition::new(1, 0)
+                }),
+                FloorEvent::AttackHit(AttackHitEvent {
+                    subject: player_id,
+                    target: other_id,
+                    damage: 1,
+                }),
+            ]
+        );
+    }
 }

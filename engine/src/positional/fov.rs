@@ -210,72 +210,73 @@ impl StrictFOV {
 }
 
 #[cfg(test)]
-#[test]
-fn new_strict_fov() {
-    _ = StrictFOV::new(5);
-}
+mod test {
+    use super::StrictFOV;
+    use crate::positional::AbsolutePosition;
 
-#[cfg(test)]
-#[test]
-#[should_panic(expected = "caller requested radius 1, we have precalculated radius 0")]
-fn get_fov_radius_too_large() {
-    let fov = StrictFOV::new(0);
-    fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 1, |_| true);
-}
+    #[test]
+    fn new_strict_fov() {
+        _ = StrictFOV::new(5);
+    }
 
-#[cfg(test)]
-#[test]
-fn get_fov() {
-    let fov = StrictFOV::new(2);
-    let blocks_vision = |_| false;
-    let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, blocks_vision);
+    #[test]
+    #[should_panic(expected = "caller requested radius 1, we have precalculated radius 0")]
+    fn get_fov_radius_too_large() {
+        let fov = StrictFOV::new(0);
+        fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 1, |_| true);
+    }
 
-    for x in -2..=2 {
+    #[test]
+    fn get_fov() {
+        let fov = StrictFOV::new(2);
+        let blocks_vision = |_| false;
+        let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, blocks_vision);
+
+        for x in -2..=2 {
+            for y in -2..=2 {
+                assert!(
+                    tiles.contains(&AbsolutePosition::new(x, y)),
+                    "{x} {y} {tiles:?}"
+                );
+            }
+        }
+
+        let mut tiles = tiles;
+        tiles.sort_by_key(|pos| (pos.x, pos.y));
+        tiles.dedup();
+        assert_eq!(tiles.len(), 5 * 5);
+        // Because we checked 25 unique items, and the vec has length 25, we have set equality.
+    }
+
+    #[test]
+    fn get_fov_with_obstruction() {
+        let fov = StrictFOV::new(2);
+        let blocks_vision = |pos: AbsolutePosition| pos.x > 0 && -1 <= pos.y && pos.y <= 1;
+        let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, blocks_vision);
+
+        // @#
+        // .#
+        // ..
+
         for y in -2..=2 {
-            assert!(
-                tiles.contains(&AbsolutePosition::new(x, y)),
-                "{x} {y} {tiles:?}"
-            );
+            assert!(tiles.contains(&AbsolutePosition::new(0, y))); // open space
+            assert!(tiles.contains(&AbsolutePosition::new(1, y))); // visible wall. (or nothing.)
+            assert!(!tiles.contains(&AbsolutePosition::new(2, y))); // space blocked by wall.
         }
     }
 
-    let mut tiles = tiles;
-    tiles.sort_by_key(|pos| (pos.x, pos.y));
-    tiles.dedup();
-    assert_eq!(tiles.len(), 5 * 5);
-    // Because we checked 25 unique items, and the vec has length 25, we have set equality.
-}
+    #[test]
+    fn get_fov_with_direct_only() {
+        let fov = StrictFOV::new(4);
+        let blocks_vision = |pos: AbsolutePosition| pos.x / 3 != pos.y;
+        let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 4, blocks_vision);
 
-#[cfg(test)]
-#[test]
-fn get_fov_with_obstruction() {
-    let fov = StrictFOV::new(2);
-    let blocks_vision = |pos: AbsolutePosition| pos.x > 0 && -1 <= pos.y && pos.y <= 1;
-    let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, blocks_vision);
+        // We can see (4, 1) passing through (3, 1), but we can't see (3, 1) itself.
+        // This causes a discontinuity, which is ugly but whatever. This makes sense for "game logic" like hitting each other.
+        // @..##
+        // ### .
 
-    // @#
-    // .#
-    // ..
-
-    for y in -2..=2 {
-        assert!(tiles.contains(&AbsolutePosition::new(0, y))); // open space
-        assert!(tiles.contains(&AbsolutePosition::new(1, y))); // visible wall. (or nothing.)
-        assert!(!tiles.contains(&AbsolutePosition::new(2, y))); // space blocked by wall.
+        assert!(tiles.contains(&AbsolutePosition::new(4, 1)));
+        assert!(!tiles.contains(&AbsolutePosition::new(3, 1)));
     }
-}
-
-#[cfg(test)]
-#[test]
-fn get_fov_with_direct_only() {
-    let fov = StrictFOV::new(4);
-    let blocks_vision = |pos: AbsolutePosition| pos.x / 3 != pos.y;
-    let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 4, blocks_vision);
-
-    // We can see (4, 1) passing through (3, 1), but we can't see (3, 1) itself.
-    // This causes a discontinuity, which is ugly but whatever. This makes sense for "game logic" like hitting each other.
-    // @..##
-    // ### .
-
-    assert!(tiles.contains(&AbsolutePosition::new(4, 1)));
-    assert!(!tiles.contains(&AbsolutePosition::new(3, 1)));
 }

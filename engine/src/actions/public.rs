@@ -424,95 +424,105 @@ impl CommandTrait for KnockdownAfterJuggleCommand {
 }
 
 #[cfg(test)]
-#[test]
-fn bump_test() {
+mod test {
+    use crate::actions::events::AttackHitEvent;
+    use crate::actions::events::FloorEvent;
+    use crate::actions::events::StartAttackEvent;
+    use crate::actions::public::BumpAction;
+    use crate::actions::public::GotoAction;
+    use crate::actions::CommandTrait;
+    use crate::actions::DirectionActionTrait;
+    use crate::actions::TileActionTrait;
+    use crate::entity::Entity;
     use crate::entity::EntityState;
+    use crate::floor::Floor;
+    use crate::floor::FloorUpdate;
     use crate::positional::AbsolutePosition;
+    use crate::positional::RelativePosition;
 
-    let mut update = FloorUpdate::new(Floor::new_minimal());
-    let player_id;
-    let other_id;
-    (update, player_id) = update.bind_with_side_output(|floor| {
-        floor.add_entity(Entity {
-            state: EntityState::Ok { next_round: 0 },
-            pos: AbsolutePosition::new(0, 0),
-            ..Default::default()
-        })
-    });
-    (update, other_id) = update.bind_with_side_output(|floor| {
-        floor.add_entity(Entity {
-            state: EntityState::Ok { next_round: 0 },
-            pos: AbsolutePosition::new(1, 0),
-            ..Default::default()
-        })
-    });
-    update = update.bind(|floor| {
-        BumpAction
-            .verify_action(&floor, player_id, RelativePosition::new(1, 0))
-            .unwrap()
-            .do_action(&floor)
-    });
-
-    let (floor, log) = update.into_both();
-    dbg!(floor);
-    assert_eq!(
-        log.into_iter()
-            .filter(|x| matches!(x, FloorEvent::StartAttack(_) | FloorEvent::AttackHit(_)))
-            .collect::<Vec<FloorEvent>>(),
-        vec![
-            FloorEvent::StartAttack(StartAttackEvent {
-                subject: player_id,
-                tile: AbsolutePosition::new(1, 0)
-            }),
-            FloorEvent::AttackHit(AttackHitEvent {
-                subject: player_id,
-                target: other_id,
-                damage: 1,
+    #[test]
+    fn bump_test() {
+        let mut update = FloorUpdate::new(Floor::new_minimal());
+        let player_id;
+        let other_id;
+        (update, player_id) = update.bind_with_side_output(|floor| {
+            floor.add_entity(Entity {
+                state: EntityState::Ok { next_round: 0 },
+                pos: AbsolutePosition::new(0, 0),
+                ..Default::default()
             })
-        ]
-    );
-}
+        });
+        (update, other_id) = update.bind_with_side_output(|floor| {
+            floor.add_entity(Entity {
+                state: EntityState::Ok { next_round: 0 },
+                pos: AbsolutePosition::new(1, 0),
+                ..Default::default()
+            })
+        });
+        update = update.bind(|floor| {
+            BumpAction
+                .verify_action(&floor, player_id, RelativePosition::new(1, 0))
+                .unwrap()
+                .do_action(&floor)
+        });
 
-#[cfg(test)]
-#[test]
-fn goto_test() {
-    use crate::entity::EntityState;
-    use crate::positional::AbsolutePosition;
+        let (floor, log) = update.into_both();
+        dbg!(floor);
+        assert_eq!(
+            log.into_iter()
+                .filter(|x| matches!(x, FloorEvent::StartAttack(_) | FloorEvent::AttackHit(_)))
+                .collect::<Vec<FloorEvent>>(),
+            vec![
+                FloorEvent::StartAttack(StartAttackEvent {
+                    subject: player_id,
+                    tile: AbsolutePosition::new(1, 0)
+                }),
+                FloorEvent::AttackHit(AttackHitEvent {
+                    subject: player_id,
+                    target: other_id,
+                    damage: 1,
+                })
+            ]
+        );
+    }
 
-    let mut update = FloorUpdate::new(Floor::new_minimal());
-    let player_id;
-    (update, player_id) = update.bind_with_side_output(|floor| {
-        floor.add_entity(Entity {
-            state: EntityState::Ok { next_round: 0 },
-            pos: AbsolutePosition::new(0, 0),
-            ..Default::default()
-        })
-    });
-    update = update.bind(|floor| {
-        GotoAction {}
-            .verify_action(&floor, player_id, AbsolutePosition::new(5, 3))
-            .unwrap()
-            .do_action(&floor)
-    });
+    #[test]
+    fn goto_test() {
+        let mut update = FloorUpdate::new(Floor::new_minimal());
+        let player_id;
+        (update, player_id) = update.bind_with_side_output(|floor| {
+            floor.add_entity(Entity {
+                state: EntityState::Ok { next_round: 0 },
+                pos: AbsolutePosition::new(0, 0),
+                ..Default::default()
+            })
+        });
+        update = update.bind(|floor| {
+            GotoAction {}
+                .verify_action(&floor, player_id, AbsolutePosition::new(5, 3))
+                .unwrap()
+                .do_action(&floor)
+        });
 
-    let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
-        EntityState::ConfirmCommand { to_confirm, .. } => to_confirm.do_action(&floor),
-        _ => panic!(
-            "Expected ConfirmCommand state. Got value: {:?}",
-            floor.entities[player_id].state
-        ),
-    };
+        let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
+            EntityState::ConfirmCommand { to_confirm, .. } => to_confirm.do_action(&floor),
+            _ => panic!(
+                "Expected ConfirmCommand state. Got value: {:?}",
+                floor.entities[player_id].state
+            ),
+        };
 
-    update = update
-        .bind(confirm_command)
-        .bind(confirm_command)
-        .bind(confirm_command)
-        .bind(confirm_command);
+        update = update
+            .bind(confirm_command)
+            .bind(confirm_command)
+            .bind(confirm_command)
+            .bind(confirm_command);
 
-    let (floor, _) = update.into_both();
-    assert!(matches!(
-        floor.entities[player_id].state,
-        EntityState::Ok { next_round: 5 }
-    ));
-    assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 3));
+        let (floor, _) = update.into_both();
+        assert!(matches!(
+            floor.entities[player_id].state,
+            EntityState::Ok { next_round: 5 }
+        ));
+        assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 3));
+    }
 }
