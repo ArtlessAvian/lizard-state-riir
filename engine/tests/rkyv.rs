@@ -25,6 +25,7 @@ fn serialize_deserialize() {
             is_player_friendly: true,
             payload: "Hello there!".into(),
         })
+        .split_pair()
         .0
         .into_both()
         .0;

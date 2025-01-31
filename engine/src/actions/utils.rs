@@ -261,7 +261,7 @@ mod tests {
     #[test]
     fn knockback_basic() {
         let floor = Floor::new_minimal();
-        let (update, id) = floor.add_entity(Entity::default());
+        let (update, id) = floor.add_entity(Entity::default()).split_pair();
 
         let update = update.bind(|floor| {
             TakeKnockbackUtil {
@@ -305,13 +305,15 @@ mod tests {
     #[test]
     fn knockback_intheway() {
         let floor = Floor::new_minimal();
-        let (update, id) = floor.add_entity(Entity::default());
-        let (update, other) = update.bind_with_side_output(|floor| {
-            floor.add_entity(Entity {
-                pos: AbsolutePosition::new(1, 0),
-                ..Entity::default()
+        let (update, id) = floor.add_entity(Entity::default()).split_pair();
+        let (update, other) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    pos: AbsolutePosition::new(1, 0),
+                    ..Entity::default()
+                })
             })
-        });
+            .split_pair();
 
         let update = update.bind(|floor| {
             TakeKnockbackUtil {
@@ -345,13 +347,15 @@ mod tests {
     #[test]
     fn multiknockback_basic() {
         let floor = Floor::new_minimal();
-        let (update, id) = floor.add_entity(Entity::default());
-        let (update, other) = update.bind_with_side_output(|floor| {
-            floor.add_entity(Entity {
-                pos: AbsolutePosition::new(1, 0),
-                ..Entity::default()
+        let (update, id) = floor.add_entity(Entity::default()).split_pair();
+        let (update, other) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    pos: AbsolutePosition::new(1, 0),
+                    ..Entity::default()
+                })
             })
-        });
+            .split_pair();
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
@@ -390,13 +394,15 @@ mod tests {
     #[test]
     fn multiknockback_intheway() {
         let floor = Floor::new_minimal();
-        let (update, id) = floor.add_entity(Entity::default());
-        let (update, other) = update.bind_with_side_output(|floor| {
-            floor.add_entity(Entity {
-                pos: AbsolutePosition::new(1, 0),
-                ..Entity::default()
+        let (update, id) = floor.add_entity(Entity::default()).split_pair();
+        let (update, other) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    pos: AbsolutePosition::new(1, 0),
+                    ..Entity::default()
+                })
             })
-        });
+            .split_pair();
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
@@ -437,13 +443,15 @@ mod tests {
             .into(),
         ));
 
-        let (update, id) = floor.add_entity(Entity::default());
-        let (update, other) = update.bind_with_side_output(|floor| {
-            floor.add_entity(Entity {
-                pos: AbsolutePosition::new(1, 0),
-                ..Entity::default()
+        let (update, id) = floor.add_entity(Entity::default()).split_pair();
+        let (update, other) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    pos: AbsolutePosition::new(1, 0),
+                    ..Entity::default()
+                })
             })
-        });
+            .split_pair();
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {

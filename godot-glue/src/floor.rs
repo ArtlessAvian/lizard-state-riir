@@ -124,20 +124,23 @@ impl ActiveFloor {
         is_player_controlled: bool,
         is_player_friendly: bool,
     ) -> Gd<EntityId> {
-        let (update, id) = self.internal.add_entity(EntityInternal {
-            state: EntityState::Ok {
-                next_round: self.internal.get_current_round(),
-            },
-            pos: AbsolutePosition::new(pos.x, pos.y),
-            health: 10,
-            max_energy: 6,
-            energy: 6,
-            moveset: Vec::new(),
-            strategy: Strategy::Follow(FollowStrategy {}),
-            is_player_controlled,
-            is_player_friendly,
-            payload: String::default(),
-        });
+        let (update, id) = self
+            .internal
+            .add_entity(EntityInternal {
+                state: EntityState::Ok {
+                    next_round: self.internal.get_current_round(),
+                },
+                pos: AbsolutePosition::new(pos.x, pos.y),
+                health: 10,
+                max_energy: 6,
+                energy: 6,
+                moveset: Vec::new(),
+                strategy: Strategy::Follow(FollowStrategy {}),
+                is_player_controlled,
+                is_player_friendly,
+                payload: String::default(),
+            })
+            .split_pair();
 
         let (next, log) = update.into_both();
         self.internal = next;
@@ -156,7 +159,10 @@ impl ActiveFloor {
         &mut self,
         initializer: Gd<EntityInitializer>,
     ) -> Gd<EntityId> {
-        let (update, id) = self.internal.add_entity(initializer.bind().to_entity());
+        let (update, id) = self
+            .internal
+            .add_entity(initializer.bind().to_entity())
+            .split_pair();
 
         let (next, log) = update.into_both();
         self.internal = next;

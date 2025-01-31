@@ -85,17 +85,6 @@ impl<T, Payload> Writer<T, Payload> {
         }
     }
 
-    // Restricted functions to match F's signature. Not an ideal solution but it works.
-    #[must_use]
-    pub fn bind_with_side_output<U, F, SideOutput>(self, f: F) -> (Writer<U, Payload>, SideOutput)
-    where
-        F: FnOnce(T) -> (Writer<U, Payload>, SideOutput),
-    {
-        let (contents, log) = self.into_both();
-        let (next, side) = f(contents);
-        (next.prepend_log(log), side)
-    }
-
     // Combines two writers. Appends the log of the second to the first.
     // See Option::zip.
     #[must_use]
@@ -124,6 +113,11 @@ impl<T, Payload> Writer<T, Payload> {
         }
         self
     }
+
+    #[must_use]
+    pub fn make_pair<U>(self, value: U) -> Writer<(T, U), Payload> {
+        self.map(|x| (x, value))
+    }
 }
 
 impl<Payload> Writer<(), Payload> {
@@ -132,5 +126,24 @@ impl<Payload> Writer<(), Payload> {
     pub fn adopt_contents<T>(self, contents: T) -> Writer<T, Payload> {
         let ((), log) = self.into_both();
         Writer::new_with_log(contents, log)
+    }
+}
+
+impl<Keep, Extract, Payload> Writer<(Keep, Extract), Payload> {
+    /// Can be thought of as transposing Pair and Writer.
+    /// We arbitrarily choose the first of the pair to be kept.
+    /// We can also swap the pair if needed.
+    #[must_use]
+    pub fn split_pair(self) -> (Writer<Keep, Payload>, Extract) {
+        let Writer {
+            contents: (keep, extract),
+            log,
+        } = self;
+        (Writer::new_with_log(keep, log), extract)
+    }
+
+    #[must_use]
+    pub fn swap_pair(self) -> Writer<(Extract, Keep), Payload> {
+        self.map(|(t, u)| (u, t))
     }
 }

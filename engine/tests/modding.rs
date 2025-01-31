@@ -78,18 +78,20 @@ impl CommandTrait for Archived<TestCommand> {
 
 fn expect_test_action_side_effects(type_erased: Rc<dyn ActionTrait>) {
     let floor = Floor::new_minimal();
-    let (update, id) = floor.add_entity(Entity {
-        state: engine::entity::EntityState::Ok { next_round: 0 },
-        pos: engine::positional::AbsolutePosition::new(0, 0),
-        health: 10,
-        max_energy: 10,
-        energy: 10,
-        moveset: Vec::new(),
-        strategy: NullStrategy {}.into(),
-        is_player_controlled: true,
-        is_player_friendly: true,
-        payload: "Hello!".to_owned(),
-    });
+    let (update, id) = floor
+        .add_entity(Entity {
+            state: engine::entity::EntityState::Ok { next_round: 0 },
+            pos: engine::positional::AbsolutePosition::new(0, 0),
+            health: 10,
+            max_energy: 10,
+            energy: 10,
+            moveset: Vec::new(),
+            strategy: NullStrategy {}.into(),
+            is_player_controlled: true,
+            is_player_friendly: true,
+            payload: "Hello!".to_owned(),
+        })
+        .split_pair();
     let update = update.bind(|f| type_erased.verify_action(&f, id).unwrap().do_action(&f));
     let dingus = update.into_both().1;
     assert_eq!(dingus, vec![FloorEvent::Exit(ExitEvent { subject: id }); 3])

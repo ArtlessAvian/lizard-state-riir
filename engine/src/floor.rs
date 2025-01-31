@@ -104,9 +104,8 @@ impl Floor {
         }
     }
 
-    // TODO: Consider returning Writer<(Floor, EntityId), FloorEvent>
     #[must_use]
-    pub fn add_entity(&self, new: Entity) -> (FloorUpdate, EntityId) {
+    pub fn add_entity(&self, new: Entity) -> Writer<(Floor, EntityId), FloorEvent> {
         let mut next_entities = self.entities.clone();
         let id = next_entities.add(new);
 
@@ -121,18 +120,15 @@ impl Floor {
             x.add_entity((id, &next_entities[id]), &self.map).map(Some)
         });
 
-        (
-            vision_update.bind(|next_vision| {
-                FloorUpdate::new(Floor {
-                    entities: next_entities,
-                    occupiers: next_occupiers,
-                    map: self.map.clone(),
-                    downing: self.downing.clone(),
-                    vision: next_vision,
-                })
-            }),
-            id,
-        )
+        vision_update
+            .map(|next_vision| Floor {
+                entities: next_entities,
+                occupiers: next_occupiers,
+                map: self.map.clone(),
+                downing: self.downing.clone(),
+                vision: next_vision,
+            })
+            .make_pair(id)
     }
 
     #[must_use]
@@ -172,7 +168,7 @@ impl Floor {
         self.update_entities_map(map)
     }
 
-    // TODO: Figure out nicer API that isn't so annoying for the caller.
+    // TODO: Figure out nicer API that isn't so annoying for the caller. Maybe newtype around HashMap?
     #[must_use]
     pub fn update_entities_map(&self, mut new_set: HashMap<EntityId, Entity>) -> FloorUpdate {
         let old_set = new_set

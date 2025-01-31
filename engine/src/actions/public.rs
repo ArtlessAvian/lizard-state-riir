@@ -442,24 +442,26 @@ mod test {
 
     #[test]
     fn bump_test() {
-        let mut update = FloorUpdate::new(Floor::new_minimal());
-        let player_id;
-        let other_id;
-        (update, player_id) = update.bind_with_side_output(|floor| {
-            floor.add_entity(Entity {
-                state: EntityState::Ok { next_round: 0 },
-                pos: AbsolutePosition::new(0, 0),
-                ..Default::default()
+        let update = FloorUpdate::new(Floor::new_minimal());
+        let (update, player_id) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    state: EntityState::Ok { next_round: 0 },
+                    pos: AbsolutePosition::new(0, 0),
+                    ..Default::default()
+                })
             })
-        });
-        (update, other_id) = update.bind_with_side_output(|floor| {
-            floor.add_entity(Entity {
-                state: EntityState::Ok { next_round: 0 },
-                pos: AbsolutePosition::new(1, 0),
-                ..Default::default()
+            .split_pair();
+        let (update, other_id) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    state: EntityState::Ok { next_round: 0 },
+                    pos: AbsolutePosition::new(1, 0),
+                    ..Default::default()
+                })
             })
-        });
-        update = update.bind(|floor| {
+            .split_pair();
+        let update = update.bind(|floor| {
             BumpAction
                 .verify_action(&floor, player_id, RelativePosition::new(1, 0))
                 .unwrap()
@@ -488,16 +490,17 @@ mod test {
 
     #[test]
     fn goto_test() {
-        let mut update = FloorUpdate::new(Floor::new_minimal());
-        let player_id;
-        (update, player_id) = update.bind_with_side_output(|floor| {
-            floor.add_entity(Entity {
-                state: EntityState::Ok { next_round: 0 },
-                pos: AbsolutePosition::new(0, 0),
-                ..Default::default()
+        let update = FloorUpdate::new(Floor::new_minimal());
+        let (update, player_id) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    state: EntityState::Ok { next_round: 0 },
+                    pos: AbsolutePosition::new(0, 0),
+                    ..Default::default()
+                })
             })
-        });
-        update = update.bind(|floor| {
+            .split_pair();
+        let update = update.bind(|floor| {
             GotoAction {}
                 .verify_action(&floor, player_id, AbsolutePosition::new(5, 3))
                 .unwrap()
@@ -512,7 +515,7 @@ mod test {
             ),
         };
 
-        update = update
+        let update = update
             .bind(confirm_command)
             .bind(confirm_command)
             .bind(confirm_command)

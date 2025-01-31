@@ -233,25 +233,27 @@ mod test {
         use crate::floor::TurntakingError;
         use crate::positional::AbsolutePosition;
 
-        let mut update = FloorUpdate::new(Floor::new_minimal());
-        let player_id;
-        let other_id;
-        (update, player_id) = update.bind_with_side_output(|floor| {
-            floor.add_entity(Entity {
-                state: EntityState::Ok { next_round: 0 },
-                pos: AbsolutePosition::new(0, 0),
-                is_player_controlled: true,
-                ..Default::default()
+        let update = FloorUpdate::new(Floor::new_minimal());
+        let (update, player_id) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    state: EntityState::Ok { next_round: 0 },
+                    pos: AbsolutePosition::new(0, 0),
+                    is_player_controlled: true,
+                    ..Default::default()
+                })
             })
-        });
-        (update, other_id) = update.bind_with_side_output(|floor| {
-            floor.add_entity(Entity {
-                state: EntityState::Ok { next_round: 100 },
-                pos: AbsolutePosition::new(1, 0),
-                ..Default::default()
+            .split_pair();
+        let (update, other_id) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    state: EntityState::Ok { next_round: 100 },
+                    pos: AbsolutePosition::new(1, 0),
+                    ..Default::default()
+                })
             })
-        });
-        update = update
+            .split_pair();
+        let update = update
             .bind(|floor| {
                 DoubleHitAction
                     .verify_action(&floor, player_id, RelativePosition::new(1, 0))
