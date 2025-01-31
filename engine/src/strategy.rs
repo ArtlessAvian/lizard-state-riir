@@ -1,3 +1,4 @@
+use enum_dispatch::enum_dispatch;
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -13,35 +14,38 @@ use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
 
+#[enum_dispatch]
 pub trait StrategyTrait {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate;
 }
 
+#[enum_dispatch(StrategyTrait)]
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-#[cfg_attr(test, derive(Default))]
 pub enum Strategy {
-    #[cfg_attr(test, default)]
-    Null,
+    Null(NullStrategy),
     Wander(WanderStrategy),
     StandAndFight(StandAndFightStrategy),
     Follow(FollowStrategy),
     Rushdown(RushdownStrategy),
 }
 
-impl StrategyTrait for Strategy {
-    #[must_use]
+#[cfg(test)]
+impl Default for Strategy {
+    fn default() -> Self {
+        NullStrategy.into()
+    }
+}
+
+#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
+pub struct NullStrategy;
+impl StrategyTrait for NullStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
-        match self {
-            Strategy::Null => WaitAction {}
-                .verify_action(original, subject_id)
-                .expect("Wait should never fail")
-                .do_action(original),
-            Strategy::Wander(x) => x.take_turn(original, subject_id),
-            Strategy::StandAndFight(x) => x.take_turn(original, subject_id),
-            Strategy::Follow(x) => x.take_turn(original, subject_id),
-            Strategy::Rushdown(x) => x.take_turn(original, subject_id),
-        }
+        WaitAction {}
+            .verify_action(original, subject_id)
+            .expect("Wait should never fail")
+            .do_action(original)
     }
 }
 

@@ -54,7 +54,7 @@ impl From<KnownUnaimedAction> for UnaimedAction {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-#[enum_dispatch]
+#[enum_dispatch(ActionTrait)]
 pub enum KnownAction {
     EnterStance(EnterStanceAction),
     ExitStance(ExitStanceAction),
@@ -70,7 +70,7 @@ impl ActionTrait for Rc<dyn SerializeActionTrait> {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-#[enum_dispatch]
+#[enum_dispatch(TileActionTrait)]
 pub enum KnownTileAction {
     Tracking(TrackingAction),
     EnterSmiteStance(EnterSmiteStanceAction),
@@ -90,7 +90,7 @@ impl TileActionTrait for Rc<dyn SerializeTileActionTrait> {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-#[enum_dispatch]
+#[enum_dispatch(DirectionActionTrait)]
 pub enum KnownDirectionAction {
     DoubleHit(DoubleHitAction),
     ForwardHeavy(ForwardHeavyAction),
@@ -110,7 +110,7 @@ impl DirectionActionTrait for Rc<dyn SerializeDirectionActionTrait> {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-#[enum_dispatch]
+#[enum_dispatch(CommandTrait)]
 pub enum KnownCommand {
     DoubleHitFollowup(DoubleHitFollowup),
     ForwardHeavyFollowup(ForwardHeavyFollowup),

@@ -333,7 +333,7 @@ fn serialize_deserialize() {
 
     use crate::entity::EntityState;
     use crate::positional::AbsolutePosition;
-    use crate::strategy::Strategy;
+    use crate::strategy::NullStrategy;
 
     let floor = Floor::new_with_all_systems();
     let floor = floor
@@ -345,7 +345,7 @@ fn serialize_deserialize() {
             health: 0x5d,
             max_energy: 0x6e,
             energy: 0x7f,
-            strategy: Strategy::Null,
+            strategy: NullStrategy.into(),
             is_player_controlled: false,
             moveset: Vec::new(),
             is_player_friendly: true,

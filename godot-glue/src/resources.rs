@@ -5,6 +5,7 @@ use std::rc::Rc;
 
 use engine::actions::known_serializable::KnownUnaimedAction;
 use engine::strategy::FollowStrategy;
+use engine::strategy::NullStrategy;
 use engine::strategy::RushdownStrategy;
 use engine::strategy::StandAndFightStrategy;
 use engine::strategy::Strategy;
@@ -89,13 +90,14 @@ pub enum StrategyName {
 }
 
 impl StrategyName {
+    // TODO: Deprecate? We want to eventually have non unit struct strategies.
     fn to_actual(&self) -> Strategy {
         match self {
-            StrategyName::Null => Strategy::Null,
-            StrategyName::Wander => Strategy::Wander(WanderStrategy),
-            StrategyName::StandAndFight => Strategy::StandAndFight(StandAndFightStrategy),
-            StrategyName::Follow => Strategy::Follow(FollowStrategy),
-            StrategyName::Rushdown => Strategy::Rushdown(RushdownStrategy),
+            StrategyName::Null => NullStrategy.into(),
+            StrategyName::Wander => WanderStrategy.into(),
+            StrategyName::StandAndFight => StandAndFightStrategy.into(),
+            StrategyName::Follow => FollowStrategy.into(),
+            StrategyName::Rushdown => RushdownStrategy.into(),
         }
     }
 }
