@@ -25,16 +25,37 @@ use super::SerializeCommandTrait;
 use super::SerializeDirectionActionTrait;
 use super::SerializeTileActionTrait;
 use super::TileActionTrait;
+use super::UnaimedAction;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
+// Same as above, but more specialized. Has an ugly conversion.
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[archive_attr(derive(Debug))]
+pub enum KnownUnaimedAction {
+    None(KnownAction),
+    Tile(KnownTileAction),
+    Direction(KnownDirectionAction),
+}
+
+impl From<KnownUnaimedAction> for UnaimedAction {
+    fn from(value: KnownUnaimedAction) -> Self {
+        // mmm yes i love indirection
+        match value {
+            KnownUnaimedAction::None(x) => UnaimedAction::None(Rc::new(x)),
+            KnownUnaimedAction::Tile(x) => UnaimedAction::Tile(Rc::new(x)),
+            KnownUnaimedAction::Direction(x) => UnaimedAction::Direction(Rc::new(x)),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 #[enum_dispatch]
-pub enum SerializableAction {
+pub enum KnownAction {
     EnterStance(EnterStanceAction),
     ExitStance(ExitStanceAction),
     StanceSmite(StanceSmiteAction),
@@ -50,7 +71,7 @@ impl ActionTrait for Rc<dyn SerializeActionTrait> {
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 #[enum_dispatch]
-pub enum SerializableTileAction {
+pub enum KnownTileAction {
     Tracking(TrackingAction),
     EnterSmiteStance(EnterSmiteStanceAction),
     External(Rc<dyn SerializeTileActionTrait>),
@@ -70,7 +91,7 @@ impl TileActionTrait for Rc<dyn SerializeTileActionTrait> {
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 #[enum_dispatch]
-pub enum SerializableDirectionAction {
+pub enum KnownDirectionAction {
     DoubleHit(DoubleHitAction),
     ForwardHeavy(ForwardHeavyAction),
     External(Rc<dyn SerializeDirectionActionTrait>),
@@ -90,7 +111,7 @@ impl DirectionActionTrait for Rc<dyn SerializeDirectionActionTrait> {
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 #[enum_dispatch]
-pub enum SerializableCommand {
+pub enum KnownCommand {
     DoubleHitFollowup(DoubleHitFollowup),
     ForwardHeavyFollowup(ForwardHeavyFollowup),
     TrackingFollowup(TrackingFollowup),

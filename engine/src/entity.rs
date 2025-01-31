@@ -5,8 +5,8 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
-use crate::actions::static_dispatch::SerializableCommand;
-use crate::actions::SerializableUnaimedAction;
+use crate::actions::known_serializable::KnownCommand;
+use crate::actions::known_serializable::KnownUnaimedAction;
 use crate::actions::UnaimedAction;
 use crate::positional::AbsolutePosition;
 use crate::strategy::Strategy;
@@ -52,7 +52,7 @@ pub struct Entity {
     pub max_energy: i8,
     pub energy: i8,
 
-    pub moveset: Vec<SerializableUnaimedAction>,
+    pub moveset: Vec<KnownUnaimedAction>,
 
     // TODO: AI. Roughly should be a type that tries a sequence of actions, and on success may mutate its own clone and return the FloorUpdate.
     // Should not be wrapped in Option. A "NullAI" should just wait in place forever.
@@ -92,7 +92,7 @@ impl Entity {
     }
 
     #[must_use]
-    pub fn get_command_to_confirm(&self) -> Option<SerializableCommand> {
+    pub fn get_command_to_confirm(&self) -> Option<KnownCommand> {
         if let EntityState::ConfirmCommand { to_confirm, .. } = &self.state {
             Some(to_confirm.clone())
         } else {
@@ -247,7 +247,7 @@ pub enum EntityState {
     Committed {
         next_round: u32,
         // Rc for Clone.
-        queued_command: SerializableCommand,
+        queued_command: KnownCommand,
     },
     /// On the entities next turn, the entity may choose to run this command.
     /// Does *NOT* grant counterhit status.
@@ -258,12 +258,12 @@ pub enum EntityState {
     //       requeueing itself.
     ConfirmCommand {
         next_round: u32,
-        to_confirm: SerializableCommand,
+        to_confirm: KnownCommand,
     },
     RestrictedActions {
         next_round: u32,
         // On the entities next turn, action must be chosen from a set.
-        restricted_actions: Vec<SerializableUnaimedAction>,
+        restricted_actions: Vec<KnownUnaimedAction>,
     },
 
     // Inactionable states below. Forces an automatic action handled automatically.

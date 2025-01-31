@@ -5,11 +5,11 @@ use rkyv::Deserialize;
 use rkyv::Serialize;
 
 use super::super::CommandTrait;
-use crate::actions::static_dispatch::SerializableAction;
-use crate::actions::static_dispatch::SerializableTileAction;
+use crate::actions::known_serializable::KnownAction;
+use crate::actions::known_serializable::KnownTileAction;
 use crate::actions::utils::start_juggle;
 use crate::actions::ActionTrait;
-use crate::actions::SerializableUnaimedAction;
+use crate::actions::KnownUnaimedAction;
 use crate::actions::TileActionTrait;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -32,9 +32,9 @@ impl TileActionTrait for EnterSmiteStanceAction {
     }
 }
 
-impl From<EnterSmiteStanceAction> for SerializableUnaimedAction {
+impl From<EnterSmiteStanceAction> for KnownUnaimedAction {
     fn from(value: EnterSmiteStanceAction) -> Self {
-        SerializableUnaimedAction::Tile(SerializableTileAction::EnterSmiteStance(value))
+        KnownUnaimedAction::Tile(KnownTileAction::EnterSmiteStance(value))
     }
 }
 
@@ -70,9 +70,9 @@ impl ActionTrait for StanceSmiteAction {
     }
 }
 
-impl From<StanceSmiteAction> for SerializableUnaimedAction {
+impl From<StanceSmiteAction> for KnownUnaimedAction {
     fn from(value: StanceSmiteAction) -> Self {
-        SerializableUnaimedAction::None(SerializableAction::StanceSmite(value))
+        KnownUnaimedAction::None(KnownAction::StanceSmite(value))
     }
 }
 

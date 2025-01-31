@@ -6,7 +6,7 @@ use super::events::JuggleHitEvent;
 use super::events::JuggleLimitEvent;
 use super::events::KnockbackEvent;
 use super::events::KnockdownEvent;
-use super::static_dispatch::SerializableCommand;
+use super::known_serializable::KnownCommand;
 use super::CommandTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
@@ -187,7 +187,7 @@ impl CommandTrait for MultiKnockbackUtil {
 #[derive(Debug)]
 pub struct DelayCommand {
     pub subject_id: EntityId,
-    pub queued_command: SerializableCommand,
+    pub queued_command: KnownCommand,
     pub turns: u32,
     pub event: Option<FloorEvent>,
 }

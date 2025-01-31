@@ -8,12 +8,12 @@ use super::super::CommandTrait;
 use super::super::DirectionActionTrait;
 use super::super::FloorEvent;
 use crate::actions::events::PrepareAttackEvent;
+use crate::actions::known_serializable::KnownDirectionAction;
+use crate::actions::known_serializable::KnownTileAction;
 use crate::actions::public::StepAction;
-use crate::actions::static_dispatch::SerializableDirectionAction;
-use crate::actions::static_dispatch::SerializableTileAction;
 use crate::actions::utils::DelayCommand;
 use crate::actions::utils::TakeKnockbackUtil;
-use crate::actions::SerializableUnaimedAction;
+use crate::actions::KnownUnaimedAction;
 use crate::actions::TileActionTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
@@ -47,9 +47,9 @@ impl DirectionActionTrait for ForwardHeavyAction {
     }
 }
 
-impl From<ForwardHeavyAction> for SerializableUnaimedAction {
+impl From<ForwardHeavyAction> for KnownUnaimedAction {
     fn from(value: ForwardHeavyAction) -> Self {
-        SerializableUnaimedAction::Direction(SerializableDirectionAction::ForwardHeavy(value))
+        KnownUnaimedAction::Direction(KnownDirectionAction::ForwardHeavy(value))
     }
 }
 
@@ -175,9 +175,9 @@ impl TileActionTrait for TrackingAction {
     }
 }
 
-impl From<TrackingAction> for SerializableUnaimedAction {
+impl From<TrackingAction> for KnownUnaimedAction {
     fn from(value: TrackingAction) -> Self {
-        SerializableUnaimedAction::Tile(SerializableTileAction::Tracking(value))
+        KnownUnaimedAction::Tile(KnownTileAction::Tracking(value))
     }
 }
 

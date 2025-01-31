@@ -3,7 +3,7 @@ mod actionset;
 
 use std::rc::Rc;
 
-use engine::actions::SerializableUnaimedAction;
+use engine::actions::known_serializable::KnownUnaimedAction;
 use engine::strategy::FollowStrategy;
 use engine::strategy::RushdownStrategy;
 use engine::strategy::StandAndFightStrategy;
@@ -43,7 +43,7 @@ pub struct EntityInitializer {
 impl EntityInitializer {
     #[must_use]
     pub fn to_entity(&self) -> engine::entity::Entity {
-        let moveset: Vec<SerializableUnaimedAction> = if self.actions.is_empty() {
+        let moveset: Vec<KnownUnaimedAction> = if self.actions.is_empty() {
             Vec::new()
         } else {
             try_load::<ActionSet>(&self.actions)

@@ -7,14 +7,14 @@ use rkyv::Serialize;
 use super::events::AttackHitEvent;
 use super::events::PrepareAttackEvent;
 use super::events::StartAttackEvent;
-use super::static_dispatch::SerializableAction;
-use super::static_dispatch::SerializableDirectionAction;
+use super::known_serializable::KnownAction;
+use super::known_serializable::KnownDirectionAction;
 use super::utils::DelayCommand;
 use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
-use super::SerializableUnaimedAction;
+use super::KnownUnaimedAction;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -45,9 +45,9 @@ impl DirectionActionTrait for DoubleHitAction {
     }
 }
 
-impl From<DoubleHitAction> for SerializableUnaimedAction {
+impl From<DoubleHitAction> for KnownUnaimedAction {
     fn from(value: DoubleHitAction) -> Self {
-        SerializableUnaimedAction::Direction(SerializableDirectionAction::DoubleHit(value))
+        KnownUnaimedAction::Direction(KnownDirectionAction::DoubleHit(value))
     }
 }
 
@@ -160,9 +160,9 @@ impl ActionTrait for EnterStanceAction {
     }
 }
 
-impl From<EnterStanceAction> for SerializableUnaimedAction {
+impl From<EnterStanceAction> for KnownUnaimedAction {
     fn from(value: EnterStanceAction) -> Self {
-        SerializableUnaimedAction::None(SerializableAction::EnterStance(value))
+        KnownUnaimedAction::None(KnownAction::EnterStance(value))
     }
 }
 
@@ -193,9 +193,9 @@ impl ActionTrait for ExitStanceAction {
     }
 }
 
-impl From<ExitStanceAction> for SerializableUnaimedAction {
+impl From<ExitStanceAction> for KnownUnaimedAction {
     fn from(value: ExitStanceAction) -> Self {
-        SerializableUnaimedAction::None(SerializableAction::ExitStance(value))
+        KnownUnaimedAction::None(KnownAction::ExitStance(value))
     }
 }
 
