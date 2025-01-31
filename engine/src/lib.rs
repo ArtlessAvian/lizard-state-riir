@@ -51,3 +51,6 @@ pub mod pathfinding;
 
 /// Functional Magic.
 mod writer;
+
+// TODO:
+// pub mod prelude;
