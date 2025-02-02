@@ -13,6 +13,8 @@ use crate::actions::public::KnockdownAfterJuggleAction;
 use crate::actions::public::TryToStandUpAction;
 use crate::actions::ActionTrait;
 use crate::actions::CommandTrait;
+use crate::entity::BatchEntityUpdate;
+use crate::entity::BatchEntityUpdateContextless;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntitySet;
@@ -166,11 +168,30 @@ impl Floor {
     }
 
     // TODO: Figure out nicer API that isn't so annoying for the caller. Maybe newtype around HashMap?
-    pub fn update_entities_map(&self, mut new_set: HashMap<EntityId, Entity>) -> FloorUpdate {
-        let old_set = new_set
-            .keys()
-            .map(|id| (*id, &self.entities[*id]))
-            .collect::<Vec<(EntityId, &Entity)>>();
+    pub fn update_entities_map(&self, new_set: HashMap<EntityId, Entity>) -> FloorUpdate {
+        self.update_entities_contextless(BatchEntityUpdateContextless::wrap(new_set))
+    }
+
+    pub fn update_entities_contextless(
+        &self,
+        contextless: BatchEntityUpdateContextless,
+    ) -> FloorUpdate {
+        self.update_entities_batch(contextless.add_context(&self.entities))
+    }
+
+    pub fn update_entities_batch(&self, batch: BatchEntityUpdate) -> FloorUpdate {
+        assert!(std::ptr::eq(batch.context, &self.entities));
+
+        let diffed_entities = batch.into_diffed_entities().collect::<Vec<_>>();
+
+        let old_set = dbg!(diffed_entities
+            .iter()
+            .map(|(id, (old, _))| (*id, *old))
+            .collect::<Vec<_>>());
+        let mut new_set = dbg!(diffed_entities
+            .into_iter()
+            .map(|(id, (_, new))| (id, new))
+            .collect::<HashMap<_, _>>());
 
         Writer::transpose(self.downing.as_ref().map(|some| {
             some.mutate_entities(self.get_current_round(), &self.entities, &mut new_set)

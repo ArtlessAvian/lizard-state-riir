@@ -1,3 +1,6 @@
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
+use std::hash::Hash;
 use std::ops::Index;
 use std::rc::Rc;
 
@@ -295,6 +298,101 @@ pub enum EntityState {
 impl Default for EntityState {
     fn default() -> Self {
         Self::Ok { next_round: 0 }
+    }
+}
+
+pub struct AlreadyPresent;
+
+/// Write only hashmap. Cannot replace keys.
+#[derive(Default)]
+pub struct BatchEntityUpdateContextless(pub HashMap<EntityId, Entity>);
+
+impl BatchEntityUpdateContextless {
+    #[must_use]
+    pub fn new() -> Self {
+        Self(HashMap::new())
+    }
+
+    #[must_use]
+    pub fn wrap(x: HashMap<EntityId, Entity>) -> Self {
+        Self(x)
+    }
+
+    /// Stores an `Entity` with an existing `EntityId` to be updated.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the `EntityId` is already present.
+    pub fn insert(&mut self, k: EntityId, v: Entity) -> Result<&mut Entity, AlreadyPresent> {
+        match self.0.entry(k) {
+            Entry::Occupied(_) => Err(AlreadyPresent),
+            Entry::Vacant(vacant) => Ok(vacant.insert(v)),
+        }
+    }
+
+    #[must_use]
+    pub fn add_context(self, context: &EntitySet) -> BatchEntityUpdate {
+        BatchEntityUpdate {
+            contextless: self,
+            context,
+        }
+    }
+
+    pub fn ids(&self) -> impl Iterator<Item = &EntityId> {
+        self.0.keys()
+    }
+
+    pub fn updated_entities(&self) -> impl Iterator<Item = (&EntityId, &Entity)> {
+        self.0.iter()
+    }
+
+    pub fn into_updated_entities(self) -> impl Iterator<Item = (EntityId, Entity)> {
+        self.0.into_iter()
+    }
+}
+
+pub struct BatchEntityUpdate<'a> {
+    pub contextless: BatchEntityUpdateContextless,
+    pub context: &'a EntitySet,
+}
+
+impl<'a> BatchEntityUpdate<'a> {
+    #[must_use]
+    pub fn new(context: &'a EntitySet) -> Self {
+        Self {
+            contextless: BatchEntityUpdateContextless::new(),
+            context,
+        }
+    }
+
+    #[must_use]
+    pub fn commit(self) -> EntitySet {
+        let mut out = self.context.clone();
+        for (new_id, new) in self.contextless.0 {
+            out.overwrite(new_id, new);
+        }
+        out
+    }
+
+    // #[must_use]
+    // pub fn preview(&self, k: EntityId) -> &Entity {
+    //     self.updates.0.get(&k).unwrap_or(self.context.index(k))
+    // }
+
+    pub fn old_entities(&self) -> impl Iterator<Item = (&EntityId, &Entity)> {
+        self.contextless.ids().map(|id| (id, &self.context[*id]))
+    }
+
+    pub fn diffed_entities(&self) -> impl Iterator<Item = (&EntityId, (&Entity, &Entity))> {
+        self.contextless
+            .updated_entities()
+            .map(|(id, new)| (id, (self.context.index(*id), new)))
+    }
+
+    pub fn into_diffed_entities(self) -> impl Iterator<Item = (EntityId, (&'a Entity, Entity))> {
+        self.contextless
+            .into_updated_entities()
+            .map(|(id, new)| (id, (self.context.index(id), new)))
     }
 }
 
