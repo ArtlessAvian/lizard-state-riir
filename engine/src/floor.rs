@@ -104,7 +104,6 @@ impl Floor {
         }
     }
 
-    #[must_use]
     pub fn add_entity(&self, new: Entity) -> Writer<(Floor, EntityId), FloorEvent> {
         let mut next_entities = self.entities.clone();
         let id = next_entities.add(new);
@@ -151,7 +150,6 @@ impl Floor {
         }
     }
 
-    #[must_use]
     pub fn update_entity(&self, new: (EntityId, Entity)) -> FloorUpdate {
         self.update_entities_map(std::iter::once(new).collect())
     }
@@ -160,7 +158,6 @@ impl Floor {
     // The caller might try update the same entityid twice. This is usually not intended.
     // The preferred action might be to panic. The caller should make sure to update their existing copy if they intend to make multiple updates.
     // We can also create a nice type/api to allow mutability of something like [Floor].entities. Cow maybe?
-    #[must_use]
     pub fn update_entities(&self, new_set: Vec<(EntityId, Entity)>) -> FloorUpdate {
         let len = new_set.len();
         let map = new_set.into_iter().collect::<HashMap<EntityId, Entity>>();
@@ -169,7 +166,6 @@ impl Floor {
     }
 
     // TODO: Figure out nicer API that isn't so annoying for the caller. Maybe newtype around HashMap?
-    #[must_use]
     pub fn update_entities_map(&self, mut new_set: HashMap<EntityId, Entity>) -> FloorUpdate {
         let old_set = new_set
             .keys()

@@ -56,15 +56,12 @@ struct TestCommand {
 #[archive_dyn(deserialize)]
 impl CommandTrait for TestCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        FloorUpdate::new(floor.clone()).log_each(
-            vec![
-                FloorEvent::Exit(ExitEvent {
-                    subject: self.subject_id,
-                });
-                3
-            ]
-            .into_iter(),
-        )
+        FloorUpdate::new(floor.clone()).log_each(vec![
+            FloorEvent::Exit(ExitEvent {
+                subject: self.subject_id,
+            });
+            3
+        ])
     }
 }
 

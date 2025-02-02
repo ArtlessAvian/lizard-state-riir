@@ -65,7 +65,6 @@ impl FloorMapVision {
 
     // I am a smug nerd.
 
-    #[must_use]
     pub fn add_entity(
         &self,
         new: (EntityId, &Entity),
@@ -74,7 +73,6 @@ impl FloorMapVision {
         self.update_entity(new, map)
     }
 
-    #[must_use]
     pub fn update_entity(
         &self,
         new: (EntityId, &Entity),
@@ -83,7 +81,6 @@ impl FloorMapVision {
         self.update_entities(&vec![new], map)
     }
 
-    #[must_use]
     pub fn update_entities(
         &self,
         new_set: &Vec<(EntityId, &Entity)>,
