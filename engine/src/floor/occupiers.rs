@@ -5,6 +5,7 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
+use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::positional::AbsolutePosition;
@@ -38,20 +39,16 @@ impl Occupiers {
     }
 
     #[must_use]
-    pub fn update_entities(
-        &self,
-        old_set: &Vec<(EntityId, &Entity)>,
-        new_set: &Vec<(EntityId, &Entity)>,
-    ) -> Self {
+    pub fn update_entities(&self, batch: &BatchEntityUpdate) -> Self {
         let mut clone = self.clone();
 
-        for (id, old) in old_set {
+        for (id, old) in batch.old_entities() {
             if let Some(pos) = old.get_occupied_position() {
                 let remove = clone.0.remove(&pos);
                 assert!(remove.is_some_and(|x| x == *id));
             }
         }
-        for (id, new) in new_set {
+        for (id, new) in batch.contextless.updated_entities() {
             if let Some(pos) = new.get_occupied_position() {
                 match clone.0.entry(pos) {
                     Entry::Occupied(_) => {
@@ -82,6 +79,7 @@ impl Default for Occupiers {
 #[cfg(test)]
 mod test {
     use super::Occupiers;
+    use crate::entity::BatchEntityUpdateContextless;
     use crate::entity::Entity;
     use crate::entity::EntitySet;
     use crate::positional::AbsolutePosition;
@@ -130,13 +128,16 @@ mod test {
         });
         let occupiers = occupiers.add_entity((second, &entities[second]));
 
-        let mut second_update = entities[second].clone();
-        second_update.pos = entities[first].pos;
-
-        let _should_panic = occupiers.update_entities(
-            &vec![(second, &entities[second])],
-            &vec![(second, &second_update)],
-        );
+        let mut contextless = BatchEntityUpdateContextless::new();
+        contextless
+            .insert(second, {
+                let mut second_update = entities[second].clone();
+                second_update.pos = entities[first].pos;
+                second_update
+            })
+            .unwrap();
+        let batch = contextless.add_context(&entities);
+        let _should_panic = occupiers.update_entities(&batch);
     }
 
     #[test]
@@ -161,15 +162,17 @@ mod test {
         });
         let occupiers = occupiers.add_entity((second, &entities[second]));
 
-        let mut second_update = entities[second].clone();
-        second_update.pos = entities[first].pos;
-        second_update.state = EntityState::Knockdown { next_round: 1 };
-
-        assert!(second_update.get_occupied_position().is_none());
-
-        let _occupiers = occupiers.update_entities(
-            &vec![(second, &entities[second])],
-            &vec![(second, &second_update)],
-        );
+        let mut contextless = BatchEntityUpdateContextless::new();
+        contextless
+            .insert(second, {
+                let mut second_update = entities[second].clone();
+                second_update.pos = entities[first].pos;
+                second_update.state = EntityState::Knockdown { next_round: 1 };
+                assert!(second_update.get_occupied_position().is_none());
+                second_update
+            })
+            .unwrap();
+        let batch = contextless.add_context(&entities);
+        let _occupiers = occupiers.update_entities(&batch);
     }
 }

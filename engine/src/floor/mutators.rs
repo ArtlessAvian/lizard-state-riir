@@ -7,9 +7,9 @@ use rkyv::Serialize;
 use crate::actions::events::FloorEvent;
 use crate::actions::events::GetDownedEvent;
 use crate::actions::events::MissionFailedEvent;
+use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
-use crate::entity::EntitySet;
 use crate::entity::EntityState;
 use crate::writer::Writer;
 
@@ -27,9 +27,10 @@ impl DownedStateMutator {
     pub fn mutate_entities(
         &self,
         current_round: u32,
-        old_set: &EntitySet,
-        new_set: &mut HashMap<EntityId, Entity>,
+        batch: &mut BatchEntityUpdate,
     ) -> Writer<Self, FloorEvent> {
+        let old_set = batch.context;
+        let new_set: &mut HashMap<EntityId, Entity> = &mut batch.contextless.0;
         let mut out = Writer::new(self.clone());
 
         for (id, e) in new_set.iter_mut() {

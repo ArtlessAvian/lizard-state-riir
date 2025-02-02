@@ -179,56 +179,41 @@ impl Floor {
         self.update_entities_batch(contextless.add_context(&self.entities))
     }
 
-    pub fn update_entities_batch(&self, batch: BatchEntityUpdate) -> FloorUpdate {
+    pub fn update_entities_batch(&self, mut batch: BatchEntityUpdate) -> FloorUpdate {
         assert!(std::ptr::eq(batch.context, &self.entities));
 
-        let diffed_entities = batch.into_diffed_entities().collect::<Vec<_>>();
-
-        let old_set = dbg!(diffed_entities
-            .iter()
-            .map(|(id, (old, _))| (*id, *old))
-            .collect::<Vec<_>>());
-        let mut new_set = dbg!(diffed_entities
-            .into_iter()
-            .map(|(id, (_, new))| (id, new))
-            .collect::<HashMap<_, _>>());
-
-        Writer::transpose(self.downing.as_ref().map(|some| {
-            some.mutate_entities(self.get_current_round(), &self.entities, &mut new_set)
-        }))
+        Writer::transpose(
+            self.downing
+                .as_ref()
+                .map(|some| some.mutate_entities(self.get_current_round(), &mut batch)),
+        )
+        .zip({
+            Writer::transpose(self.vision.as_ref().map(|x| {
+                x.update_entities(
+                    &batch
+                        .contextless
+                        .updated_entities()
+                        .map(|(a, b)| (*a, b))
+                        .collect(),
+                    &self.map,
+                )
+            }))
+        })
         .make_pair({
-            let mut next_entities = self.entities.clone();
-            for (new_id, new) in new_set {
-                next_entities.overwrite(new_id, new);
-            }
-            next_entities
-        })
-        .borrow_and_zip(|(_, next_entities)| {
-            let new_ref_set: Vec<(EntityId, &Entity)> = old_set
-                .iter()
-                .map(|(id, _)| (*id, &next_entities[*id]))
-                .collect();
-
-            Writer::transpose(
-                self.vision
-                    .as_ref()
-                    .map(|x| x.update_entities(&new_ref_set, &self.map)),
-            )
-            .make_pair({
-                for (_, new) in &new_ref_set {
-                    if let Some(pos) = new.get_occupied_position() {
-                        assert!(
-                            self.map.is_tile_floor(&pos),
-                            "Updated entity occupies wall position."
-                        );
-                    }
+            for (_, new) in batch.contextless.updated_entities() {
+                if let Some(pos) = new.get_occupied_position() {
+                    assert!(
+                        self.map.is_tile_floor(&pos),
+                        "Updated entity occupies wall position."
+                    );
                 }
+            }
 
-                self.occupiers.update_entities(&old_set, &new_ref_set)
-            })
+            self.occupiers.update_entities(&batch)
         })
+        .make_pair(batch.commit())
         .bind(
-            |((next_dying, next_entities), (next_vision, next_occupiers))| {
+            |(((next_dying, next_vision), next_occupiers), next_entities)| {
                 FloorUpdate::new(Floor {
                     entities: next_entities,
                     occupiers: next_occupiers,

@@ -301,6 +301,7 @@ impl Default for EntityState {
     }
 }
 
+#[derive(Debug)]
 pub struct AlreadyPresent;
 
 /// Write only hashmap. Cannot replace keys.
