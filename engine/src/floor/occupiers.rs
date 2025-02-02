@@ -42,13 +42,13 @@ impl Occupiers {
     pub fn update_entities(&self, batch: &BatchEntityUpdate) -> Self {
         let mut clone = self.clone();
 
-        for (id, old) in batch.old_entities() {
+        for (id, old) in batch.iter_old() {
             if let Some(pos) = old.get_occupied_position() {
                 let remove = clone.0.remove(&pos);
                 assert!(remove.is_some_and(|x| x == *id));
             }
         }
-        for (id, new) in batch.contextless.updated_entities() {
+        for (id, new) in batch.contextless.iter_updated() {
             if let Some(pos) = new.get_occupied_position() {
                 match clone.0.entry(pos) {
                     Entry::Occupied(_) => {
@@ -79,7 +79,7 @@ impl Default for Occupiers {
 #[cfg(test)]
 mod test {
     use super::Occupiers;
-    use crate::entity::BatchEntityUpdateContextless;
+    use crate::entity::BatchEntityUpdate;
     use crate::entity::Entity;
     use crate::entity::EntitySet;
     use crate::positional::AbsolutePosition;
@@ -128,15 +128,12 @@ mod test {
         });
         let occupiers = occupiers.add_entity((second, &entities[second]));
 
-        let mut contextless = BatchEntityUpdateContextless::new();
-        contextless
-            .insert(second, {
-                let mut second_update = entities[second].clone();
-                second_update.pos = entities[first].pos;
-                second_update
-            })
-            .unwrap();
-        let batch = contextless.add_context(&entities);
+        let mut batch = BatchEntityUpdate::new(&entities);
+        batch.apply_and_insert(second, |e: &Entity| {
+            let mut second_update = e.clone();
+            second_update.pos = entities[first].pos;
+            second_update
+        });
         let _should_panic = occupiers.update_entities(&batch);
     }
 
@@ -162,17 +159,15 @@ mod test {
         });
         let occupiers = occupiers.add_entity((second, &entities[second]));
 
-        let mut contextless = BatchEntityUpdateContextless::new();
-        contextless
-            .insert(second, {
-                let mut second_update = entities[second].clone();
-                second_update.pos = entities[first].pos;
-                second_update.state = EntityState::Knockdown { next_round: 1 };
-                assert!(second_update.get_occupied_position().is_none());
-                second_update
-            })
-            .unwrap();
-        let batch = contextless.add_context(&entities);
+        let mut batch = BatchEntityUpdate::new(&entities);
+        batch.apply_and_insert(second, |e: &Entity| {
+            let mut second_update = e.clone();
+            second_update.pos = entities[first].pos;
+            second_update.state = EntityState::Knockdown { next_round: 1 };
+            assert!(second_update.get_occupied_position().is_none());
+            second_update
+        });
+
         let _occupiers = occupiers.update_entities(&batch);
     }
 }

@@ -163,7 +163,12 @@ impl EntitySet {
     }
 
     pub fn overwrite(&mut self, id: EntityId, value: Entity) {
-        self.0[id.0] = Rc::new(value);
+        // Avoid creating a new Rc and dropping the old one.
+        if let Some(slot) = Rc::get_mut(&mut self.0[id.0]) {
+            *slot = value;
+        } else {
+            self.0[id.0] = Rc::new(value);
+        }
     }
 
     #[must_use]
@@ -321,13 +326,20 @@ impl BatchEntityUpdateContextless {
 
     /// Stores an `Entity` with an existing `EntityId` to be updated.
     ///
+    /// Since it is possible to access raw entities from an `EntitySet`,
+    /// care is taken to prevent accessing the same `(EntityId, Entity)` twice, editing them
+    /// differently, and adding them to the batch. So, it returns Result.
+    ///
     /// # Errors
     ///
     /// This function will return an error if the `EntityId` is already present.
-    pub fn insert(&mut self, k: EntityId, v: Entity) -> Result<&mut Entity, AlreadyPresent> {
+    pub fn insert(&mut self, k: EntityId, v: Entity) -> Result<(), AlreadyPresent> {
         match self.0.entry(k) {
             Entry::Occupied(_) => Err(AlreadyPresent),
-            Entry::Vacant(vacant) => Ok(vacant.insert(v)),
+            Entry::Vacant(vacant) => {
+                vacant.insert(v);
+                Ok(())
+            }
         }
     }
 
@@ -339,16 +351,12 @@ impl BatchEntityUpdateContextless {
         }
     }
 
-    pub fn ids(&self) -> impl Iterator<Item = &EntityId> {
+    pub fn iter_ids(&self) -> impl Iterator<Item = &EntityId> {
         self.0.keys()
     }
 
-    pub fn updated_entities(&self) -> impl Iterator<Item = (&EntityId, &Entity)> {
+    pub fn iter_updated(&self) -> impl Iterator<Item = (&EntityId, &Entity)> {
         self.0.iter()
-    }
-
-    pub fn into_updated_entities(self) -> impl Iterator<Item = (EntityId, Entity)> {
-        self.0.into_iter()
     }
 }
 
@@ -375,25 +383,65 @@ impl<'a> BatchEntityUpdate<'a> {
         out
     }
 
-    // #[must_use]
-    // pub fn preview(&self, k: EntityId) -> &Entity {
-    //     self.updates.0.get(&k).unwrap_or(self.context.index(k))
-    // }
-
-    pub fn old_entities(&self) -> impl Iterator<Item = (&EntityId, &Entity)> {
-        self.contextless.ids().map(|id| (id, &self.context[*id]))
+    #[must_use]
+    pub fn get_latest(&self, k: EntityId) -> &Entity {
+        self.contextless.0.get(&k).unwrap_or(self.context.index(k))
     }
 
-    pub fn diffed_entities(&self) -> impl Iterator<Item = (&EntityId, (&Entity, &Entity))> {
+    /// Applies `f` to the `Entity` with id `k` and stores the result.
+    pub fn apply_and_insert<F>(&mut self, k: EntityId, f: F) -> &mut Self
+    where
+        F: FnOnce(&Entity) -> Entity,
+    {
+        self.contextless.0.insert(k, f(self.get_latest(k)));
+        self
+    }
+
+    /// Applies `f` to *every* `Entity` and stores the results if Some.
+    /// Each updated entity is independent from each other.
+    pub fn map_or_noop<F>(&mut self, f: F) -> &mut Self
+    where
+        F: Fn(&EntityId, &Entity) -> Option<Entity>,
+    {
+        for k in self.context.iter_ids() {
+            f(&k, self.get_latest(k)).map(|some| self.contextless.0.insert(k, some));
+        }
+        self
+    }
+
+    /// Applies `f` to *every* `Entity` and stores the results if Some.
+    /// Each updated entity is independent from each other.
+    #[must_use]
+    pub fn map_or_noop_with_side<F, SideOutput>(&mut self, f: F) -> Box<[SideOutput]>
+    where
+        F: Fn(&EntityId, &Entity) -> (Option<Entity>, Option<SideOutput>),
+    {
+        self.context
+            .iter_ids()
+            .filter_map(|k| {
+                let opts = f(&k, self.get_latest(k));
+                if let Some(some) = opts.0 {
+                    self.contextless.0.insert(k, some);
+                }
+                opts.1
+            })
+            .collect()
+    }
+
+    pub fn iter_old(&self) -> impl Iterator<Item = (&EntityId, &Entity)> {
         self.contextless
-            .updated_entities()
+            .iter_ids()
+            .map(|id| (id, &self.context[*id]))
+    }
+
+    pub fn iter_diffs(&self) -> impl Iterator<Item = (&EntityId, (&Entity, &Entity))> {
+        self.contextless
+            .iter_updated()
             .map(|(id, new)| (id, (self.context.index(*id), new)))
     }
 
-    pub fn into_diffed_entities(self) -> impl Iterator<Item = (EntityId, (&'a Entity, Entity))> {
-        self.contextless
-            .into_updated_entities()
-            .map(|(id, new)| (id, (self.context.index(id), new)))
+    pub fn iter_latest(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
+        self.context.iter_ids().map(|k| (k, self.get_latest(k)))
     }
 }
 

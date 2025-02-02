@@ -192,7 +192,7 @@ impl Floor {
                 x.update_entities(
                     &batch
                         .contextless
-                        .updated_entities()
+                        .iter_updated()
                         .map(|(a, b)| (*a, b))
                         .collect(),
                     &self.map,
@@ -200,7 +200,7 @@ impl Floor {
             }))
         })
         .make_pair({
-            for (_, new) in batch.contextless.updated_entities() {
+            for (_, new) in batch.contextless.iter_updated() {
                 if let Some(pos) = new.get_occupied_position() {
                     assert!(
                         self.map.is_tile_floor(&pos),
