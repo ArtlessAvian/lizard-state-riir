@@ -55,6 +55,22 @@ impl<T, Payload> Writer<T, Payload> {
         self.bind(|t| Writer::transpose(f(&t)).map(|opt| opt.unwrap_or(t)))
     }
 
+    pub fn borrow_and_pair<U, F>(self, f: F) -> Writer<(T, U), Payload>
+    where
+        F: FnOnce(&T) -> U,
+    {
+        let apply = f(&self.contents);
+        self.make_pair(apply)
+    }
+
+    pub fn borrow_and_zip<U, F>(self, f: F) -> Writer<(T, U), Payload>
+    where
+        F: FnOnce(&T) -> Writer<U, Payload>,
+    {
+        let to_zip = f(self.get_contents());
+        self.zip(to_zip)
+    }
+
     // Combines two writers. Appends the log of the second to the first.
     // See Option::zip.
     pub fn zip<U>(self, other: Writer<U, Payload>) -> Writer<(T, U), Payload> {

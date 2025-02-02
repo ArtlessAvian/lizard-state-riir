@@ -172,39 +172,42 @@ impl Floor {
             .map(|id| (*id, &self.entities[*id]))
             .collect::<Vec<(EntityId, &Entity)>>();
 
-        let log = self.downing.as_ref().map(|some| {
+        Writer::transpose(self.downing.as_ref().map(|some| {
             some.mutate_entities(self.get_current_round(), &self.entities, &mut new_set)
-        });
-
-        let mut next_entities = self.entities.clone();
-        for (new_id, new) in new_set {
-            next_entities.overwrite(new_id, new);
-        }
-
-        let new_ref_set: Vec<(EntityId, &Entity)> = old_set
-            .iter()
-            .map(|(id, _)| (*id, &next_entities[*id]))
-            .collect();
-
-        let next_occupiers = self.occupiers.update_entities(&old_set, &new_ref_set);
-
-        for (_, new) in &new_ref_set {
-            if let Some(pos) = new.get_occupied_position() {
-                assert!(
-                    self.map.is_tile_floor(&pos),
-                    "Updated entity occupies wall position."
-                );
+        }))
+        .make_pair({
+            let mut next_entities = self.entities.clone();
+            for (new_id, new) in new_set {
+                next_entities.overwrite(new_id, new);
             }
-        }
+            next_entities
+        })
+        .borrow_and_zip(|(_, next_entities)| {
+            let new_ref_set: Vec<(EntityId, &Entity)> = old_set
+                .iter()
+                .map(|(id, _)| (*id, &next_entities[*id]))
+                .collect();
 
-        // TODO: Fix monad manipulation from hell.
-        Writer::transpose(log)
-            .zip(Writer::transpose(
+            Writer::transpose(
                 self.vision
                     .as_ref()
                     .map(|x| x.update_entities(&new_ref_set, &self.map)),
-            ))
-            .bind(|(next_dying, next_vision)| {
+            )
+            .make_pair({
+                for (_, new) in &new_ref_set {
+                    if let Some(pos) = new.get_occupied_position() {
+                        assert!(
+                            self.map.is_tile_floor(&pos),
+                            "Updated entity occupies wall position."
+                        );
+                    }
+                }
+
+                self.occupiers.update_entities(&old_set, &new_ref_set)
+            })
+        })
+        .bind(
+            |((next_dying, next_entities), (next_vision, next_occupiers))| {
                 FloorUpdate::new(Floor {
                     entities: next_entities,
                     occupiers: next_occupiers,
@@ -212,7 +215,8 @@ impl Floor {
                     downing: next_dying,
                     vision: next_vision,
                 })
-            })
+            },
+        )
     }
 
     // TODO: Return set of entities?
