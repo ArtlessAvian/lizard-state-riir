@@ -26,7 +26,7 @@ use crate::positional::RelativePosition;
 
 // Steps forward and sweeps at the start of next turn.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct ForwardHeavyAction;
 
 impl DirectionActionTrait for ForwardHeavyAction {
@@ -85,7 +85,7 @@ impl CommandTrait for ForwardHeavyCommand {
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub(crate) struct ForwardHeavyFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
@@ -139,7 +139,7 @@ impl CommandTrait for ForwardHeavyFollowup {
 
 // Steps forward and sweeps at the start of next turn.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct TrackingAction;
 
 impl TileActionTrait for TrackingAction {
@@ -182,7 +182,7 @@ impl From<TrackingAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub(crate) struct TrackingFollowup {
     tracking_id: EntityId,
     subject_id: EntityId,

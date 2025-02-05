@@ -18,7 +18,7 @@ use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct EnterSmiteStanceAction;
 
 impl TileActionTrait for EnterSmiteStanceAction {
@@ -56,7 +56,7 @@ impl CommandTrait for EnterSmiteStanceCommand {
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct StanceSmiteAction {
     tile: AbsolutePosition,
 }

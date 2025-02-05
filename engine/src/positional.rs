@@ -27,7 +27,7 @@ use rkyv::Serialize;
     PartialOrd,
     Ord,
 )]
-#[archive_attr(derive(Hash, PartialEq, Eq, Debug))]
+#[rkyv(derive(Hash, PartialEq, Eq, Debug))]
 pub struct RelativePosition {
     pub dx: i32,
     pub dy: i32,
@@ -113,7 +113,7 @@ impl RelativePosition {
     Ord,
     Default,
 )]
-#[archive_attr(derive(Hash, PartialEq, Eq, Debug))]
+#[rkyv(derive(Hash, PartialEq, Eq, Debug))]
 pub struct AbsolutePosition {
     pub x: i32,
     pub y: i32,

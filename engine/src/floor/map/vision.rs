@@ -20,7 +20,7 @@ use crate::writer::Writer;
 static STRICT_FOV: OnceLock<StrictFOV> = OnceLock::new();
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct FloorMapVision {
     entity_last_at: HashMap<EntityId, AbsolutePosition>,
     map_vision: HashMap<EntityId, HashMap<AbsolutePosition, FloorTile>>,

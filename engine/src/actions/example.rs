@@ -25,7 +25,7 @@ use crate::positional::RelativePosition;
 
 // Hits once, then queues another.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct DoubleHitAction;
 
 impl DirectionActionTrait for DoubleHitAction {
@@ -105,7 +105,7 @@ impl CommandTrait for DoubleHitCommand {
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub(crate) struct DoubleHitFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
@@ -151,7 +151,7 @@ impl CommandTrait for DoubleHitFollowup {
 
 // Waits a turn, then lets the user do a big attack or exit stance.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct EnterStanceAction;
 
 impl ActionTrait for EnterStanceAction {
@@ -184,7 +184,7 @@ impl CommandTrait for EnterStanceCommand {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct ExitStanceAction;
 
 impl ActionTrait for ExitStanceAction {

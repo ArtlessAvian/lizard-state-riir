@@ -31,7 +31,7 @@ use crate::strategy::Strategy;
     Deserialize,
     Default,
 )]
-#[archive_attr(derive(Debug, PartialEq, Eq, Hash))]
+#[rkyv(derive(Debug, PartialEq, Eq, Hash))]
 pub struct EntityId(usize);
 
 /// An entity as it exists in a Floor.
@@ -40,7 +40,7 @@ pub struct EntityId(usize);
 /// Outside a Floor, entities have a statline (`health`, etc.) and some constant data (`max_health`, etc.).
 // TODO: Split into an EntityData. Wrap with Entity when added to a Floor?
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 #[cfg_attr(test, derive(Default))]
 pub struct Entity {
     // Turntaking and state are highly correlated, and changing one usually implies something about the other.
@@ -147,7 +147,7 @@ impl Entity {
 // Remove should never be implemented. If something were to be removed,
 // mark it as unalive or exited and remove it from turntaking.
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct EntitySet(Vec<Rc<Entity>>);
 
 impl EntitySet {
@@ -245,7 +245,7 @@ impl<'a> IntoIterator for &'a mut EntitySet {
 // TODO: Maybe split into ALIVE and UNALIVE.
 //       ALIVE would contain next_turn, health, and a further breakdown of state.
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub enum EntityState {
     Ok {
         next_round: u32,

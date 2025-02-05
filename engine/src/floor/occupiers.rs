@@ -11,7 +11,7 @@ use crate::entity::EntityId;
 use crate::positional::AbsolutePosition;
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct Occupiers(HashMap<AbsolutePosition, EntityId>);
 
 impl Occupiers {

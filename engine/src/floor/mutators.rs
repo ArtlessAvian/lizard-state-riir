@@ -16,7 +16,7 @@ use crate::writer::Writer;
 // All of the may panic currently. Yippee.
 // (Maybe accelerants purely manage data and do not log. Eg a sorter for fast range queries. slice on x, then filter on y.)
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct DownedStateMutator;
 
 impl DownedStateMutator {

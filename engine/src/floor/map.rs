@@ -15,7 +15,7 @@ use crate::positional::AbsolutePosition;
 
 // TODO: Decide whether to use non_exhaustive.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 #[non_exhaustive]
 pub enum FloorTile {
     FLOOR,
@@ -31,12 +31,12 @@ impl FloorTile {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[rkyv(derive(Debug))]
 pub struct FloorMap {
     pub tiles: Rc<HashMap<AbsolutePosition, FloorTile>>,
     // TODO: Link tiles' lifetime to pathfinder's lifetime.
     // TODO: Figure out rkyv interaction with pathfinder.
-    #[with(Skip)]
+    #[rkyv(with = Skip)]
     pub pathfinder: Rc<OnceCell<RefCell<PathfindingContext<'static>>>>,
     pub default: FloorTile,
 }
