@@ -70,27 +70,20 @@ impl FloorMapVision {
         new: (EntityId, &Entity),
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
-        self.update_entity(new, map)
+        self.update_entities([new], map)
     }
 
-    pub fn update_entity(
+    pub fn update_entities<'a>(
         &self,
-        new: (EntityId, &Entity),
-        map: &FloorMap,
-    ) -> Writer<FloorMapVision, FloorEvent> {
-        self.update_entities(&vec![new], map)
-    }
-
-    pub fn update_entities(
-        &self,
-        new_set: &Vec<(EntityId, &Entity)>,
+        new_set: impl IntoIterator<Item = (EntityId, &'a Entity)> + 'a,
         map: &FloorMap,
     ) -> Writer<FloorMapVision, FloorEvent> {
         let mut out = Writer::new(self.clone());
         for (id, new) in new_set {
-            if out.get_contents().entity_last_at.get(id) != Some(&new.pos) && new.is_player_friendly
+            if out.get_contents().entity_last_at.get(&id) != Some(&new.pos)
+                && new.is_player_friendly
             {
-                out = out.bind(|vision| vision.update_and_emit_event((*id, new), map));
+                out = out.bind(|vision| vision.update_and_emit_event((id, new), map));
             }
         }
         out

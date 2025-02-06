@@ -45,7 +45,7 @@ impl Occupiers {
         for (id, old) in batch.iter_old() {
             if let Some(pos) = old.get_occupied_position() {
                 let remove = clone.0.remove(&pos);
-                assert!(remove.is_some_and(|x| x == *id));
+                assert!(remove.is_some_and(|x| x == id));
             }
         }
         for (id, new) in batch.contextless.iter_updated() {
@@ -55,7 +55,7 @@ impl Occupiers {
                         panic!("Updated entities occupy same position as another entity.")
                     }
                     Entry::Vacant(vacancy) => {
-                        vacancy.insert(*id);
+                        vacancy.insert(id);
                     }
                 }
             }

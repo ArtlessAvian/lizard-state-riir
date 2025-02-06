@@ -61,7 +61,7 @@ impl DownedStateMutator {
             .iter_updated()
             .filter_map(|(id, e)| {
                 if e.is_player_friendly && matches!(e.state, EntityState::Downed { .. }) {
-                    Some(*id)
+                    Some(id)
                 } else {
                     None
                 }

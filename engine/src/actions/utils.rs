@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::num::NonZero;
 use std::ops::DerefMut;
@@ -74,7 +75,7 @@ impl CommandTrait for TakeKnockbackUtil {
 
 #[derive(Debug)]
 pub struct MultiKnockbackUtil {
-    pub all_displacements: Vec<(EntityId, RelativePosition)>,
+    pub all_displacements: HashMap<EntityId, RelativePosition>,
 }
 
 impl CommandTrait for MultiKnockbackUtil {
@@ -348,10 +349,10 @@ mod tests {
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
-                all_displacements: vec![
+                all_displacements: HashMap::from([
                     (id, RelativePosition::new(1, 0)),
                     (other, RelativePosition::new(1, 0)),
-                ],
+                ]),
             }
             .do_action(&floor)
         });
@@ -364,20 +365,18 @@ mod tests {
             update.get_contents().entities[other].pos,
             AbsolutePosition::new(2, 0)
         );
-        assert_eq!(
-            update.get_log()[0],
-            FloorEvent::KnockbackEvent(KnockbackEvent {
+        assert!(update
+            .get_log()
+            .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
                 subject: id,
                 tile: AbsolutePosition::new(1, 0)
-            })
-        );
-        assert_eq!(
-            update.get_log()[1],
-            FloorEvent::KnockbackEvent(KnockbackEvent {
+            })));
+        assert!(update
+            .get_log()
+            .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
                 subject: other,
                 tile: AbsolutePosition::new(2, 0)
-            })
-        );
+            })));
     }
 
     #[test]
@@ -395,7 +394,7 @@ mod tests {
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
-                all_displacements: vec![(id, RelativePosition::new(1, 0))],
+                all_displacements: HashMap::from([(id, RelativePosition::new(1, 0))]),
             }
             .do_action(&floor)
         });
@@ -444,10 +443,10 @@ mod tests {
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
-                all_displacements: vec![
+                all_displacements: HashMap::from([
                     (id, RelativePosition::new(1, 0)),
                     (other, RelativePosition::new(1, 0)),
-                ],
+                ]),
             }
             .do_action(&floor)
         });
@@ -456,24 +455,22 @@ mod tests {
             update.get_contents().entities[id].pos,
             AbsolutePosition::new(1, 0)
         );
-        assert_eq!(
-            update.get_log()[0],
-            FloorEvent::KnockbackEvent(KnockbackEvent {
+        assert!(update
+            .get_log()
+            .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
                 subject: id,
                 tile: AbsolutePosition::new(1, 0)
-            })
-        );
+            })));
         assert_eq!(
             update.get_contents().entities[other].pos,
             AbsolutePosition::new(1, 0)
         );
-        assert_eq!(
-            update.get_log()[1],
-            FloorEvent::KnockbackEvent(KnockbackEvent {
+        assert!(update
+            .get_log()
+            .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
                 subject: other,
                 tile: AbsolutePosition::new(1, 0)
-            })
-        );
+            })));
         assert!(matches!(
             update.get_contents().entities[other].state,
             EntityState::Knockdown { next_round: 0 }

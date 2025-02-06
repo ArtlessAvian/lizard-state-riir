@@ -353,12 +353,12 @@ impl BatchEntityUpdateContextless {
         }
     }
 
-    pub fn iter_ids(&self) -> impl Iterator<Item = &EntityId> {
-        self.0.keys()
+    pub fn iter_ids(&'_ self) -> impl Iterator<Item = EntityId> + '_ {
+        self.0.keys().copied()
     }
 
-    pub fn iter_updated(&self) -> impl Iterator<Item = (&EntityId, &Entity)> {
-        self.0.iter()
+    pub fn iter_updated(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
+        self.0.iter().map(|(a, b)| (*a, b))
     }
 }
 
@@ -445,16 +445,16 @@ impl<'a> BatchEntityUpdate<'a> {
         out
     }
 
-    pub fn iter_old(&self) -> impl Iterator<Item = (&EntityId, &Entity)> {
+    pub fn iter_old(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
         self.contextless
             .iter_ids()
-            .map(|id| (id, &self.context[*id]))
+            .map(|id| (id, &self.context[id]))
     }
 
-    pub fn iter_diffs(&self) -> impl Iterator<Item = (&EntityId, (&Entity, &Entity))> {
+    pub fn iter_diffs(&self) -> impl Iterator<Item = (EntityId, (&Entity, &Entity))> {
         self.contextless
             .iter_updated()
-            .map(|(id, new)| (id, (self.context.index(*id), new)))
+            .map(|(id, new)| (id, (self.context.index(id), new)))
     }
 
     pub fn iter_latest(&self) -> impl Iterator<Item = (EntityId, &Entity)> {

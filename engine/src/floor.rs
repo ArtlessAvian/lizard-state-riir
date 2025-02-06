@@ -151,9 +151,7 @@ impl Floor {
     }
 
     pub fn update_entity(&self, new: (EntityId, Entity)) -> FloorUpdate {
-        self.update_entities_contextless(BatchEntityUpdateContextless::wrap(
-            std::iter::once(new).collect(),
-        ))
+        self.update_entities_contextless(BatchEntityUpdateContextless::wrap([new].into()))
     }
 
     pub fn update_entities_contextless(
@@ -172,16 +170,11 @@ impl Floor {
                 .map(|some| some.mutate_entities(self.get_current_round(), &mut batch)),
         )
         .zip({
-            Writer::transpose(self.vision.as_ref().map(|x| {
-                x.update_entities(
-                    &batch
-                        .contextless
-                        .iter_updated()
-                        .map(|(a, b)| (*a, b))
-                        .collect(),
-                    &self.map,
-                )
-            }))
+            Writer::transpose(
+                self.vision
+                    .as_ref()
+                    .map(|x| x.update_entities(batch.contextless.iter_updated(), &self.map)),
+            )
         })
         .make_pair({
             for (_, new) in batch.contextless.iter_updated() {
