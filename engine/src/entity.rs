@@ -174,7 +174,7 @@ impl EntitySet {
     }
 
     #[must_use]
-    pub fn contains_id(&self, id: &EntityId) -> bool {
+    pub fn contains_id(&self, id: EntityId) -> bool {
         (0..self.0.len()).contains(&id.0)
     }
 

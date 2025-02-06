@@ -35,7 +35,7 @@ impl DirectionActionTrait for DoubleHitAction {
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains_id(&subject_id));
+        assert!(floor.entities.contains_id(subject_id));
 
         if dir.length() > 1 {
             return None;
