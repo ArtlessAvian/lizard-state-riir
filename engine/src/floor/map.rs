@@ -18,15 +18,15 @@ use crate::positional::AbsolutePosition;
 #[archive_attr(derive(Debug))]
 #[non_exhaustive]
 pub enum FloorTile {
-    FLOOR,
-    WALL,
+    Floor,
+    Wall,
 }
 
 impl FloorTile {
     #[must_use]
-    pub fn is_tile_floor(&self) -> bool {
+    pub fn is_tile_floor(self) -> bool {
         // clean (and obvious) but more floors will be added ig.
-        matches!(self, FloorTile::FLOOR)
+        matches!(self, FloorTile::Floor)
     }
 }
 
@@ -46,7 +46,7 @@ impl FloorMap {
     pub fn new_empty() -> Self {
         FloorMap {
             tiles: Rc::new(HashMap::new()),
-            default: FloorTile::FLOOR, // "outdoors" map.
+            default: FloorTile::Floor, // "outdoors" map.
             pathfinder: Rc::new(OnceCell::new()),
         }
     }
@@ -55,18 +55,18 @@ impl FloorMap {
     pub fn new_with_tiles(tiles: HashMap<AbsolutePosition, FloorTile>) -> Self {
         FloorMap {
             tiles: Rc::new(tiles),
-            default: FloorTile::WALL, // "indoors" map.
+            default: FloorTile::Wall, // "indoors" map.
             pathfinder: Rc::new(OnceCell::new()),
         }
     }
 
     #[must_use]
-    pub fn get_tile(&self, pos: &AbsolutePosition) -> &FloorTile {
-        self.tiles.get(pos).unwrap_or(&self.default)
+    pub fn get_tile(&self, pos: AbsolutePosition) -> &FloorTile {
+        self.tiles.get(&pos).unwrap_or(&self.default)
     }
 
     #[must_use]
-    pub fn is_tile_floor(&self, pos: &AbsolutePosition) -> bool {
+    pub fn is_tile_floor(&self, pos: AbsolutePosition) -> bool {
         self.get_tile(pos).is_tile_floor()
     }
 

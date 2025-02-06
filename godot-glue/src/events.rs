@@ -191,7 +191,7 @@ impl SeeMapEvent {
                 .map(|(pos, tile)| {
                     (
                         AbsolutePosition::from(*pos),
-                        *tile == engine::floor::map::FloorTile::FLOOR,
+                        *tile == engine::floor::map::FloorTile::Floor,
                     )
                 })
                 .collect(),

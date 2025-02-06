@@ -113,11 +113,11 @@ impl FloorMapVision {
         // HACK: StrictFOV doesn't make sense for vision. You can *infer* extra data (what is/isn't a wall) from what is returned.
         let fov = STRICT_FOV.get_or_init(|| StrictFOV::new(8));
 
-        fov.get_field_of_view_tiles(pos, 8, |x| !map.is_tile_floor(&x))
+        fov.get_field_of_view_tiles(pos, 8, |x| !map.is_tile_floor(x))
             .into_iter()
             .collect::<HashSet<AbsolutePosition>>() // To dedup given Hash.
             .into_iter()
-            .map(|key| (key, *map.get_tile(&key)))
+            .map(|key| (key, *map.get_tile(key)))
             .collect()
     }
 }

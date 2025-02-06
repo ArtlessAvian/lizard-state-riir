@@ -34,7 +34,7 @@ impl CommandTrait for TakeKnockbackUtil {
             .0
             .into_iter()
             .map(|offset| floor.entities[self.entity].pos + offset)
-            .take_while(|tile| floor.map.is_tile_floor(tile))
+            .take_while(|tile| floor.map.is_tile_floor(*tile))
             .collect::<Vec<_>>();
 
         let final_position = *swept_tiles
@@ -92,7 +92,7 @@ impl CommandTrait for MultiKnockbackUtil {
                         .0
                         .into_iter()
                         .map(|offset| floor.entities[*id].pos + offset)
-                        .take_while(|tile| floor.map.is_tile_floor(tile))
+                        .take_while(|tile| floor.map.is_tile_floor(*tile))
                         .collect::<Vec<_>>(),
                 )
             })
@@ -425,8 +425,8 @@ mod tests {
         let floor = Floor::new_minimal();
         let floor = floor.set_map(FloorMap::new_with_tiles(
             [
-                (AbsolutePosition::new(0, 0), FloorTile::FLOOR),
-                (AbsolutePosition::new(1, 0), FloorTile::FLOOR),
+                (AbsolutePosition::new(0, 0), FloorTile::Floor),
+                (AbsolutePosition::new(1, 0), FloorTile::Floor),
             ]
             .into(),
         ));

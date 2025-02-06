@@ -111,7 +111,7 @@ impl Floor {
         let next_occupiers = self.occupiers.add_entity((id, &next_entities[id]));
 
         assert!(
-            self.map.is_tile_floor(&next_entities[id].pos),
+            self.map.is_tile_floor(next_entities[id].pos),
             "New entity occupies wall position."
         );
 
@@ -135,7 +135,7 @@ impl Floor {
         for entity in &self.entities {
             if let Some(pos) = entity.get_occupied_position() {
                 assert!(
-                    map.is_tile_floor(&pos),
+                    map.is_tile_floor(pos),
                     "Updated map has wall over existing entity."
                 );
             }
@@ -180,7 +180,7 @@ impl Floor {
             for (_, new) in batch.contextless.iter_updated() {
                 if let Some(pos) = new.get_occupied_position() {
                     assert!(
-                        self.map.is_tile_floor(&pos),
+                        self.map.is_tile_floor(pos),
                         "Updated entity occupies wall position."
                     );
                 }

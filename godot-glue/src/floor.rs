@@ -84,9 +84,9 @@ impl ActiveFloor {
                 (
                     AbsolutePosition::new(vec.x, vec.z),
                     if gridmap.get_cell_item(vec) == 0 {
-                        engine::floor::map::FloorTile::FLOOR
+                        engine::floor::map::FloorTile::Floor
                     } else {
-                        engine::floor::map::FloorTile::WALL
+                        engine::floor::map::FloorTile::Wall
                     },
                 )
             })
@@ -107,7 +107,7 @@ impl ActiveFloor {
             .map(|vec| {
                 (
                     AbsolutePosition::new(vec.x, vec.y),
-                    engine::floor::map::FloorTile::FLOOR,
+                    engine::floor::map::FloorTile::Floor,
                 )
             })
             .collect();

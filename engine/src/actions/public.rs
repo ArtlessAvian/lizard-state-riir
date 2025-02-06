@@ -35,7 +35,7 @@ pub struct WaitAction;
 
 impl ActionTrait for WaitAction {
     fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains_id(&subject_id));
+        assert!(floor.entities.contains_id(subject_id));
 
         Some(Box::new(WaitCommand { subject_id }))
     }
@@ -69,7 +69,7 @@ impl DirectionActionTrait for StepAction {
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains_id(&subject_id));
+        assert!(floor.entities.contains_id(subject_id));
 
         if dir.length() != 1 {
             return None;
@@ -77,7 +77,7 @@ impl DirectionActionTrait for StepAction {
 
         if !floor
             .map
-            .is_tile_floor(&(floor.entities[subject_id].pos + dir))
+            .is_tile_floor(floor.entities[subject_id].pos + dir)
         {
             return None;
         }
@@ -134,7 +134,7 @@ impl DirectionActionTrait for BumpAction {
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains_id(&subject_id));
+        assert!(floor.entities.contains_id(subject_id));
 
         if dir.length() != 1 {
             return None;
@@ -278,7 +278,7 @@ impl CommandTrait for GotoCommand {
                 let pathfinder = context.get()?.borrow();
                 let mut step_around = PathfindingContext::new(
                     Box::new(move |pos| {
-                        !map.get_tile(&pos).is_tile_floor()
+                        !map.get_tile(pos).is_tile_floor()
                             || entities
                                 .iter()
                                 .any(|e| e.1.pos == pos && self.subject_id != e.0)
