@@ -8,11 +8,13 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
+use crate::actions::events::FloorEvent;
 use crate::actions::known_serializable::KnownCommand;
 use crate::actions::known_serializable::KnownUnaimedAction;
 use crate::actions::UnaimedAction;
 use crate::positional::AbsolutePosition;
 use crate::strategy::Strategy;
+use crate::writer::Writer;
 
 /// An opaque index into an `EntitySet`.
 //
@@ -397,35 +399,50 @@ impl<'a> BatchEntityUpdate<'a> {
         self
     }
 
-    /// Applies `f` to *every* `Entity` and stores the results if Some.
-    /// Each updated entity is independent from each other.
+    /// Applies `f` to the `Entity` with id `k` and stores the result.
+    pub fn apply_and_insert_writer<F>(&mut self, k: EntityId, f: F) -> Writer<(), FloorEvent>
+    where
+        F: FnOnce(&Entity) -> Writer<Entity, FloorEvent>,
+    {
+        f(self.get_latest(k)).map(|v| {
+            self.contextless.0.insert(k, v);
+        })
+    }
+
+    // There is no `apply_and_insert_or_noop` since you are usually sure you want to
+    // mutate the `Entity` with id `k`.
+
+    /// Applies `f` to *every* `Entity` and only stores the results if Some.
+    /// Each entity is processed independent from each other.
+    /// Order is unspecified.
     pub fn map_or_noop<F>(&mut self, f: F) -> &mut Self
     where
-        F: Fn(&EntityId, &Entity) -> Option<Entity>,
+        F: FnOnce(&EntityId, &Entity) -> Option<Entity> + Copy,
     {
         for k in self.context.iter_ids() {
-            f(&k, self.get_latest(k)).map(|some| self.contextless.0.insert(k, some));
+            if let Some(some) = f(&k, self.get_latest(k)) {
+                self.contextless.0.insert(k, some);
+            }
         }
         self
     }
 
     /// Applies `f` to *every* `Entity` and stores the results if Some.
     /// Each updated entity is independent from each other.
-    #[must_use]
-    pub fn map_or_noop_with_side<F, SideOutput>(&mut self, f: F) -> Box<[SideOutput]>
+    /// Order is unspecified.
+    pub fn map_or_noop_writer<F>(&mut self, f: F) -> Writer<(), FloorEvent>
     where
-        F: Fn(&EntityId, &Entity) -> (Option<Entity>, Option<SideOutput>),
+        F: FnOnce(&EntityId, &Entity) -> Writer<Option<Entity>, FloorEvent> + Copy,
     {
-        self.context
-            .iter_ids()
-            .filter_map(|k| {
-                let opts = f(&k, self.get_latest(k));
-                if let Some(some) = opts.0 {
+        let mut out = Writer::new(());
+        for k in self.context.iter_ids() {
+            out = out.take_writer(f(&k, self.get_latest(k)).map(|opt| {
+                if let Some(some) = opt {
                     self.contextless.0.insert(k, some);
                 }
-                opts.1
-            })
-            .collect()
+            }));
+        }
+        out
     }
 
     pub fn iter_old(&self) -> impl Iterator<Item = (&EntityId, &Entity)> {

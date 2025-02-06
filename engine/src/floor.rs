@@ -2,8 +2,6 @@ pub mod map;
 pub mod mutators;
 pub mod occupiers;
 
-use std::collections::HashMap;
-
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -153,23 +151,9 @@ impl Floor {
     }
 
     pub fn update_entity(&self, new: (EntityId, Entity)) -> FloorUpdate {
-        self.update_entities_map(std::iter::once(new).collect())
-    }
-
-    // TODO: Figure out nicer API that isn't error prone for the caller.
-    // The caller might try update the same entityid twice. This is usually not intended.
-    // The preferred action might be to panic. The caller should make sure to update their existing copy if they intend to make multiple updates.
-    // We can also create a nice type/api to allow mutability of something like [Floor].entities. Cow maybe?
-    pub fn update_entities(&self, new_set: Vec<(EntityId, Entity)>) -> FloorUpdate {
-        let len = new_set.len();
-        let map = new_set.into_iter().collect::<HashMap<EntityId, Entity>>();
-        assert!(map.len() == len);
-        self.update_entities_map(map)
-    }
-
-    // TODO: Figure out nicer API that isn't so annoying for the caller. Maybe newtype around HashMap?
-    pub fn update_entities_map(&self, new_set: HashMap<EntityId, Entity>) -> FloorUpdate {
-        self.update_entities_contextless(BatchEntityUpdateContextless::wrap(new_set))
+        self.update_entities_contextless(BatchEntityUpdateContextless::wrap(
+            std::iter::once(new).collect(),
+        ))
     }
 
     pub fn update_entities_contextless(

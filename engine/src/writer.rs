@@ -1,3 +1,6 @@
+use std::ops::Deref;
+use std::ops::DerefMut;
+
 #[derive(Debug)]
 #[must_use]
 pub struct Writer<T, Payload> {
@@ -37,8 +40,10 @@ impl<T, Payload> Writer<T, Payload> {
     where
         F: FnOnce(T) -> U,
     {
-        let Writer { contents, log } = self;
-        Writer::new_with_log(f(contents), log)
+        Writer::<U, Payload> {
+            contents: f(self.contents),
+            log: self.log,
+        }
     }
 
     pub fn bind<U, F>(self, f: F) -> Writer<U, Payload>
@@ -54,6 +59,20 @@ impl<T, Payload> Writer<T, Payload> {
     {
         self.bind(|t| Writer::transpose(f(&t)).map(|opt| opt.unwrap_or(t)))
     }
+
+    // /// An abomination. It *looks* clean, but on the caller side, uhhh.
+    // /// I would recommend *not* creating an iterator of fs.
+    // pub fn bind_compose<F, I>(self, fs: I) -> Self
+    // where
+    //     F: FnOnce(T) -> Self,
+    //     I: IntoIterator<Item = F>,
+    // {
+    //     let mut out = self;
+    //     for f in fs {
+    //         out = out.bind(f);
+    //     }
+    //     out
+    // }
 
     pub fn borrow_and_pair<U, F>(self, f: F) -> Writer<(T, U), Payload>
     where
@@ -77,9 +96,23 @@ impl<T, Payload> Writer<T, Payload> {
         self.bind(|t| other.map(|u| (t, u)))
     }
 
+    // Appends the log of the second to the first.
+    // See Option::zip.
+    pub fn zip_nothing(self, other: Writer<(), Payload>) -> Writer<T, Payload> {
+        self.bind(|t| other.take(t))
+    }
+
     pub fn log(mut self, line: Payload) -> Self {
         self.log.push(line);
         self
+    }
+
+    pub fn peek_and_log<F>(self, f: F) -> Self
+    where
+        F: FnOnce(&T) -> Payload,
+    {
+        let line = f(&self.contents);
+        self.log(line)
     }
 
     pub fn log_each(mut self, lines: impl IntoIterator<Item = Payload>) -> Self {
@@ -97,7 +130,7 @@ impl<T, Payload> Writer<T, Payload> {
 }
 
 impl<T, Payload> Writer<Writer<T, Payload>, Payload> {
-    fn flatten(self) -> Writer<T, Payload> {
+    pub fn flatten(self) -> Writer<T, Payload> {
         let Writer {
             contents: inner,
             log: mut outer_log,
@@ -125,5 +158,74 @@ impl<Keep, Extract, Payload> Writer<(Keep, Extract), Payload> {
 
     pub fn swap_pair(self) -> Writer<(Extract, Keep), Payload> {
         self.map(|(t, u)| (u, t))
+    }
+}
+
+/// There are some manips you can do with this.
+/// If you can, prefer `Vec<Payload>` or `impl IntoIterator<Item = Payload>`.
+impl<Payload> Writer<(), Payload> {
+    pub fn new_payload(payload: Payload) -> Self {
+        Self {
+            contents: (),
+            log: vec![payload],
+        }
+    }
+
+    pub fn from_payloads(payloads: impl IntoIterator<Item = Payload>) -> Self {
+        Self {
+            contents: (),
+            log: payloads.into_iter().collect(),
+        }
+    }
+
+    /// More literate version of `map(|()| t)`
+    // Do not implement for Writer<T>, since that would mean T gets dropped!
+    pub fn take<T>(self, t: T) -> Writer<T, Payload> {
+        self.map(|()| t)
+    }
+
+    /// Prepend log.
+    pub fn take_writer<T>(self, other: Writer<T, Payload>) -> Writer<T, Payload> {
+        self.take(other).flatten()
+    }
+
+    pub fn into_log(self) -> Vec<Payload> {
+        self.log
+    }
+}
+
+impl<T, Payload> Writer<&mut T, Payload> {
+    /// More literate version of `map(drop)`
+    // Do not implement for Writer<T>, since that would mean T wasn't meaningfully used! (or was used as ref.)
+    pub fn drop_ref(self) -> Writer<(), Payload> {
+        self.map(drop)
+    }
+}
+
+impl<T, Payload> Writer<&T, Payload> {
+    /// More literate version of `map(drop)`
+    // Do not implement for Writer<T>, since that would mean T wasn't meaningfully used! (or was used as ref.)
+    pub fn drop_ref(self) -> Writer<(), Payload> {
+        self.map(drop)
+    }
+}
+
+impl<T, Payload> Deref for Writer<T, Payload> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.contents
+    }
+}
+
+impl<T, Payload> DerefMut for Writer<T, Payload> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.contents
+    }
+}
+
+impl<Payload> FromIterator<Payload> for Writer<(), Payload> {
+    fn from_iter<T: IntoIterator<Item = Payload>>(iter: T) -> Self {
+        Self::from_payloads(iter)
     }
 }

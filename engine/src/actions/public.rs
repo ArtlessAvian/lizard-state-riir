@@ -17,6 +17,7 @@ use super::CommandTrait;
 use super::DirectionActionTrait;
 use super::FloorEvent;
 use super::TileActionTrait;
+use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -26,6 +27,7 @@ use crate::floor::FloorUpdate;
 use crate::pathfinding::PathfindingContext;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
+use crate::writer::Writer;
 
 /// Moves one space.
 #[derive(Debug)]
@@ -157,38 +159,41 @@ struct BumpCommand {
 
 impl CommandTrait for BumpCommand {
     fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
-        subject_clone.state = EntityState::Ok {
-            next_round: floor.get_current_round() + 1,
-        };
-
-        let object_update = utils::start_juggle(
-            floor,
-            self.object_index,
-            self.now,
-            NonZero::<u32>::new(1).unwrap(),
-        );
-        let object_update = object_update.map(|mut x| {
-            x.health -= 1;
-            x
-        });
-
         BorrowedFloorUpdate::new(floor)
             .log(FloorEvent::StartAttack(StartAttackEvent {
                 subject: self.subject_id,
-                tile: subject_clone.pos + self.dir,
+                tile: floor.entities[self.subject_id].pos + self.dir,
             }))
             .log(FloorEvent::AttackHit(AttackHitEvent {
                 subject: self.subject_id,
                 target: self.object_index,
                 damage: 1,
             }))
-            .zip(object_update)
-            .bind(|(floor, object_clone)| {
-                floor.update_entities(Vec::from([
-                    (self.subject_id, subject_clone),
-                    (self.object_index, object_clone),
-                ]))
+            .bind(|floor| {
+                let mut writer_batch = Writer::new(BatchEntityUpdate::new(&floor.entities));
+                writer_batch = writer_batch.bind(|mut batch| {
+                    batch
+                        .apply_and_insert_writer(self.object_index, |_| {
+                            utils::start_juggle(
+                                floor,
+                                self.object_index,
+                                self.now,
+                                NonZero::<u32>::new(1).unwrap(),
+                            )
+                            .map(|mut x| {
+                                x.health -= 1;
+                                x
+                            })
+                        })
+                        .take(batch)
+                });
+                writer_batch.apply_and_insert(self.subject_id, |e| Entity {
+                    state: EntityState::Ok {
+                        next_round: floor.get_current_round() + 1,
+                    },
+                    ..e.clone()
+                });
+                writer_batch.bind(|batch| floor.update_entities_batch(batch))
             })
             .bind(|floor| {
                 TakeKnockbackUtil {

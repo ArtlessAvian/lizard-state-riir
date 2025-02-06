@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::num::NonZero;
+use std::ops::DerefMut;
 
 use super::events::FloorEvent;
 use super::events::JuggleHitEvent;
@@ -8,6 +9,7 @@ use super::events::KnockbackEvent;
 use super::events::KnockdownEvent;
 use super::known_serializable::KnownCommand;
 use super::CommandTrait;
+use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -34,45 +36,39 @@ impl CommandTrait for TakeKnockbackUtil {
             .take_while(|tile| floor.map.is_tile_floor(tile))
             .collect::<Vec<_>>();
 
-        let knocked_over = swept_tiles
-            .iter()
-            .filter_map(|tile| floor.occupiers.get(*tile))
-            .filter(|id| *id != self.entity)
-            .collect::<Vec<_>>();
-
-        let after_knockdowns = knocked_over
-            .iter()
-            .map(|id| {
-                let mut clone = floor.entities[*id].clone();
-                clone.state = EntityState::Knockdown { next_round: now };
-                (*id, clone)
-            })
-            .collect::<Vec<_>>();
-
         let final_position = *swept_tiles
             .last()
             .expect("Entity's current position should be a floor, which is part of the segment");
 
-        let after_knockback = {
-            let mut clone = floor.entities[self.entity].clone();
+        let mut writer = Writer::new(BatchEntityUpdate::new(&floor.entities));
+
+        writer.deref_mut().apply_and_insert(self.entity, |e| {
+            let mut clone = e.clone();
             clone.pos = final_position;
             clone
-        };
-
-        floor
-            .update_entities(after_knockdowns)
-            .bind(|floor| floor.update_entity((self.entity, after_knockback)))
-            .log({
-                FloorEvent::KnockbackEvent(KnockbackEvent {
-                    subject: self.entity,
-                    tile: final_position,
-                })
+        });
+        writer = writer.log({
+            FloorEvent::KnockbackEvent(KnockbackEvent {
+                subject: self.entity,
+                tile: final_position,
             })
-            .log_each(
-                knocked_over
-                    .iter()
-                    .map(|id| FloorEvent::KnockdownEvent(KnockdownEvent { subject: *id })),
-            )
+        });
+
+        let knocked_over = swept_tiles
+            .iter()
+            .filter_map(|tile| floor.occupiers.get(*tile))
+            .filter(|id| *id != self.entity);
+
+        for id in knocked_over {
+            writer.apply_and_insert(id, |e| {
+                let mut clone = e.clone();
+                clone.state = EntityState::Knockdown { next_round: now };
+                clone
+            });
+            writer = writer.log(FloorEvent::KnockdownEvent(KnockdownEvent { subject: id }));
+        }
+
+        writer.bind(|dingus| floor.update_entities_batch(dingus))
     }
 }
 
@@ -101,24 +97,6 @@ impl CommandTrait for MultiKnockbackUtil {
             })
             .collect::<Vec<_>>();
 
-        let swept_tiles = each_swept_tiles
-            .iter()
-            .flat_map(|(_, segment)| segment.iter());
-
-        let knocked_over = swept_tiles
-            .filter_map(|tile| floor.occupiers.get(*tile))
-            .filter(|id| self.all_displacements.iter().all(|(kb_id, _)| id != kb_id))
-            .collect::<HashSet<_>>();
-
-        let after_knockdowns = knocked_over
-            .iter()
-            .map(|id| {
-                let mut clone = floor.entities[*id].clone();
-                clone.state = EntityState::Knockdown { next_round: now };
-                (*id, clone)
-            })
-            .collect::<Vec<_>>();
-
         let final_positions = each_swept_tiles
             .iter()
             .map(|(id, segment)| {
@@ -130,6 +108,20 @@ impl CommandTrait for MultiKnockbackUtil {
                 )
             })
             .collect::<Vec<_>>();
+
+        let mut writer_batch = Writer::new(BatchEntityUpdate::new(&floor.entities));
+
+        for (id, final_pos) in &final_positions {
+            writer_batch.deref_mut().apply_and_insert(*id, |e| {
+                let mut clone = e.clone();
+                clone.pos = *final_pos;
+                clone
+            });
+            writer_batch = writer_batch.log(FloorEvent::KnockbackEvent(KnockbackEvent {
+                subject: *id,
+                tile: *final_pos,
+            }));
+        }
 
         let conflict_knockdowns = final_positions
             .iter()
@@ -147,40 +139,38 @@ impl CommandTrait for MultiKnockbackUtil {
                         // We can ignore the eq case, since ids should be unique by design (and guaranteed by the previous filter)
                     })
             })
-            .map(|(id, _)| *id)
-            .collect::<Vec<_>>();
+            .map(|(id, _)| *id);
 
-        let after_knockback = final_positions
+        for id in conflict_knockdowns {
+            writer_batch.deref_mut().apply_and_insert(id, |e| {
+                let mut clone = e.clone();
+                clone.state = EntityState::Knockdown { next_round: now };
+                clone
+            });
+            writer_batch =
+                writer_batch.log(FloorEvent::KnockdownEvent(KnockdownEvent { subject: id }));
+        }
+
+        let swept_tiles = each_swept_tiles
             .iter()
-            .map(|(id, thing)| {
-                let mut clone = floor.entities[*id].clone();
-                clone.pos = *thing;
-                if conflict_knockdowns.contains(id) {
-                    clone.state = EntityState::Knockdown { next_round: now }
-                }
-                (*id, clone)
-            })
-            .collect::<Vec<_>>();
+            .flat_map(|(_, segment)| segment.iter());
 
-        floor
-            .update_entities(after_knockdowns)
-            .bind(|floor| floor.update_entities(after_knockback))
-            .log_each(final_positions.iter().map(|(id, final_position)| {
-                FloorEvent::KnockbackEvent(KnockbackEvent {
-                    subject: *id,
-                    tile: *final_position,
-                })
-            }))
-            .log_each(
-                conflict_knockdowns
-                    .iter()
-                    .map(|id| FloorEvent::KnockdownEvent(KnockdownEvent { subject: *id })),
-            )
-            .log_each(
-                knocked_over
-                    .iter()
-                    .map(|id| FloorEvent::KnockdownEvent(KnockdownEvent { subject: *id })),
-            )
+        let knocked_over = swept_tiles
+            .filter_map(|tile| floor.occupiers.get(*tile))
+            .filter(|id| self.all_displacements.iter().all(|(kb_id, _)| id != kb_id))
+            .collect::<HashSet<_>>(); // Dedup!
+
+        for id in knocked_over {
+            writer_batch.deref_mut().apply_and_insert(id, |e| {
+                let mut clone = e.clone();
+                clone.state = EntityState::Knockdown { next_round: now };
+                clone
+            });
+            writer_batch =
+                writer_batch.log(FloorEvent::KnockdownEvent(KnockdownEvent { subject: id }));
+        }
+
+        writer_batch.bind(|batch| floor.update_entities_batch(batch))
     }
 }
 
