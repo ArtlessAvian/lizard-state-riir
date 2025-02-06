@@ -106,7 +106,7 @@ impl Entity {
     }
 
     #[must_use]
-    pub fn get_next_round(&self) -> Option<u32> {
+    pub(crate) fn get_next_round(&self) -> Option<u32> {
         match self.state {
             EntityState::Ok { next_round, .. }
             | EntityState::Committed { next_round, .. }
@@ -119,7 +119,7 @@ impl Entity {
     }
 
     #[must_use]
-    pub fn get_occupied_position(&self) -> Option<AbsolutePosition> {
+    pub(crate) fn get_occupied_position(&self) -> Option<AbsolutePosition> {
         match self.state {
             EntityState::Ok { .. }
             | EntityState::Committed { .. }
@@ -133,7 +133,7 @@ impl Entity {
     }
 
     #[must_use]
-    pub fn is_allied(&self, other: &Entity) -> bool {
+    pub(crate) fn is_allied(&self, other: &Entity) -> bool {
         self.is_player_friendly == other.is_player_friendly
     }
 
@@ -154,17 +154,17 @@ pub struct EntitySet(Vec<Rc<Entity>>);
 
 impl EntitySet {
     #[must_use]
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self(Vec::new())
     }
 
-    pub fn add(&mut self, new: Entity) -> EntityId {
+    pub(crate) fn add(&mut self, new: Entity) -> EntityId {
         let id = EntityId(self.0.len());
         self.0.push(Rc::new(new));
         id
     }
 
-    pub fn overwrite(&mut self, id: EntityId, value: Entity) {
+    pub(crate) fn overwrite(&mut self, id: EntityId, value: Entity) {
         // Avoid creating a new Rc and dropping the old one.
         if let Some(slot) = Rc::get_mut(&mut self.0[id.0]) {
             *slot = value;
@@ -174,7 +174,7 @@ impl EntitySet {
     }
 
     #[must_use]
-    pub fn contains_id(&self, id: EntityId) -> bool {
+    pub(crate) fn contains_id(&self, id: EntityId) -> bool {
         (0..self.0.len()).contains(&id.0)
     }
 
@@ -186,7 +186,7 @@ impl EntitySet {
         &self.0[index.0]
     }
 
-    pub fn iter_entities(&self) -> impl Iterator<Item = &Entity> {
+    pub(crate) fn iter_entities(&self) -> impl Iterator<Item = &Entity> {
         self.0.iter().map(Rc::as_ref)
     }
 
@@ -194,14 +194,15 @@ impl EntitySet {
         (0..self.0.len()).map(EntityId)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
         self.0
             .iter()
             .enumerate()
             .map(|(index, element)| (EntityId(index), element.as_ref()))
     }
 
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<Rc<Entity>> {
+    #[expect(unused)]
+    pub(crate) fn iter_mut(&mut self) -> std::slice::IterMut<Rc<Entity>> {
         self.0.iter_mut()
     }
 }
@@ -317,12 +318,12 @@ pub struct BatchEntityUpdateContextless(pub HashMap<EntityId, Entity>);
 
 impl BatchEntityUpdateContextless {
     #[must_use]
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self(HashMap::new())
     }
 
     #[must_use]
-    pub fn wrap(x: HashMap<EntityId, Entity>) -> Self {
+    pub(crate) fn wrap(x: HashMap<EntityId, Entity>) -> Self {
         Self(x)
     }
 
@@ -335,7 +336,8 @@ impl BatchEntityUpdateContextless {
     /// # Errors
     ///
     /// This function will return an error if the `EntityId` is already present.
-    pub fn insert(&mut self, k: EntityId, v: Entity) -> Result<(), AlreadyPresent> {
+    #[expect(unused)]
+    pub(crate) fn insert(&mut self, k: EntityId, v: Entity) -> Result<(), AlreadyPresent> {
         match self.0.entry(k) {
             Entry::Occupied(_) => Err(AlreadyPresent),
             Entry::Vacant(vacant) => {
@@ -346,18 +348,18 @@ impl BatchEntityUpdateContextless {
     }
 
     #[must_use]
-    pub fn add_context(self, context: &EntitySet) -> BatchEntityUpdate {
+    pub(crate) fn add_context(self, context: &EntitySet) -> BatchEntityUpdate {
         BatchEntityUpdate {
             contextless: self,
             context,
         }
     }
 
-    pub fn iter_ids(&'_ self) -> impl Iterator<Item = EntityId> + '_ {
+    pub(crate) fn iter_ids(&'_ self) -> impl Iterator<Item = EntityId> + '_ {
         self.0.keys().copied()
     }
 
-    pub fn iter_updated(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
+    pub(crate) fn iter_updated(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
         self.0.iter().map(|(a, b)| (*a, b))
     }
 }
@@ -369,7 +371,7 @@ pub struct BatchEntityUpdate<'a> {
 
 impl<'a> BatchEntityUpdate<'a> {
     #[must_use]
-    pub fn new(context: &'a EntitySet) -> Self {
+    pub(crate) fn new(context: &'a EntitySet) -> Self {
         Self {
             contextless: BatchEntityUpdateContextless::new(),
             context,
@@ -377,7 +379,7 @@ impl<'a> BatchEntityUpdate<'a> {
     }
 
     #[must_use]
-    pub fn commit(self) -> EntitySet {
+    pub(crate) fn commit(self) -> EntitySet {
         let mut out = self.context.clone();
         for (new_id, new) in self.contextless.0 {
             out.overwrite(new_id, new);
@@ -386,12 +388,12 @@ impl<'a> BatchEntityUpdate<'a> {
     }
 
     #[must_use]
-    pub fn get_latest(&self, k: EntityId) -> &Entity {
+    pub(crate) fn get_latest(&self, k: EntityId) -> &Entity {
         self.contextless.0.get(&k).unwrap_or(self.context.index(k))
     }
 
     /// Applies `f` to the `Entity` with id `k` and stores the result.
-    pub fn apply_and_insert<F>(&mut self, k: EntityId, f: F) -> &mut Self
+    pub(crate) fn apply_and_insert<F>(&mut self, k: EntityId, f: F) -> &mut Self
     where
         F: FnOnce(&Entity) -> Entity,
     {
@@ -400,7 +402,7 @@ impl<'a> BatchEntityUpdate<'a> {
     }
 
     /// Applies `f` to the `Entity` with id `k` and stores the result.
-    pub fn apply_and_insert_writer<F>(&mut self, k: EntityId, f: F) -> Writer<(), FloorEvent>
+    pub(crate) fn apply_and_insert_writer<F>(&mut self, k: EntityId, f: F) -> Writer<(), FloorEvent>
     where
         F: FnOnce(&Entity) -> Writer<Entity, FloorEvent>,
     {
@@ -415,7 +417,8 @@ impl<'a> BatchEntityUpdate<'a> {
     /// Applies `f` to *every* `Entity` and only stores the results if Some.
     /// Each entity is processed independent from each other.
     /// Order is unspecified.
-    pub fn map_or_noop<F>(&mut self, f: F) -> &mut Self
+    #[expect(unused)]
+    pub(crate) fn map_or_noop<F>(&mut self, f: F) -> &mut Self
     where
         F: FnOnce(&EntityId, &Entity) -> Option<Entity> + Copy,
     {
@@ -430,7 +433,7 @@ impl<'a> BatchEntityUpdate<'a> {
     /// Applies `f` to *every* `Entity` and stores the results if Some.
     /// Each updated entity is independent from each other.
     /// Order is unspecified.
-    pub fn map_or_noop_writer<F>(&mut self, f: F) -> Writer<(), FloorEvent>
+    pub(crate) fn map_or_noop_writer<F>(&mut self, f: F) -> Writer<(), FloorEvent>
     where
         F: FnOnce(&EntityId, &Entity) -> Writer<Option<Entity>, FloorEvent> + Copy,
     {
@@ -445,19 +448,20 @@ impl<'a> BatchEntityUpdate<'a> {
         out
     }
 
-    pub fn iter_old(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
+    pub(crate) fn iter_old(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
         self.contextless
             .iter_ids()
             .map(|id| (id, &self.context[id]))
     }
 
-    pub fn iter_diffs(&self) -> impl Iterator<Item = (EntityId, (&Entity, &Entity))> {
+    #[expect(unused)]
+    pub(crate) fn iter_diffs(&self) -> impl Iterator<Item = (EntityId, (&Entity, &Entity))> {
         self.contextless
             .iter_updated()
             .map(|(id, new)| (id, (self.context.index(id), new)))
     }
 
-    pub fn iter_latest(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
+    pub(crate) fn iter_latest(&self) -> impl Iterator<Item = (EntityId, &Entity)> {
         self.context.iter_ids().map(|k| (k, self.get_latest(k)))
     }
 }

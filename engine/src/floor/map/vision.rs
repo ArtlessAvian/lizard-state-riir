@@ -29,7 +29,7 @@ pub struct FloorMapVision {
 
 impl FloorMapVision {
     #[must_use]
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             entity_last_at: HashMap::new(),
             map_vision: HashMap::new(),
@@ -65,7 +65,7 @@ impl FloorMapVision {
 
     // I am a smug nerd.
 
-    pub fn add_entity(
+    pub(crate) fn add_entity(
         &self,
         new: (EntityId, &Entity),
         map: &FloorMap,
@@ -73,7 +73,7 @@ impl FloorMapVision {
         self.update_entities([new], map)
     }
 
-    pub fn update_entities<'a>(
+    pub(crate) fn update_entities<'a>(
         &self,
         new_set: impl IntoIterator<Item = (EntityId, &'a Entity)> + 'a,
         map: &FloorMap,

@@ -16,19 +16,20 @@ impl<T, Payload> Writer<T, Payload> {
         }
     }
 
-    pub fn new_with_log(contents: T, log: Vec<Payload>) -> Self {
+    pub(crate) fn new_with_log(contents: T, log: Vec<Payload>) -> Self {
         Self { contents, log }
     }
 
-    pub fn transpose(option: Option<Self>) -> Writer<Option<T>, Payload> {
+    pub(crate) fn transpose(option: Option<Self>) -> Writer<Option<T>, Payload> {
         option.map_or(Writer::new(None), |some| some.map(Some))
     }
 
-    pub fn get_contents(&self) -> &T {
+    pub(crate) fn get_contents(&self) -> &T {
         &self.contents
     }
 
-    pub fn get_log(&self) -> &Vec<Payload> {
+    #[allow(dead_code)]
+    pub(crate) fn get_log(&self) -> &Vec<Payload> {
         &self.log
     }
 
@@ -36,7 +37,7 @@ impl<T, Payload> Writer<T, Payload> {
         (self.contents, self.log)
     }
 
-    pub fn map<U, F>(self, f: F) -> Writer<U, Payload>
+    pub(crate) fn map<U, F>(self, f: F) -> Writer<U, Payload>
     where
         F: FnOnce(T) -> U,
     {
@@ -53,7 +54,7 @@ impl<T, Payload> Writer<T, Payload> {
         self.map(f).flatten()
     }
 
-    pub fn bind_or_noop<F>(self, f: F) -> Self
+    pub(crate) fn bind_or_noop<F>(self, f: F) -> Self
     where
         F: FnOnce(&T) -> Option<Self>,
     {
@@ -62,7 +63,7 @@ impl<T, Payload> Writer<T, Payload> {
 
     // /// An abomination. It *looks* clean, but on the caller side, uhhh.
     // /// I would recommend *not* creating an iterator of fs.
-    // pub fn bind_compose<F, I>(self, fs: I) -> Self
+    // pub(crate) fn bind_compose<F, I>(self, fs: I) -> Self
     // where
     //     F: FnOnce(T) -> Self,
     //     I: IntoIterator<Item = F>,
@@ -74,7 +75,8 @@ impl<T, Payload> Writer<T, Payload> {
     //     out
     // }
 
-    pub fn borrow_and_pair<U, F>(self, f: F) -> Writer<(T, U), Payload>
+    #[expect(dead_code)]
+    pub(crate) fn borrow_and_pair<U, F>(self, f: F) -> Writer<(T, U), Payload>
     where
         F: FnOnce(&T) -> U,
     {
@@ -82,7 +84,8 @@ impl<T, Payload> Writer<T, Payload> {
         self.make_pair(apply)
     }
 
-    pub fn borrow_and_zip<U, F>(self, f: F) -> Writer<(T, U), Payload>
+    #[expect(dead_code)]
+    pub(crate) fn borrow_and_zip<U, F>(self, f: F) -> Writer<(T, U), Payload>
     where
         F: FnOnce(&T) -> Writer<U, Payload>,
     {
@@ -92,22 +95,23 @@ impl<T, Payload> Writer<T, Payload> {
 
     // Combines two writers. Appends the log of the second to the first.
     // See Option::zip.
-    pub fn zip<U>(self, other: Writer<U, Payload>) -> Writer<(T, U), Payload> {
+    pub(crate) fn zip<U>(self, other: Writer<U, Payload>) -> Writer<(T, U), Payload> {
         self.bind(|t| other.map(|u| (t, u)))
     }
 
     // Appends the log of the second to the first.
     // See Option::zip.
-    pub fn zip_nothing(self, other: Writer<(), Payload>) -> Writer<T, Payload> {
+    pub(crate) fn zip_nothing(self, other: Writer<(), Payload>) -> Writer<T, Payload> {
         self.bind(|t| other.take(t))
     }
 
-    pub fn log(mut self, line: Payload) -> Self {
+    pub(crate) fn log(mut self, line: Payload) -> Self {
         self.log.push(line);
         self
     }
 
-    pub fn peek_and_log<F>(self, f: F) -> Self
+    #[expect(dead_code)]
+    pub(crate) fn peek_and_log<F>(self, f: F) -> Self
     where
         F: FnOnce(&T) -> Payload,
     {
@@ -120,17 +124,17 @@ impl<T, Payload> Writer<T, Payload> {
         self
     }
 
-    pub fn log_option(self, line: Option<Payload>) -> Self {
+    pub(crate) fn log_option(self, line: Option<Payload>) -> Self {
         self.log_each(line)
     }
 
-    pub fn make_pair<U>(self, value: U) -> Writer<(T, U), Payload> {
+    pub(crate) fn make_pair<U>(self, value: U) -> Writer<(T, U), Payload> {
         self.map(|x| (x, value))
     }
 }
 
 impl<T, Payload> Writer<Writer<T, Payload>, Payload> {
-    pub fn flatten(self) -> Writer<T, Payload> {
+    pub(crate) fn flatten(self) -> Writer<T, Payload> {
         let Writer {
             contents: inner,
             log: mut outer_log,
@@ -156,7 +160,8 @@ impl<Keep, Extract, Payload> Writer<(Keep, Extract), Payload> {
         (Writer::new_with_log(keep, log), extract)
     }
 
-    pub fn swap_pair(self) -> Writer<(Extract, Keep), Payload> {
+    #[expect(dead_code)]
+    pub(crate) fn swap_pair(self) -> Writer<(Extract, Keep), Payload> {
         self.map(|(t, u)| (u, t))
     }
 }
@@ -164,14 +169,15 @@ impl<Keep, Extract, Payload> Writer<(Keep, Extract), Payload> {
 /// There are some manips you can do with this.
 /// If you can, prefer `Vec<Payload>` or `impl IntoIterator<Item = Payload>`.
 impl<Payload> Writer<(), Payload> {
-    pub fn new_payload(payload: Payload) -> Self {
+    #[expect(dead_code)]
+    pub(crate) fn new_payload(payload: Payload) -> Self {
         Self {
             contents: (),
             log: vec![payload],
         }
     }
 
-    pub fn from_payloads(payloads: impl IntoIterator<Item = Payload>) -> Self {
+    pub(crate) fn from_payloads(payloads: impl IntoIterator<Item = Payload>) -> Self {
         Self {
             contents: (),
             log: payloads.into_iter().collect(),
@@ -180,16 +186,17 @@ impl<Payload> Writer<(), Payload> {
 
     /// More literate version of `map(|()| t)`
     // Do not implement for Writer<T>, since that would mean T gets dropped!
-    pub fn take<T>(self, t: T) -> Writer<T, Payload> {
+    pub(crate) fn take<T>(self, t: T) -> Writer<T, Payload> {
         self.map(|()| t)
     }
 
     /// Prepend log.
-    pub fn take_writer<T>(self, other: Writer<T, Payload>) -> Writer<T, Payload> {
+    pub(crate) fn take_writer<T>(self, other: Writer<T, Payload>) -> Writer<T, Payload> {
         self.take(other).flatten()
     }
 
-    pub fn into_log(self) -> Vec<Payload> {
+    #[expect(unused)]
+    pub(crate) fn into_log(self) -> Vec<Payload> {
         self.log
     }
 }
@@ -197,7 +204,8 @@ impl<Payload> Writer<(), Payload> {
 impl<T, Payload> Writer<&mut T, Payload> {
     /// More literate version of `map(drop)`
     // Do not implement for Writer<T>, since that would mean T wasn't meaningfully used! (or was used as ref.)
-    pub fn drop_ref(self) -> Writer<(), Payload> {
+    #[expect(dead_code)]
+    pub(crate) fn drop_ref(self) -> Writer<(), Payload> {
         self.map(drop)
     }
 }
@@ -205,7 +213,8 @@ impl<T, Payload> Writer<&mut T, Payload> {
 impl<T, Payload> Writer<&T, Payload> {
     /// More literate version of `map(drop)`
     // Do not implement for Writer<T>, since that would mean T wasn't meaningfully used! (or was used as ref.)
-    pub fn drop_ref(self) -> Writer<(), Payload> {
+    #[expect(dead_code)]
+    pub(crate) fn drop_ref(self) -> Writer<(), Payload> {
         self.map(drop)
     }
 }

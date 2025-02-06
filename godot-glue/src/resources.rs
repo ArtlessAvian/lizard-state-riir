@@ -43,7 +43,7 @@ pub struct EntityInitializer {
 #[godot_api]
 impl EntityInitializer {
     #[must_use]
-    pub fn to_entity(&self) -> engine::entity::Entity {
+    pub(crate) fn to_entity(&self) -> engine::entity::Entity {
         let moveset: Vec<KnownUnaimedAction> = if self.actions.is_empty() {
             Vec::new()
         } else {
@@ -70,7 +70,7 @@ impl EntityInitializer {
 
     #[func]
     #[must_use]
-    pub fn to_snapshot(&self) -> Gd<EntitySnapshot> {
+    pub(crate) fn to_snapshot(&self) -> Gd<EntitySnapshot> {
         Gd::from_object(EntitySnapshot {
             entity: Rc::new(self.to_entity()),
         })

@@ -32,7 +32,7 @@ macro_rules! floor_event_to_variant {
 }
 
 impl FloorEvent {
-    pub fn to_variant(id_cache: &mut EntityIdCache, event: FloorEventInternal) -> Variant {
+    pub(crate) fn to_variant(id_cache: &mut EntityIdCache, event: FloorEventInternal) -> Variant {
         floor_event_to_variant!(
             (id_cache, event),
             (Move, MoveEvent),

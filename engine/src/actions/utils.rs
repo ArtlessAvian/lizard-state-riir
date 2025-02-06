@@ -197,7 +197,7 @@ impl CommandTrait for DelayCommand {
     }
 }
 
-pub fn start_juggle(
+pub(crate) fn start_juggle(
     floor: &Floor,
     hit_id: EntityId,
     now: (u32, EntityId),

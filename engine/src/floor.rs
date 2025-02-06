@@ -150,18 +150,18 @@ impl Floor {
         }
     }
 
-    pub fn update_entity(&self, new: (EntityId, Entity)) -> FloorUpdate {
+    pub(crate) fn update_entity(&self, new: (EntityId, Entity)) -> FloorUpdate {
         self.update_entities_contextless(BatchEntityUpdateContextless::wrap([new].into()))
     }
 
-    pub fn update_entities_contextless(
+    pub(crate) fn update_entities_contextless(
         &self,
         contextless: BatchEntityUpdateContextless,
     ) -> FloorUpdate {
         self.update_entities_batch(contextless.add_context(&self.entities))
     }
 
-    pub fn update_entities_batch(&self, mut batch: BatchEntityUpdate) -> FloorUpdate {
+    pub(crate) fn update_entities_batch(&self, mut batch: BatchEntityUpdate) -> FloorUpdate {
         assert!(std::ptr::eq(batch.context, &self.entities));
 
         Writer::transpose(
@@ -206,7 +206,7 @@ impl Floor {
     // Alternatively, add "pass turn to partner."
     // I don't think NPCs should *need* to reorder their turns, its cool if its in, its whatever if it isn't.
     #[must_use]
-    pub fn get_current_entity(&self) -> Option<EntityId> {
+    pub(crate) fn get_current_entity(&self) -> Option<EntityId> {
         self.get_current_turn().map(|x| x.1)
     }
 
@@ -218,7 +218,7 @@ impl Floor {
 
     // TODO: Return set of entities?
     #[must_use]
-    pub fn get_current_turn(&self) -> Option<(u32, EntityId)>
+    pub(crate) fn get_current_turn(&self) -> Option<(u32, EntityId)>
     where
         EntityId: Ord,
     {

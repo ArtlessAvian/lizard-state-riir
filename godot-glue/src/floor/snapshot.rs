@@ -20,7 +20,7 @@ pub struct EntitySnapshot {
 #[godot_api]
 impl EntitySnapshot {
     #[must_use]
-    pub fn new(entity: Rc<Entity>) -> Gd<Self> {
+    pub(crate) fn new(entity: Rc<Entity>) -> Gd<Self> {
         Gd::from_object(Self { entity })
     }
 

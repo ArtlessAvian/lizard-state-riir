@@ -65,17 +65,17 @@ impl Neg for RelativePosition {
 
 impl RelativePosition {
     #[must_use]
-    pub fn new(dx: i32, dy: i32) -> Self {
+    pub(crate) fn new(dx: i32, dy: i32) -> Self {
         Self { dx, dy }
     }
 
     #[must_use]
-    pub fn length(self) -> u32 {
+    pub(crate) fn length(self) -> u32 {
         u32::max(self.dx.unsigned_abs(), self.dy.unsigned_abs())
     }
 
     #[must_use]
-    pub fn list_all_length(len: u32) -> HashSet<Self> {
+    pub(crate) fn list_all_length(len: u32) -> HashSet<Self> {
         (0..8)
             .flat_map(|octant| {
                 (0..=len).map(move |rise| {
@@ -126,7 +126,7 @@ impl AbsolutePosition {
     }
 
     #[must_use]
-    pub fn distance(self, other: AbsolutePosition) -> u32 {
+    pub(crate) fn distance(self, other: AbsolutePosition) -> u32 {
         (self - other).length()
     }
 }

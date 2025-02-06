@@ -102,7 +102,7 @@ pub struct PathfindingContext<'a> {
 
 impl<'a> PathfindingContext<'a> {
     #[must_use]
-    pub fn new(
+    pub(crate) fn new(
         blocked: Box<dyn FnMut(AbsolutePosition) -> bool + 'a>,
         heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a>,
     ) -> Self {
@@ -117,7 +117,11 @@ impl<'a> PathfindingContext<'a> {
 
     #[must_use]
     #[instrument(skip_all)]
-    pub fn find_path(&mut self, start: AbsolutePosition, destination: AbsolutePosition) -> bool {
+    pub(crate) fn find_path(
+        &mut self,
+        start: AbsolutePosition,
+        destination: AbsolutePosition,
+    ) -> bool {
         if self.known_distance.contains_key((start, destination)) {
             return true;
         }
@@ -213,7 +217,7 @@ impl<'a> PathfindingContext<'a> {
     }
 
     #[must_use]
-    pub fn get_step(
+    pub(crate) fn get_step(
         &self,
         start: AbsolutePosition,
         destination: AbsolutePosition,
@@ -233,7 +237,7 @@ impl<'a> PathfindingContext<'a> {
 
     // TODO: Probably make this part of find_path.
     #[must_use]
-    pub fn get_distance(
+    pub(crate) fn get_distance(
         &self,
         start: AbsolutePosition,
         destination: AbsolutePosition,

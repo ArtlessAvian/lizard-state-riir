@@ -21,7 +21,7 @@ use crate::writer::Writer;
 pub struct DownedStateMutator;
 
 impl DownedStateMutator {
-    pub fn mutate_entities(
+    pub(crate) fn mutate_entities(
         &self,
         current_round: u32,
         batch: &mut BatchEntityUpdate,

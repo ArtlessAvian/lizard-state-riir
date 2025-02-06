@@ -20,31 +20,31 @@ struct PublicActions;
 impl PublicActions {
     #[func]
     #[must_use]
-    pub fn get_wait_action() -> Gd<Action> {
+    pub(crate) fn get_wait_action() -> Gd<Action> {
         Action::new(Rc::new(WaitAction))
     }
 
     #[func]
     #[must_use]
-    pub fn get_step_action() -> Gd<DirectionAction> {
+    pub(crate) fn get_step_action() -> Gd<DirectionAction> {
         DirectionAction::new(Rc::new(StepAction))
     }
 
     #[func]
     #[must_use]
-    pub fn get_bump_action() -> Gd<DirectionAction> {
+    pub(crate) fn get_bump_action() -> Gd<DirectionAction> {
         DirectionAction::new(Rc::new(BumpAction))
     }
 
     #[func]
     #[must_use]
-    pub fn get_step_macro_action() -> Gd<DirectionAction> {
+    pub(crate) fn get_step_macro_action() -> Gd<DirectionAction> {
         DirectionAction::new(Rc::new(StepMacroAction))
     }
 
     #[func]
     #[must_use]
-    pub fn get_goto_action() -> Gd<TileAction> {
+    pub(crate) fn get_goto_action() -> Gd<TileAction> {
         TileAction::new(Rc::new(GotoAction))
     }
 }

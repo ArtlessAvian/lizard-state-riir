@@ -82,7 +82,7 @@ impl Segment {
         (tiles, alt)
     }
 
-    pub fn calculate_relative(
+    pub(crate) fn calculate_relative(
         target: RelativePosition,
     ) -> (Vec<RelativePosition>, Option<Vec<RelativePosition>>) {
         let target_octantified: RelativeOctantified = target.into();

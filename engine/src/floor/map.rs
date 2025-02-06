@@ -24,7 +24,7 @@ pub enum FloorTile {
 
 impl FloorTile {
     #[must_use]
-    pub fn is_tile_floor(self) -> bool {
+    pub(crate) fn is_tile_floor(self) -> bool {
         // clean (and obvious) but more floors will be added ig.
         matches!(self, FloorTile::Floor)
     }
@@ -43,7 +43,7 @@ pub struct FloorMap {
 
 impl FloorMap {
     #[must_use]
-    pub fn new_empty() -> Self {
+    pub(crate) fn new_empty() -> Self {
         FloorMap {
             tiles: Rc::new(HashMap::new()),
             default: FloorTile::Floor, // "outdoors" map.
@@ -61,17 +61,17 @@ impl FloorMap {
     }
 
     #[must_use]
-    pub fn get_tile(&self, pos: AbsolutePosition) -> &FloorTile {
+    pub(crate) fn get_tile(&self, pos: AbsolutePosition) -> &FloorTile {
         self.tiles.get(&pos).unwrap_or(&self.default)
     }
 
     #[must_use]
-    pub fn is_tile_floor(&self, pos: AbsolutePosition) -> bool {
+    pub(crate) fn is_tile_floor(&self, pos: AbsolutePosition) -> bool {
         self.get_tile(pos).is_tile_floor()
     }
 
     #[must_use]
-    pub fn get_step(
+    pub(crate) fn get_step(
         &self,
         start: AbsolutePosition,
         destination: AbsolutePosition,

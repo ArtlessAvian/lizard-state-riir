@@ -19,7 +19,7 @@ pub struct ActionSet {
 }
 
 impl ActionSet {
-    pub fn to_vec(&self) -> Vec<KnownUnaimedAction> {
+    pub(crate) fn to_vec(&self) -> Vec<KnownUnaimedAction> {
         self.actions
             .iter_shared()
             .flatten()

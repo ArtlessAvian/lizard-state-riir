@@ -16,12 +16,12 @@ pub struct Occupiers(HashMap<AbsolutePosition, EntityId>);
 
 impl Occupiers {
     #[must_use]
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self(HashMap::new())
     }
 
     #[must_use]
-    pub fn add_entity(&self, new: (EntityId, &Entity)) -> Self {
+    pub(crate) fn add_entity(&self, new: (EntityId, &Entity)) -> Self {
         let mut clone = self.clone();
 
         if let Some(occupied) = new.1.get_occupied_position() {
@@ -39,7 +39,7 @@ impl Occupiers {
     }
 
     #[must_use]
-    pub fn update_entities(&self, batch: &BatchEntityUpdate) -> Self {
+    pub(crate) fn update_entities(&self, batch: &BatchEntityUpdate) -> Self {
         let mut clone = self.clone();
 
         for (id, old) in batch.iter_old() {
@@ -65,7 +65,7 @@ impl Occupiers {
     }
 
     #[must_use]
-    pub fn get(&self, tile: AbsolutePosition) -> Option<EntityId> {
+    pub(crate) fn get(&self, tile: AbsolutePosition) -> Option<EntityId> {
         self.0.get(&tile).copied()
     }
 }

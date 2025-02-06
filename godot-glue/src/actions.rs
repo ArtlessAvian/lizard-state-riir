@@ -21,13 +21,17 @@ pub struct Action {
 
 #[godot_api]
 impl Action {
-    pub fn new(action: Rc<dyn ActionTrait>) -> Gd<Self> {
+    pub(crate) fn new(action: Rc<dyn ActionTrait>) -> Gd<Self> {
         Gd::from_object(Self { action })
     }
 
     #[func]
     #[must_use]
-    pub fn to_command(&self, floor: Gd<ActiveFloor>, subject: Gd<EntityId>) -> Option<Gd<Command>> {
+    pub(crate) fn to_command(
+        &self,
+        floor: Gd<ActiveFloor>,
+        subject: Gd<EntityId>,
+    ) -> Option<Gd<Command>> {
         let binding = subject.bind();
         let subject_id = binding.id;
         let verify_action = self
@@ -47,13 +51,13 @@ pub struct TileAction {
 
 #[godot_api]
 impl TileAction {
-    pub fn new(action: Rc<dyn TileActionTrait>) -> Gd<Self> {
+    pub(crate) fn new(action: Rc<dyn TileActionTrait>) -> Gd<Self> {
         Gd::from_object(Self { action })
     }
 
     #[func]
     #[must_use]
-    pub fn to_command(
+    pub(crate) fn to_command(
         &self,
         floor: Gd<ActiveFloor>,
         subject: Gd<EntityId>,
@@ -78,13 +82,13 @@ pub struct DirectionAction {
 
 #[godot_api]
 impl DirectionAction {
-    pub fn new(action: Rc<dyn DirectionActionTrait>) -> Gd<Self> {
+    pub(crate) fn new(action: Rc<dyn DirectionActionTrait>) -> Gd<Self> {
         Gd::from_object(Self { action })
     }
 
     #[func]
     #[must_use]
-    pub fn to_command(
+    pub(crate) fn to_command(
         &self,
         floor: Gd<ActiveFloor>,
         subject: Gd<EntityId>,
@@ -124,7 +128,7 @@ pub struct Command {
 
 #[godot_api]
 impl Command {
-    pub fn new(command: Rc<dyn CommandTrait>) -> Gd<Self> {
+    pub(crate) fn new(command: Rc<dyn CommandTrait>) -> Gd<Self> {
         Gd::from_object(Self { command })
     }
 }

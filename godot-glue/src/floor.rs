@@ -64,7 +64,7 @@ impl ActiveFloor {
     /// this is here to explicitly copy.
     #[func]
     #[must_use]
-    pub fn duplicate(&self) -> Gd<ActiveFloor> {
+    pub(crate) fn duplicate(&self) -> Gd<ActiveFloor> {
         Gd::from_object(ActiveFloor {
             internal: self.internal.clone(),
             log: self.log.duplicate_shallow(),
@@ -75,7 +75,7 @@ impl ActiveFloor {
     // TODO: Sort of temporary. Maybe make a builder?
     // And a corresponding scene in Godot to match.
     #[func]
-    pub fn set_map(&mut self, gridmap: Gd<godot::classes::GridMap>) {
+    pub(crate) fn set_map(&mut self, gridmap: Gd<godot::classes::GridMap>) {
         let tiles = gridmap
             .get_used_cells()
             .iter_shared()
@@ -100,7 +100,7 @@ impl ActiveFloor {
     // TODO: Sort of temporary. Maybe make a builder?
     // And a corresponding scene in Godot to match.
     #[func]
-    pub fn set_map_2d(&mut self, tilemap: Gd<godot::classes::TileMap>) {
+    pub(crate) fn set_map_2d(&mut self, tilemap: Gd<godot::classes::TileMap>) {
         let tiles = tilemap
             .get_used_cells(0)
             .iter_shared()
@@ -118,7 +118,7 @@ impl ActiveFloor {
     }
 
     #[func]
-    pub fn add_entity_at(
+    pub(crate) fn add_entity_at(
         &mut self,
         pos: Vector2i,
         is_player_controlled: bool,
@@ -155,7 +155,7 @@ impl ActiveFloor {
     }
 
     #[func]
-    pub fn add_entity_from_initializer(
+    pub(crate) fn add_entity_from_initializer(
         &mut self,
         initializer: Gd<EntityInitializer>,
     ) -> Gd<EntityId> {
@@ -177,7 +177,7 @@ impl ActiveFloor {
     }
 
     #[func]
-    pub fn get_entity_ids(&mut self) -> Array<Gd<EntityId>> {
+    pub(crate) fn get_entity_ids(&mut self) -> Array<Gd<EntityId>> {
         self.internal
             .entities
             .iter_ids()
@@ -187,12 +187,12 @@ impl ActiveFloor {
 
     #[func]
     #[must_use]
-    pub fn get_entity_by_id(&self, id: Gd<EntityId>) -> Gd<EntitySnapshot> {
+    pub(crate) fn get_entity_by_id(&self, id: Gd<EntityId>) -> Gd<EntitySnapshot> {
         EntitySnapshot::new(Rc::clone(self.internal.entities.index_as_rc(id.bind().id)))
     }
 
     #[func]
-    pub fn take_npc_turn(&mut self) -> bool {
+    pub(crate) fn take_npc_turn(&mut self) -> bool {
         // TODO: handle err.
         let result = self.internal.take_npc_turn();
         if let Ok(update) = result {
@@ -224,13 +224,13 @@ impl ActiveFloor {
 
     #[func]
     #[must_use]
-    pub fn get_time(&self) -> u32 {
+    pub(crate) fn get_time(&self) -> u32 {
         self.internal.get_current_round()
     }
 
     #[func]
     #[must_use]
-    pub fn get_end_state(&self) -> FloorEndStateName {
+    pub(crate) fn get_end_state(&self) -> FloorEndStateName {
         self.internal.get_end_state().into()
     }
 }
@@ -253,7 +253,7 @@ pub struct EntityId {
 pub struct EntityIdCache(HashMap<EntityIdInternal, Gd<EntityId>>);
 
 impl EntityIdCache {
-    pub fn get_or_insert(&mut self, id: EntityIdInternal) -> Gd<EntityId> {
+    pub(crate) fn get_or_insert(&mut self, id: EntityIdInternal) -> Gd<EntityId> {
         self.0
             .entry(id)
             .or_insert_with(|| {

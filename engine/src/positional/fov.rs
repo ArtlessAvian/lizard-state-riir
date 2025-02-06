@@ -69,7 +69,7 @@ pub struct StrictFOV {
 
 impl StrictFOV {
     #[must_use]
-    pub fn new(radius: u32) -> Self {
+    pub(crate) fn new(radius: u32) -> Self {
         let mut partial = StrictFOV {
             radius: 0,
             nodes: NodeArena(vec![TrieNode::new(
@@ -146,7 +146,7 @@ impl StrictFOV {
 
     /// Returns a Vec of all tiles visible. A tile that blocks vision is itself visible, but there's no vision past it.
     /// There is no attempt to dedup tiles!
-    pub fn get_field_of_view_tiles<F: Fn(AbsolutePosition) -> bool>(
+    pub(crate) fn get_field_of_view_tiles<F: Fn(AbsolutePosition) -> bool>(
         &self,
         center: AbsolutePosition,
         radius: u32,
