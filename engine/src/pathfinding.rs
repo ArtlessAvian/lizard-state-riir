@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
+use std::rc::Rc;
 
 use tracing::instrument;
 
@@ -88,7 +89,7 @@ impl PartialEq for PartialPath {
 
 pub struct PathfindingContext<'a> {
     // Config stuff. Don't mess with this after construction.
-    blocked: Box<dyn FnMut(AbsolutePosition) -> bool + 'a>,
+    blocked: Rc<dyn Fn(AbsolutePosition) -> bool + 'a>,
     heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a>,
     // Partial information that gets filled out over calls.
     // Imagine the Floyd-Warshall algorithm's matrix.
@@ -100,14 +101,30 @@ pub struct PathfindingContext<'a> {
     step_between: SymmetricMatrix<AbsolutePosition, AbsolutePosition>,
 }
 
-impl<'a> PathfindingContext<'a> {
+impl PathfindingContext<'static> {
     #[must_use]
     pub fn new(
-        blocked: impl FnMut(AbsolutePosition) -> bool + 'a,
+        blocked: impl Fn(AbsolutePosition) -> bool + 'static,
+        heuristic: impl FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'static,
+    ) -> Self {
+        Self {
+            blocked: Rc::new(blocked),
+            heuristic: Box::new(heuristic),
+            known_distance: SymmetricMatrix::default(),
+            diagonal_steps: SymmetricMatrix::default(),
+            step_between: SymmetricMatrix::default(),
+        }
+    }
+}
+
+impl<'a> PathfindingContext<'a> {
+    #[must_use]
+    pub fn new_temp(
+        blocked: impl Fn(AbsolutePosition) -> bool + 'a,
         heuristic: impl FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a,
     ) -> Self {
         Self {
-            blocked: Box::new(blocked),
+            blocked: Rc::new(blocked),
             heuristic: Box::new(heuristic),
             known_distance: SymmetricMatrix::default(),
             diagonal_steps: SymmetricMatrix::default(),
@@ -115,6 +132,23 @@ impl<'a> PathfindingContext<'a> {
         }
     }
 
+    pub fn create_subgraph<'into>(
+        &'into mut self,
+        also_blocked: impl Fn(AbsolutePosition) -> bool + 'into,
+    ) -> PathfindingContext<'into> {
+        let my_blocked = Rc::clone(&self.blocked);
+
+        let blocked = move |x| my_blocked(x) || also_blocked(x);
+        let heuristic = |x, y| {
+            let _ = self.find_path(x, y);
+            self.get_distance(x, y).unwrap_or(u32::MAX)
+        };
+
+        PathfindingContext::<'into>::new_temp(blocked, heuristic)
+    }
+}
+
+impl PathfindingContext<'_> {
     #[must_use]
     #[instrument(skip_all)]
     pub fn find_path(&mut self, start: AbsolutePosition, destination: AbsolutePosition) -> bool {

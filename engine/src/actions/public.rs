@@ -1,5 +1,4 @@
 use std::num::NonZero;
-use std::rc::Rc;
 
 use rkyv::Archive;
 use rkyv::Deserialize;
@@ -24,7 +23,6 @@ use crate::entity::EntityState;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
-use crate::pathfinding::PathfindingContext;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 use crate::writer::Writer;
@@ -272,24 +270,9 @@ impl CommandTrait for GotoCommand {
                 )
             })
             .or_else(|| {
-                let map = floor.map.clone();
-                let entities = floor.entities.clone();
-                let context = Rc::clone(&map.pathfinder);
-                let pathfinder = context.get()?.borrow();
-                let mut step_around = PathfindingContext::new(
-                    |pos| {
-                        !map.get_tile(pos).is_tile_floor()
-                            || entities
-                                .iter()
-                                .any(|e| e.1.pos == pos && self.subject_id != e.0)
-                    },
-                    |start, destination| {
-                        pathfinder.get_distance(start, destination).unwrap_or_else(
-                            // fallback. heuristic becomes inconsistent (but still admissible)
-                            || AbsolutePosition::distance(start, destination),
-                        )
-                    },
-                );
+                let mut context = floor.map.pathfinder.get()?.borrow_mut();
+                let in_the_way = |pos| floor.occupiers.get(pos).is_some();
+                let mut step_around = context.create_subgraph(in_the_way);
 
                 if step_around.find_path(subject_pos, self.tile) {
                     step_around
@@ -532,5 +515,56 @@ mod test {
             EntityState::Ok { next_round: 5 }
         ));
         assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 3));
+    }
+
+    #[test]
+    fn goto_blocked_test() {
+        let update = FloorUpdate::new(Floor::new_minimal());
+        let (update, player_id) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    state: EntityState::Ok { next_round: 0 },
+                    pos: AbsolutePosition::new(0, 0),
+                    ..Default::default()
+                })
+            })
+            .split_pair();
+        let (update, _) = update
+            .bind(|floor| {
+                floor.add_entity(Entity {
+                    state: EntityState::Ok { next_round: 9999 },
+                    pos: AbsolutePosition::new(1, 1),
+                    ..Default::default()
+                })
+            })
+            .split_pair();
+        let update = update.bind(|floor| {
+            GotoAction {}
+                .verify_action(&floor, player_id, AbsolutePosition::new(5, 5))
+                .unwrap()
+                .do_action(&floor)
+        });
+
+        let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
+            EntityState::ConfirmCommand { to_confirm, .. } => to_confirm.do_action(&floor),
+            _ => panic!(
+                "Expected ConfirmCommand state. Got value: {:?}",
+                floor.entities[player_id].state
+            ),
+        };
+
+        let update = update
+            .bind(confirm_command)
+            .bind(confirm_command)
+            .bind(confirm_command)
+            .bind(confirm_command)
+            .bind(confirm_command);
+
+        let (floor, _) = update.into_both();
+        assert!(matches!(
+            floor.entities[player_id].state,
+            EntityState::Ok { next_round: 6 }
+        ));
+        assert_eq!(floor.entities[player_id].pos, AbsolutePosition::new(5, 5));
     }
 }
