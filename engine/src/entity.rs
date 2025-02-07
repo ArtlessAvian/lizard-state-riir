@@ -310,11 +310,11 @@ impl Default for EntityState {
 }
 
 #[derive(Debug)]
-pub struct AlreadyPresent;
+pub(crate) struct AlreadyPresent;
 
 /// Write only hashmap. Cannot replace keys.
 #[derive(Default)]
-pub struct BatchEntityUpdateContextless(pub HashMap<EntityId, Entity>);
+pub(crate) struct BatchEntityUpdateContextless(pub HashMap<EntityId, Entity>);
 
 impl BatchEntityUpdateContextless {
     #[must_use]
@@ -364,7 +364,7 @@ impl BatchEntityUpdateContextless {
     }
 }
 
-pub struct BatchEntityUpdate<'a> {
+pub(crate) struct BatchEntityUpdate<'a> {
     pub contextless: BatchEntityUpdateContextless,
     pub context: &'a EntitySet,
 }

@@ -12,7 +12,7 @@ pub(super) struct GodotWrappedAction {
 
 #[derive(GodotClass, Debug)]
 #[class(init, base=Resource)]
-pub struct ActionSet {
+pub(crate) struct ActionSet {
     base: Base<Resource>,
     #[export]
     actions: Array<Option<Gd<Resource>>>, // hopefully all impl MoveTrait

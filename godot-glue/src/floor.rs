@@ -242,7 +242,7 @@ impl ActiveFloor {
 /// Or encourages implementation detail shenanigans, like comparison or arithmetic.
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct EntityId {
+pub(crate) struct EntityId {
     pub id: EntityIdInternal,
     #[var(get)]
     petname: GString,

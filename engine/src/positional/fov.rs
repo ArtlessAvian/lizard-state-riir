@@ -62,7 +62,7 @@ impl IndexMut<TrieNodeIndex> for NodeArena {
 // TODO: Lenient FOV.
 // TODO: Make a lazy-static? I also doubt you will need to increase radius much more than it is already.
 #[derive(Debug)]
-pub struct StrictFOV {
+pub(crate) struct StrictFOV {
     radius: u32,
     nodes: NodeArena,
 }

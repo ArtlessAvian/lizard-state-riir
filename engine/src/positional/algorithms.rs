@@ -27,7 +27,7 @@ use super::RelativePosition;
 /// There isn't much of a use to an infinite ray that can't be solved with a long segment?
 /// If one were to be made anyways, maybe there could be a bias "up" and bias "down,"
 /// similar to the bias in the implementation for segments.
-pub struct Segment {}
+pub(crate) struct Segment {}
 
 impl Segment {
     pub(super) fn calculate(

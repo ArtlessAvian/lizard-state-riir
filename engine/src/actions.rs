@@ -137,7 +137,7 @@ pub trait CommandTrait: Debug {
 /// This is preferable to a no-op command, since that would produce a new Floor.
 #[derive(Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub struct NullAction {}
+pub(crate) struct NullAction {}
 
 impl ActionTrait for NullAction {
     fn verify_action(&self, _: &Floor, _: EntityId) -> Option<Box<dyn CommandTrait>> {

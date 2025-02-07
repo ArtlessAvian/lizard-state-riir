@@ -167,7 +167,7 @@ impl From<EnterStanceAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug)]
-pub struct EnterStanceCommand {
+pub(crate) struct EnterStanceCommand {
     subject_id: EntityId,
 }
 
@@ -185,7 +185,7 @@ impl CommandTrait for EnterStanceCommand {
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub struct ExitStanceAction;
+pub(crate) struct ExitStanceAction;
 
 impl ActionTrait for ExitStanceAction {
     fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
@@ -200,7 +200,7 @@ impl From<ExitStanceAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug)]
-pub struct ExitStanceCommand {
+pub(crate) struct ExitStanceCommand {
     subject_id: EntityId,
 }
 

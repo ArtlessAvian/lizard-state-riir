@@ -21,7 +21,7 @@ use crate::positional::RelativePosition;
 use crate::writer::Writer;
 
 #[derive(Debug)]
-pub struct TakeKnockbackUtil {
+pub(crate) struct TakeKnockbackUtil {
     pub entity: EntityId,
     pub vector: RelativePosition,
 }
@@ -176,7 +176,7 @@ impl CommandTrait for MultiKnockbackUtil {
 }
 
 #[derive(Debug)]
-pub struct DelayCommand {
+pub(crate) struct DelayCommand {
     pub subject_id: EntityId,
     pub queued_command: KnownCommand,
     pub turns: u32,

@@ -18,7 +18,7 @@ use crate::positional::AbsolutePosition;
 
 #[derive(GodotClass, Debug)]
 #[class(init, base=Resource)]
-pub struct EntityInitializer {
+pub(crate) struct EntityInitializer {
     base: Base<Resource>,
     #[export]
     position: AbsolutePosition,

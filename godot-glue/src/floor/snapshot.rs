@@ -13,7 +13,7 @@ use crate::actions::TileAction;
 /// Only contains getters. It is impossible to have setters.
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct EntitySnapshot {
+pub(crate) struct EntitySnapshot {
     pub entity: Rc<Entity>,
 }
 

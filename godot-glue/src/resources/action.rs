@@ -11,7 +11,7 @@ macro_rules! expose_action_to_godot {
     ( $type:ident, $cons:expr ) => {
         #[derive(GodotClass, Debug)]
         #[class(init, base=Resource)]
-        pub struct $type {
+        pub(crate) struct $type {
             base: Base<Resource>,
         }
 

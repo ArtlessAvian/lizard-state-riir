@@ -14,7 +14,7 @@ use crate::floor::EntityId;
 /// An opaque object containing an Action. Has no logic.
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct Action {
+pub(crate) struct Action {
     // Godot doesn't see this anyways.
     action: Rc<dyn ActionTrait>,
 }
@@ -44,7 +44,7 @@ impl Action {
 /// An opaque object containing an Action. Has no logic.
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct TileAction {
+pub(crate) struct TileAction {
     // Godot doesn't see this anyways.
     action: Rc<dyn TileActionTrait>,
 }
@@ -75,7 +75,7 @@ impl TileAction {
 /// An opaque object containing an Action. Has no logic.
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct DirectionAction {
+pub(crate) struct DirectionAction {
     // Godot doesn't see this anyways.
     action: Rc<dyn DirectionActionTrait>,
 }

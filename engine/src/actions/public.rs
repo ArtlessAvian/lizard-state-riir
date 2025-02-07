@@ -249,7 +249,7 @@ impl TileActionTrait for GotoAction {
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub struct GotoCommand {
+pub(crate) struct GotoCommand {
     pub tile: AbsolutePosition,
     subject_id: EntityId,
 }
@@ -343,7 +343,7 @@ impl CommandTrait for GotoCommand {
 }
 
 #[derive(Debug)]
-pub struct TryToStandUpAction;
+pub(crate) struct TryToStandUpAction;
 
 impl ActionTrait for TryToStandUpAction {
     fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
@@ -360,7 +360,7 @@ impl ActionTrait for TryToStandUpAction {
 }
 
 #[derive(Debug)]
-pub struct TryToStandUpCommand {
+pub(crate) struct TryToStandUpCommand {
     subject_id: EntityId,
     now: u32,
 }
@@ -392,7 +392,7 @@ impl CommandTrait for TryToStandUpCommand {
 }
 
 #[derive(Debug)]
-pub struct KnockdownAfterJuggleAction;
+pub(crate) struct KnockdownAfterJuggleAction;
 
 impl ActionTrait for KnockdownAfterJuggleAction {
     fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
@@ -409,7 +409,7 @@ impl ActionTrait for KnockdownAfterJuggleAction {
 }
 
 #[derive(Debug)]
-pub struct KnockdownAfterJuggleCommand {
+pub(crate) struct KnockdownAfterJuggleCommand {
     subject_id: EntityId,
     now: u32,
 }

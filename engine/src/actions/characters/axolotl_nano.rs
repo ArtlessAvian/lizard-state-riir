@@ -39,7 +39,7 @@ impl From<EnterSmiteStanceAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug, Clone)]
-pub struct EnterSmiteStanceCommand {
+pub(crate) struct EnterSmiteStanceCommand {
     subject_id: EntityId,
     tile: AbsolutePosition,
 }
@@ -57,7 +57,7 @@ impl CommandTrait for EnterSmiteStanceCommand {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub struct StanceSmiteAction {
+pub(crate) struct StanceSmiteAction {
     tile: AbsolutePosition,
 }
 
@@ -77,7 +77,7 @@ impl From<StanceSmiteAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug, Clone)]
-pub struct StanceSmiteCommand {
+pub(crate) struct StanceSmiteCommand {
     subject_id: EntityId,
     tile: AbsolutePosition,
 }

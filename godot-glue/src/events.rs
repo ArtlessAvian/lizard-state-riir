@@ -19,7 +19,7 @@ use crate::positional::AbsolutePosition;
 //
 // # Convert to dictionary.
 // No schema, no static analysis. Avoids repeated marshalling.
-pub struct FloorEvent;
+pub(crate) struct FloorEvent;
 
 macro_rules! floor_event_to_variant {
     (($id_cache:ident, $event:ident), $(($enum:ident, $eventty:ty),)*) => {
@@ -54,7 +54,7 @@ impl FloorEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct MoveEvent {
+pub(crate) struct MoveEvent {
     #[var(get)]
     subject: Gd<EntityId>,
     #[var(get)]
@@ -72,7 +72,7 @@ impl MoveEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct StartAttackEvent {
+pub(crate) struct StartAttackEvent {
     #[var(get)]
     subject: Gd<EntityId>,
     #[var(get)]
@@ -93,7 +93,7 @@ impl StartAttackEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct PrepareAttackEvent {
+pub(crate) struct PrepareAttackEvent {
     #[var(get)]
     subject: Gd<EntityId>,
     #[var(get)]
@@ -114,7 +114,7 @@ impl PrepareAttackEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct AttackHitEvent {
+pub(crate) struct AttackHitEvent {
     #[var(get)]
     subject: Gd<EntityId>,
     #[var(get)]
@@ -138,7 +138,7 @@ impl AttackHitEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct JuggleHitEvent {
+pub(crate) struct JuggleHitEvent {
     #[var(get)]
     target: Gd<EntityId>,
 }
@@ -156,7 +156,7 @@ impl JuggleHitEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct JuggleLimitEvent {
+pub(crate) struct JuggleLimitEvent {
     #[var(get)]
     target: Gd<EntityId>,
 }
@@ -174,7 +174,7 @@ impl JuggleLimitEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct SeeMapEvent {
+pub(crate) struct SeeMapEvent {
     #[var(get)]
     subject: Gd<EntityId>,
     #[var(get)]
@@ -201,7 +201,7 @@ impl SeeMapEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct KnockbackEvent {
+pub(crate) struct KnockbackEvent {
     #[var(get)]
     subject: Gd<EntityId>,
     #[var(get)]
@@ -222,7 +222,7 @@ impl KnockbackEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct KnockdownEvent {
+pub(crate) struct KnockdownEvent {
     #[var(get)]
     subject: Gd<EntityId>,
 }
@@ -240,7 +240,7 @@ impl KnockdownEvent {
 
 #[derive(GodotClass)]
 #[class(no_init)]
-pub struct WakeupEvent {
+pub(crate) struct WakeupEvent {
     #[var(get)]
     subject: Gd<EntityId>,
 }
