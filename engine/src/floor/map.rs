@@ -1,4 +1,4 @@
-pub mod vision;
+pub(crate) mod vision;
 
 use std::cell::OnceCell;
 use std::cell::RefCell;

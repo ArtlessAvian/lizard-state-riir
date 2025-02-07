@@ -9,12 +9,12 @@
 // #![allow(clippy::must_use_candidate)]
 
 pub mod actions;
-pub mod events;
+pub(crate) mod events;
 pub mod floor;
-pub mod positional;
+pub(crate) mod positional;
 /// One way conversions from Godot to Rust.
 /// Not intended for saving an existing game.
-pub mod resources;
+pub(crate) mod resources;
 
 #[cfg(feature = "profiling")]
 use std::default::Default;

@@ -1,6 +1,6 @@
 pub mod map;
-pub mod mutators;
-pub mod occupiers;
+pub(crate) mod mutators;
+pub(crate) mod occupiers;
 
 use rkyv::Archive;
 use rkyv::Deserialize;
