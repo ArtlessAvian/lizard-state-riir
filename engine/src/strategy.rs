@@ -15,7 +15,7 @@ use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
 
 #[enum_dispatch]
-pub trait StrategyTrait {
+pub(crate) trait StrategyTrait {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate;
 }
 
