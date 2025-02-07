@@ -106,7 +106,7 @@ impl CommandTrait for DoubleHitCommand {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub(crate) struct DoubleHitFollowup {
+pub struct DoubleHitFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
 }

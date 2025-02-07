@@ -1,4 +1,3 @@
-#![allow(private_interfaces)]
 use std::rc::Rc;
 
 use enum_dispatch::enum_dispatch;

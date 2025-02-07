@@ -86,7 +86,7 @@ impl CommandTrait for ForwardHeavyCommand {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub(crate) struct ForwardHeavyFollowup {
+pub struct ForwardHeavyFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
 }
@@ -183,7 +183,7 @@ impl From<TrackingAction> for KnownUnaimedAction {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub(crate) struct TrackingFollowup {
+pub struct TrackingFollowup {
     tracking_id: EntityId,
     subject_id: EntityId,
 }

@@ -1,12 +1,11 @@
+//! Newtypes and their associated functions, understood by Godot.
+
 #![warn(clippy::pedantic)]
-// Personal taste.
-#![allow(clippy::module_name_repetitions)]
-// Clippy wants to pass `Gd<_>` by reference.
-// However, this would need a lifetime, and the bindings don't work with generics.
-#![allow(clippy::needless_pass_by_value)]
-// Functions will mostly be called from Godot, and must_use wouldn't enforce anything there.
-// I suppose it's fine though.
-// #![allow(clippy::must_use_candidate)]
+#![allow(clippy::module_name_repetitions, reason = "Personal preference")]
+#![allow(
+    clippy::needless_pass_by_value,
+    reason = "Functions exposed to Godot need params understood by Godot. References with lifetimes are not supported."
+)]
 
 pub mod actions;
 pub(crate) mod events;
