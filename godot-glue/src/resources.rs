@@ -80,7 +80,7 @@ impl EntityInitializer {
 #[derive(GodotConvert, Var, Export, Default)]
 #[godot(via = GString)]
 #[derive(Debug)]
-pub enum StrategyName {
+pub(crate) enum StrategyName {
     #[default]
     Null,
     Wander,

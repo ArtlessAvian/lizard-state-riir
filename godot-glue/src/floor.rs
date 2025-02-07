@@ -23,7 +23,7 @@ use crate::resources::EntityInitializer;
 #[derive(GodotConvert, Var, Export)]
 #[godot(via = GString)]
 #[derive(Debug)]
-pub enum FloorEndStateName {
+pub(crate) enum FloorEndStateName {
     Undetermined,
     AnyPartyMemberDowned,
     AllPartyMembersExited,

@@ -91,7 +91,7 @@ impl TileActionTrait for Rc<dyn SerializeTileActionTrait> {
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 #[enum_dispatch(DirectionActionTrait)]
-pub enum KnownDirectionAction {
+pub(crate) enum KnownDirectionAction {
     DoubleHit(DoubleHitAction),
     ForwardHeavy(ForwardHeavyAction),
     External(Rc<dyn SerializeDirectionActionTrait>),

@@ -91,7 +91,7 @@ impl EntitySnapshot {
 #[derive(GodotConvert, Var, Export)]
 #[godot(via = GString)]
 #[derive(Debug)]
-pub enum EntityStateName {
+pub(crate) enum EntityStateName {
     Ok,
     Committed,
     ConfirmCommand,
