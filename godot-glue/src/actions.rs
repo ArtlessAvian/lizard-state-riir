@@ -1,4 +1,4 @@
-pub mod public;
+pub(crate) mod public;
 
 use std::rc::Rc;
 

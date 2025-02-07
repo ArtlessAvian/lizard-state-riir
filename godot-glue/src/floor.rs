@@ -1,4 +1,4 @@
-pub mod snapshot;
+pub(crate) mod snapshot;
 
 use std::collections::HashMap;
 use std::default::Default;

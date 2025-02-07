@@ -1,7 +1,7 @@
 // Due to the enum dispatch macro, this file containing the traits needs to know the implementors referenced in the enum.
 #![allow(clippy::wildcard_imports)]
 
-pub mod utils;
+pub(crate) mod utils;
 
 pub mod example;
 
