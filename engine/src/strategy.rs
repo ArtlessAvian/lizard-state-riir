@@ -58,7 +58,7 @@ impl StrategyTrait for WanderStrategy {
         if let Some(x) = StepAction.verify_action(
             original,
             subject_id,
-            #[allow(clippy::cast_possible_wrap, clippy::unreadable_literal)]
+            #[expect(clippy::cast_possible_wrap, clippy::unreadable_literal)]
             RelativePosition::new(
                 ((original.get_current_round() ^ 0xfedcba) % 3) as i32 - 1,
                 ((original.get_current_round() ^ 0xabcdef) % 3) as i32 - 1,

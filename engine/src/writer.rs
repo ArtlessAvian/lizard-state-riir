@@ -28,7 +28,7 @@ impl<T, Payload> Writer<T, Payload> {
         &self.contents
     }
 
-    #[allow(dead_code)]
+    #[cfg_attr(not(test), expect(unused))]
     pub(crate) fn get_log(&self) -> &Vec<Payload> {
         &self.log
     }

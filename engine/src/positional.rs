@@ -206,9 +206,8 @@ impl From<RelativeOctantified> for RelativePosition {
     fn from(value: RelativeOctantified) -> Self {
         // If you imagine the game taking place on a very large donut, the wrapping cast becomes valid.
         // The vector that wraps more than halfway around the donut is equivalent to the vector going the other way to the same point.
-        #[allow(clippy::cast_possible_wrap)]
-        // Ha. Take that Clippy. :face_holding_back_tears:
         // (The segments along(?) those two vectors are different though. Actually now there are infinitely many segments between two points.)
+        #[expect(clippy::cast_possible_wrap)]
         let (mut dx, mut dy) = (value.inside.run as i32, value.inside.rise as i32);
 
         if value.octant & 0b001 != 0 {

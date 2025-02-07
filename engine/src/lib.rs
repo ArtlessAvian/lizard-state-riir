@@ -24,12 +24,11 @@
 //!     * Recurring characters.
 
 #![warn(clippy::pedantic)]
-// Personal taste.
-#![allow(clippy::module_name_repetitions)]
-// TODO: This is genuinely a problem, but we probably want to move to propogating Result eventually.
-#![allow(clippy::missing_panics_doc)]
+#![warn(clippy::allow_attributes)]
 #![warn(clippy::clone_on_ref_ptr)]
-#![allow(clippy::used_underscore_binding)]
+#![allow(clippy::module_name_repetitions, reason = "Personal preference")]
+#![allow(clippy::missing_panics_doc, reason = "TODO: Propogate Result")]
+#![allow(clippy::used_underscore_binding, reason = "Macros")]
 
 /// Defining action related traits, and implementations of that trait.
 pub mod actions;
