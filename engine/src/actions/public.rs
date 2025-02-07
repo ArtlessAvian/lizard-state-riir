@@ -277,18 +277,18 @@ impl CommandTrait for GotoCommand {
                 let context = Rc::clone(&map.pathfinder);
                 let pathfinder = context.get()?.borrow();
                 let mut step_around = PathfindingContext::new(
-                    Box::new(move |pos| {
+                    |pos| {
                         !map.get_tile(pos).is_tile_floor()
                             || entities
                                 .iter()
                                 .any(|e| e.1.pos == pos && self.subject_id != e.0)
-                    }),
-                    Box::new(move |start, destination| {
+                    },
+                    |start, destination| {
                         pathfinder.get_distance(start, destination).unwrap_or_else(
                             // fallback. heuristic becomes inconsistent (but still admissible)
                             || AbsolutePosition::distance(start, destination),
                         )
-                    }),
+                    },
                 );
 
                 if step_around.find_path(subject_pos, self.tile) {

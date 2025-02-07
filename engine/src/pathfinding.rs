@@ -103,12 +103,12 @@ pub struct PathfindingContext<'a> {
 impl<'a> PathfindingContext<'a> {
     #[must_use]
     pub fn new(
-        blocked: Box<dyn FnMut(AbsolutePosition) -> bool + 'a>,
-        heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a>,
+        blocked: impl FnMut(AbsolutePosition) -> bool + 'a,
+        heuristic: impl FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a,
     ) -> Self {
         Self {
-            blocked,
-            heuristic,
+            blocked: Box::new(blocked),
+            heuristic: Box::new(heuristic),
             known_distance: SymmetricMatrix::default(),
             diagonal_steps: SymmetricMatrix::default(),
             step_between: SymmetricMatrix::default(),
@@ -258,8 +258,7 @@ mod test {
 
     #[test]
     fn permissive_diagonal() {
-        let mut context =
-            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+        let mut context = PathfindingContext::new(|_| false, AbsolutePosition::distance);
 
         let start = AbsolutePosition::new(0, 0);
         let destination = AbsolutePosition::new(5, 5);
@@ -274,8 +273,7 @@ mod test {
 
     #[test]
     fn permissive_minimize_diagonals() {
-        let mut context =
-            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+        let mut context = PathfindingContext::new(|_| false, AbsolutePosition::distance);
 
         let start = AbsolutePosition::new(0, 0);
         let destination = AbsolutePosition::new(5, 0);
@@ -291,10 +289,10 @@ mod test {
     #[test]
     fn permissive_bad_heuristic() {
         let mut context = PathfindingContext::new(
-            Box::new(|_| false),
+            |_| false,
             // consistently underesimates true distance.
             // devolves into dijkstra's
-            Box::new(|_, _| 0),
+            |_, _| 0,
         );
 
         let start = AbsolutePosition::new(0, 0);
@@ -310,26 +308,22 @@ mod test {
 
     #[test]
     fn no_path() {
-        let mut context =
-            PathfindingContext::new(Box::new(|_| true), Box::new(AbsolutePosition::distance));
+        let mut context = PathfindingContext::new(|_| true, AbsolutePosition::distance);
 
         assert!(!context.find_path(AbsolutePosition::new(0, 0), AbsolutePosition::new(5, 0)));
     }
 
     #[test]
     fn no_path_infinite_frontier() {
-        let mut context = PathfindingContext::new(
-            Box::new(|pos| pos.x == 1 && pos.y == 1),
-            Box::new(AbsolutePosition::distance),
-        );
+        let mut context =
+            PathfindingContext::new(|pos| pos.x == 1 && pos.y == 1, AbsolutePosition::distance);
 
         assert!(!context.find_path(AbsolutePosition::new(0, 0), AbsolutePosition::new(1, 1)));
     }
 
     #[test]
     fn resume_run() {
-        let mut context =
-            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+        let mut context = PathfindingContext::new(|_| false, AbsolutePosition::distance);
 
         let start = AbsolutePosition::new(0, 0);
         {
@@ -357,8 +351,7 @@ mod test {
 
     #[test]
     fn resume_run_from_middle() {
-        let mut context =
-            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+        let mut context = PathfindingContext::new(|_| false, AbsolutePosition::distance);
 
         let destination = AbsolutePosition::new(3, 3);
         {
@@ -386,8 +379,7 @@ mod test {
 
     #[test]
     fn resume_run_unrelated_destination() {
-        let mut context =
-            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+        let mut context = PathfindingContext::new(|_| false, AbsolutePosition::distance);
 
         let start: AbsolutePosition = AbsolutePosition::new(0, 0);
         {
@@ -415,8 +407,7 @@ mod test {
 
     #[test]
     fn resume_run_backwards() {
-        let mut context =
-            PathfindingContext::new(Box::new(|_| false), Box::new(AbsolutePosition::distance));
+        let mut context = PathfindingContext::new(|_| false, AbsolutePosition::distance);
 
         {
             let start = AbsolutePosition::new(0, 0);
@@ -468,10 +459,8 @@ mod test {
         })
         .collect::<std::collections::HashSet<AbsolutePosition>>();
 
-        let mut context = PathfindingContext::new(
-            Box::new(move |pos| maze.contains(&pos)),
-            Box::new(AbsolutePosition::distance),
-        );
+        let mut context =
+            PathfindingContext::new(move |pos| maze.contains(&pos), AbsolutePosition::distance);
 
         let start = AbsolutePosition::new(0, 0);
         let destination = AbsolutePosition::new(6, 6);

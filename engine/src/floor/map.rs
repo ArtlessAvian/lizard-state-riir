@@ -80,8 +80,8 @@ impl FloorMap {
             let tiles = Rc::clone(&self.tiles);
             let default = self.default;
             RefCell::new(PathfindingContext::new(
-                Box::new(move |pos| !tiles.get(&pos).unwrap_or(&default).is_tile_floor()),
-                Box::new(AbsolutePosition::distance),
+                move |pos| !tiles.get(&pos).unwrap_or(&default).is_tile_floor(),
+                AbsolutePosition::distance,
             ))
         });
 
