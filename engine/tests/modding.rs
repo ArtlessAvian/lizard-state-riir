@@ -1,5 +1,3 @@
-#![allow(private_interfaces)]
-
 /// Presuming I either split up crates.
 /// Or if someone actually wants to mod. That'd be crazy.
 use std::rc::Rc;
@@ -30,7 +28,7 @@ use rkyv_typename::TypeName;
 
 #[derive(PartialEq, Eq, Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug, TypeName))]
-struct TestAction {}
+pub struct TestAction {}
 
 #[archive_dyn(deserialize)]
 impl ActionTrait for TestAction {
@@ -49,7 +47,7 @@ impl ActionTrait for Archived<TestAction> {
 
 #[derive(PartialEq, Eq, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug, TypeName))]
-struct TestCommand {
+pub struct TestCommand {
     subject_id: EntityId,
 }
 

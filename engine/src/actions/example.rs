@@ -106,7 +106,7 @@ impl CommandTrait for DoubleHitCommand {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub(crate) struct DoubleHitFollowup {
+pub struct DoubleHitFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
 }
@@ -185,7 +185,7 @@ impl CommandTrait for EnterStanceCommand {
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub(crate) struct ExitStanceAction;
+pub struct ExitStanceAction;
 
 impl ActionTrait for ExitStanceAction {
     fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {

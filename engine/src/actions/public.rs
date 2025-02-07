@@ -249,7 +249,7 @@ impl TileActionTrait for GotoAction {
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub(crate) struct GotoCommand {
+pub struct GotoCommand {
     pub tile: AbsolutePosition,
     subject_id: EntityId,
 }

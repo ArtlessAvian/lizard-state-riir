@@ -57,7 +57,7 @@ impl CommandTrait for EnterSmiteStanceCommand {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-pub(crate) struct StanceSmiteAction {
+pub struct StanceSmiteAction {
     tile: AbsolutePosition,
 }
 
