@@ -11,6 +11,7 @@ use super::events::StartAttackEvent;
 use super::events::WakeupEvent;
 use super::utils;
 use super::utils::TakeKnockbackUtil;
+use super::ActionError;
 use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
@@ -32,10 +33,16 @@ use crate::writer::Writer;
 pub struct WaitAction;
 
 impl ActionTrait for WaitAction {
-    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains_id(subject_id));
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        if !(floor.entities.contains_id(subject_id)) {
+            return Err(ActionError::DataMismatch);
+        }
 
-        Some(Box::new(WaitCommand { subject_id }))
+        Ok(Box::new(WaitCommand { subject_id }))
     }
 }
 
@@ -66,18 +73,20 @@ impl DirectionActionTrait for StepAction {
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains_id(subject_id));
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        if !(floor.entities.contains_id(subject_id)) {
+            return Err(ActionError::DataMismatch);
+        }
 
         if dir.length() != 1 {
-            return None;
+            return Err(ActionError::TargetOutOfRange);
         }
 
         if !floor
             .map
             .is_tile_floor(floor.entities[subject_id].pos + dir)
         {
-            return None;
+            return Err(ActionError::InvalidTarget);
         }
 
         // It is impossible to step on yourself if dir.length() == 1, but I'm
@@ -89,10 +98,10 @@ impl DirectionActionTrait for StepAction {
             .get(floor.entities[subject_id].pos + dir)
             .is_some_and(|x| x != subject_id)
         {
-            return None;
+            return Err(ActionError::InvalidTarget);
         }
 
-        Some(Box::new(StepCommand { dir, subject_id }))
+        Ok(Box::new(StepCommand { dir, subject_id }))
     }
 }
 
@@ -131,18 +140,23 @@ impl DirectionActionTrait for BumpAction {
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains_id(subject_id));
-
-        if dir.length() != 1 {
-            return None;
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        if !(floor.entities.contains_id(subject_id)) {
+            return Err(ActionError::DataMismatch);
         }
 
-        Some(Box::new(BumpCommand {
+        if dir.length() != 1 {
+            return Err(ActionError::TargetOutOfRange);
+        }
+
+        Ok(Box::new(BumpCommand {
             dir,
             subject_id,
-            object_index: floor.occupiers.get(floor.entities[subject_id].pos + dir)?,
-            now: floor.get_current_turn()?,
+            object_index: floor
+                .occupiers
+                .get(floor.entities[subject_id].pos + dir)
+                .ok_or(ActionError::InvalidTarget)?,
+            now: floor.get_current_turn().ok_or(ActionError::FloorInvalid)?,
         }))
     }
 }
@@ -215,18 +229,18 @@ impl DirectionActionTrait for StepMacroAction {
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         let bump = BumpAction;
-        if let Some(command) = bump.verify_action(floor, subject_id, dir) {
-            return Some(command);
+        if let Ok(command) = bump.verify_action(floor, subject_id, dir) {
+            return Ok(command);
         }
 
         let step = StepAction;
-        if let Some(command) = step.verify_action(floor, subject_id, dir) {
-            return Some(command);
+        if let Ok(command) = step.verify_action(floor, subject_id, dir) {
+            return Ok(command);
         }
 
-        None
+        Err(ActionError::MacroFallthrough)
     }
 }
 
@@ -239,9 +253,9 @@ impl TileActionTrait for GotoAction {
         _floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         // Pathfind to target.
-        Some(Box::new(GotoCommand { tile, subject_id }))
+        Ok(Box::new(GotoCommand { tile, subject_id }))
     }
 }
 
@@ -260,14 +274,16 @@ impl CommandTrait for GotoCommand {
             .map
             .get_step(subject_pos, self.tile)
             .and_then(|target| {
-                StepAction.verify_action(
-                    floor,
-                    self.subject_id,
-                    RelativePosition {
-                        dx: (target.x - subject_pos.x).clamp(-1, 1),
-                        dy: (target.y - subject_pos.y).clamp(-1, 1),
-                    },
-                )
+                StepAction
+                    .verify_action(
+                        floor,
+                        self.subject_id,
+                        RelativePosition {
+                            dx: (target.x - subject_pos.x).clamp(-1, 1),
+                            dy: (target.y - subject_pos.y).clamp(-1, 1),
+                        },
+                    )
+                    .ok()
             })
             .or_else(|| {
                 let mut context = floor.map.pathfinder.get()?.borrow_mut();
@@ -278,14 +294,16 @@ impl CommandTrait for GotoCommand {
                     step_around
                         .get_step(subject_pos, self.tile)
                         .and_then(|target| {
-                            StepAction.verify_action(
-                                floor,
-                                self.subject_id,
-                                RelativePosition {
-                                    dx: (target.x - subject_pos.x).clamp(-1, 1),
-                                    dy: (target.y - subject_pos.y).clamp(-1, 1),
-                                },
-                            )
+                            StepAction
+                                .verify_action(
+                                    floor,
+                                    self.subject_id,
+                                    RelativePosition {
+                                        dx: (target.x - subject_pos.x).clamp(-1, 1),
+                                        dy: (target.y - subject_pos.y).clamp(-1, 1),
+                                    },
+                                )
+                                .ok()
                         })
                 } else {
                     None
@@ -329,15 +347,19 @@ impl CommandTrait for GotoCommand {
 pub struct TryToStandUpAction;
 
 impl ActionTrait for TryToStandUpAction {
-    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         match floor.entities[subject_id].state {
             EntityState::Knockdown {
                 next_round: current_round,
-            } => Some(Box::new(TryToStandUpCommand {
+            } => Ok(Box::new(TryToStandUpCommand {
                 subject_id,
                 now: current_round,
             })),
-            _ => None,
+            _ => Err(ActionError::InvalidState),
         }
     }
 }
@@ -378,15 +400,17 @@ impl CommandTrait for TryToStandUpCommand {
 pub struct KnockdownAfterJuggleAction;
 
 impl ActionTrait for KnockdownAfterJuggleAction {
-    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         match floor.entities[subject_id].state {
-            EntityState::Hitstun { next_round, .. } => {
-                Some(Box::new(KnockdownAfterJuggleCommand {
-                    subject_id,
-                    now: next_round,
-                }))
-            }
-            _ => None,
+            EntityState::Hitstun { next_round, .. } => Ok(Box::new(KnockdownAfterJuggleCommand {
+                subject_id,
+                now: next_round,
+            })),
+            _ => Err(ActionError::InvalidState),
         }
     }
 }

@@ -33,9 +33,6 @@ use std::fmt::Debug;
 use std::rc::Rc;
 
 use enum_dispatch::enum_dispatch;
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
 use rkyv_dyn::archive_dyn;
 
 use self::characters::axolotl_nano::*;
@@ -49,6 +46,20 @@ use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
+
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ActionError {
+    #[deprecated]
+    Todo,
+    TargetOutOfRange,
+    DataMismatch,
+    InvalidTarget,
+    NotEnoughEnergy,
+    FloorInvalid,
+    MacroFallthrough,
+    InvalidState,
+}
 
 // Rc to allow cloning trait objects, also its cheap!
 #[derive(Debug, Clone)]
@@ -90,7 +101,11 @@ pub enum UnaimedAction {
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
 pub trait ActionTrait: Debug {
-    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>>;
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError>;
 }
 
 #[archive_dyn(deserialize)]
@@ -101,7 +116,7 @@ pub trait TileActionTrait: Debug {
         floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Option<Box<dyn CommandTrait>>;
+    ) -> Result<Box<dyn CommandTrait>, ActionError>;
 }
 
 #[archive_dyn(deserialize)]
@@ -112,7 +127,7 @@ pub trait DirectionActionTrait: Debug {
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Option<Box<dyn CommandTrait>>;
+    ) -> Result<Box<dyn CommandTrait>, ActionError>;
 }
 
 /// Someone, doing something, in some context. Can panic!
@@ -132,17 +147,4 @@ pub trait DirectionActionTrait: Debug {
 #[enum_dispatch]
 pub trait CommandTrait: Debug {
     fn do_action(&self, floor: &Floor) -> FloorUpdate;
-}
-
-/// An action that never verifies to a command.
-///
-/// This is preferable to a no-op command, since that would produce a new Floor.
-#[derive(Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
-pub struct NullAction {}
-
-impl ActionTrait for NullAction {
-    fn verify_action(&self, _: &Floor, _: EntityId) -> Option<Box<dyn CommandTrait>> {
-        None
-    }
 }

@@ -7,6 +7,7 @@ use std::rc::Rc;
 use engine::actions::events::ExitEvent;
 use engine::actions::events::FloorEvent;
 use engine::actions::known_serializable::KnownAction;
+use engine::actions::ActionError;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::DeserializeActionTrait;
@@ -34,13 +35,21 @@ struct TestAction {}
 
 #[archive_dyn(deserialize)]
 impl ActionTrait for TestAction {
-    fn verify_action(&self, _floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(TestCommand { subject_id }))
+    fn verify_action(
+        &self,
+        _floor: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        Ok(Box::new(TestCommand { subject_id }))
     }
 }
 
 impl ActionTrait for Archived<TestAction> {
-    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         Deserialize::<TestAction, _>::deserialize(self, &mut Infallible)
             .unwrap()
             .verify_action(floor, subject_id)

@@ -53,11 +53,24 @@ impl<T, Payload> Writer<T, Payload> {
         self.map(f).flatten()
     }
 
+    // If F errors, discard log and propagate.
+    // Else unwrap and bind (while still respecting ownership).
+    pub fn bind_through_result<U, E, F>(self, f: F) -> Result<Writer<U, Payload>, E>
+    where
+        F: FnOnce(T) -> Result<Writer<U, Payload>, E>,
+    {
+        self.map(f).flatten_through_result()
+    }
+
     pub fn bind_or_noop<F>(self, f: F) -> Self
     where
         F: FnOnce(&T) -> Option<Self>,
     {
-        self.bind(|t| Writer::transpose(f(&t)).map(|opt| opt.unwrap_or(t)))
+        if let Some(new_t) = f(self.get_contents()) {
+            self.bind(|_we_used_the_t_kinda| new_t)
+        } else {
+            self
+        }
     }
 
     // /// An abomination. It *looks* clean, but on the caller side, uhhh.
@@ -141,6 +154,23 @@ impl<T, Payload> Writer<Writer<T, Payload>, Payload> {
         } = inner;
         outer_log.append(&mut inner_log);
         Writer::new_with_log(contents, outer_log)
+    }
+}
+
+impl<T, E, Payload> Writer<Result<Writer<T, Payload>, E>, Payload> {
+    // If the inner Result is Err, propagate.
+    // Else, unwrap Ok and flatten.
+    pub fn flatten_through_result(self) -> Result<Writer<T, Payload>, E> {
+        let Writer {
+            contents: inner,
+            log: mut outer_log,
+        } = self;
+        let Writer {
+            contents,
+            log: mut inner_log,
+        } = inner?;
+        outer_log.append(&mut inner_log);
+        Ok(Writer::new_with_log(contents, outer_log))
     }
 }
 

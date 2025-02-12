@@ -16,6 +16,7 @@ use super::example::DoubleHitFollowup;
 use super::example::EnterStanceAction;
 use super::example::ExitStanceAction;
 use super::public::GotoCommand;
+use super::ActionError;
 use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
@@ -62,7 +63,11 @@ pub enum KnownAction {
 }
 
 impl ActionTrait for Rc<dyn SerializeActionTrait> {
-    fn verify_action(&self, floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
+    fn verify_action(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         self.as_ref().verify_action(floor, subject_id)
     }
 }
@@ -82,7 +87,7 @@ impl TileActionTrait for Rc<dyn SerializeTileActionTrait> {
         floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         self.as_ref().verify_action(floor, subject_id, tile)
     }
 }
@@ -102,7 +107,7 @@ impl DirectionActionTrait for Rc<dyn SerializeDirectionActionTrait> {
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         self.as_ref().verify_action(floor, subject_id, dir)
     }
 }

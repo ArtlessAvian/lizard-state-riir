@@ -32,7 +32,8 @@ impl Action {
         let subject_id = binding.id;
         let verify_action = self
             .action
-            .verify_action(&floor.bind().internal, subject_id)?;
+            .verify_action(&floor.bind().internal, subject_id)
+            .ok()?;
         Some(Command::new(verify_action.into()))
     }
 }
@@ -61,9 +62,10 @@ impl TileAction {
     ) -> Option<Gd<Command>> {
         let binding = subject.bind();
         let subject_id = binding.id;
-        let verify_action =
-            self.action
-                .verify_action(&floor.bind().internal, subject_id, tile.into())?;
+        let verify_action = self
+            .action
+            .verify_action(&floor.bind().internal, subject_id, tile.into())
+            .ok()?;
         Some(Command::new(verify_action.into()))
     }
 }
@@ -92,9 +94,10 @@ impl DirectionAction {
     ) -> Option<Gd<Command>> {
         let binding = subject.bind();
         let subject_id = binding.id;
-        let verify_action =
-            self.action
-                .verify_action(&floor.bind().internal, subject_id, dir.into())?;
+        let verify_action = self
+            .action
+            .verify_action(&floor.bind().internal, subject_id, dir.into())
+            .ok()?;
         Some(Command::new(verify_action.into()))
     }
 }

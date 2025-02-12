@@ -55,7 +55,7 @@ pub struct WanderStrategy;
 
 impl StrategyTrait for WanderStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
-        if let Some(x) = StepAction.verify_action(
+        if let Ok(x) = StepAction.verify_action(
             original,
             subject_id,
             #[expect(clippy::cast_possible_wrap, reason = "Eh.")]
@@ -137,7 +137,7 @@ impl StrategyTrait for FollowStrategy {
                     RelativePosition::new(-1, 1),
                     RelativePosition::new(-1, -1),
                 ] {
-                    if let Some(x) = StepAction.verify_action(original, subject_id, dir) {
+                    if let Ok(x) = StepAction.verify_action(original, subject_id, dir) {
                         return x.do_action(original);
                     }
                 }
@@ -148,7 +148,7 @@ impl StrategyTrait for FollowStrategy {
             // If ally is too far, stepping is priority
             if subject.pos.distance(ally.pos) > 4 {
                 if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
-                    if let Some(x) =
+                    if let Ok(x) =
                         StepAction.verify_action(original, subject_id, step_to - subject.pos)
                     {
                         return x.do_action(original);
@@ -162,12 +162,12 @@ impl StrategyTrait for FollowStrategy {
             .find(|(_, entity)| !entity.is_allied(subject) && entity.pos.distance(subject.pos) == 1)
         {
             if matches!(enemy.state, EntityState::Knockdown { .. }) {
-                if let Some(x) =
+                if let Ok(x) =
                     StepAction.verify_action(original, subject_id, -(enemy.pos - subject.pos))
                 {
                     return x.do_action(original);
                 }
-            } else if let Some(x) =
+            } else if let Ok(x) =
                 BumpAction.verify_action(original, subject_id, enemy.pos - subject.pos)
             {
                 return x.do_action(original);
@@ -177,7 +177,7 @@ impl StrategyTrait for FollowStrategy {
         if let Some((_ally_id, ally)) = ally_in_range {
             if subject.pos.distance(ally.pos) > 2 {
                 if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
-                    if let Some(x) =
+                    if let Ok(x) =
                         StepAction.verify_action(original, subject_id, step_to - subject.pos)
                     {
                         return x.do_action(original);
@@ -211,13 +211,13 @@ impl StrategyTrait for RushdownStrategy {
         if let Some(other) = in_range {
             if subject.pos.distance(other.1.pos) > 1 {
                 if let Some(step_to) = original.map.get_step(subject.pos, other.1.pos) {
-                    if let Some(x) =
+                    if let Ok(x) =
                         StepAction.verify_action(original, subject_id, step_to - subject.pos)
                     {
                         return x.do_action(original);
                     }
                 }
-            } else if let Some(x) =
+            } else if let Ok(x) =
                 BumpAction.verify_action(original, subject_id, other.1.pos - subject.pos)
             {
                 return x.do_action(original);

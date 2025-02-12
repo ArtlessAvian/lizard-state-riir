@@ -34,6 +34,11 @@
     clippy::missing_panics_doc,
     reason = "TODO: Propogate Result<T, E> instead of panicking"
 )]
+#![allow(clippy::missing_errors_doc, reason = "TODO: Working on documentation")]
+#![deny(
+    clippy::panic_in_result_fn,
+    reason = "TODO: Propogate Result<T, E> instead of panicking"
+)]
 #![allow(clippy::used_underscore_binding, reason = "Macros")]
 
 /// Defining action related traits, and implementations of that trait.

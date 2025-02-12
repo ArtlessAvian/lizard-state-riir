@@ -10,6 +10,7 @@ use super::events::StartAttackEvent;
 use super::known_serializable::KnownAction;
 use super::known_serializable::KnownDirectionAction;
 use super::utils::DelayCommand;
+use super::ActionError;
 use super::ActionTrait;
 use super::CommandTrait;
 use super::DirectionActionTrait;
@@ -34,14 +35,16 @@ impl DirectionActionTrait for DoubleHitAction {
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
-        assert!(floor.entities.contains_id(subject_id));
-
-        if dir.length() > 1 {
-            return None;
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        if !(floor.entities.contains_id(subject_id)) {
+            return Err(ActionError::DataMismatch);
         }
 
-        Some(Box::new(DoubleHitCommand { dir, subject_id }))
+        if dir.length() > 1 {
+            return Err(ActionError::TargetOutOfRange);
+        }
+
+        Ok(Box::new(DoubleHitCommand { dir, subject_id }))
     }
 }
 
@@ -155,8 +158,12 @@ impl CommandTrait for DoubleHitFollowup {
 pub struct EnterStanceAction;
 
 impl ActionTrait for EnterStanceAction {
-    fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(EnterStanceCommand { subject_id }))
+    fn verify_action(
+        &self,
+        _: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        Ok(Box::new(EnterStanceCommand { subject_id }))
     }
 }
 
@@ -188,8 +195,12 @@ impl CommandTrait for EnterStanceCommand {
 pub struct ExitStanceAction;
 
 impl ActionTrait for ExitStanceAction {
-    fn verify_action(&self, _: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(ExitStanceCommand { subject_id }))
+    fn verify_action(
+        &self,
+        _: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        Ok(Box::new(ExitStanceCommand { subject_id }))
     }
 }
 

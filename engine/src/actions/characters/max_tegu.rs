@@ -13,6 +13,7 @@ use crate::actions::known_serializable::KnownTileAction;
 use crate::actions::public::StepAction;
 use crate::actions::utils::DelayCommand;
 use crate::actions::utils::TakeKnockbackUtil;
+use crate::actions::ActionError;
 use crate::actions::KnownUnaimedAction;
 use crate::actions::TileActionTrait;
 use crate::entity::Entity;
@@ -35,11 +36,11 @@ impl DirectionActionTrait for ForwardHeavyAction {
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         if floor.entities[subject_id].energy <= 0 {
-            return None;
+            return Err(ActionError::NotEnoughEnergy);
         }
-        Some(Box::new(ForwardHeavyCommand {
+        Ok(Box::new(ForwardHeavyCommand {
             step: StepAction.verify_action(floor, subject_id, dir)?,
             dir,
             subject_id,
@@ -148,18 +149,21 @@ impl TileActionTrait for TrackingAction {
         floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
         if floor.entities[subject_id].energy <= 0 {
-            return None;
+            return Err(ActionError::NotEnoughEnergy);
         }
 
-        let tracking_id = floor.occupiers.get(tile)?;
+        let tracking_id = floor
+            .occupiers
+            .get(tile)
+            .ok_or(ActionError::InvalidTarget)?;
 
         if tracking_id == subject_id {
-            return None;
+            return Err(ActionError::InvalidTarget);
         }
 
-        Some(Box::new(DelayCommand {
+        Ok(Box::new(DelayCommand {
             subject_id,
             queued_command: TrackingFollowup {
                 tracking_id,

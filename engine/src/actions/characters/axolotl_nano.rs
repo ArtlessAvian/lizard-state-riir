@@ -8,6 +8,7 @@ use super::super::CommandTrait;
 use crate::actions::known_serializable::KnownAction;
 use crate::actions::known_serializable::KnownTileAction;
 use crate::actions::utils::start_juggle;
+use crate::actions::ActionError;
 use crate::actions::ActionTrait;
 use crate::actions::KnownUnaimedAction;
 use crate::actions::TileActionTrait;
@@ -27,8 +28,8 @@ impl TileActionTrait for EnterSmiteStanceAction {
         _floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(EnterSmiteStanceCommand { subject_id, tile }))
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        Ok(Box::new(EnterSmiteStanceCommand { subject_id, tile }))
     }
 }
 
@@ -62,8 +63,12 @@ pub struct StanceSmiteAction {
 }
 
 impl ActionTrait for StanceSmiteAction {
-    fn verify_action(&self, _floor: &Floor, subject_id: EntityId) -> Option<Box<dyn CommandTrait>> {
-        Some(Box::new(StanceSmiteCommand {
+    fn verify_action(
+        &self,
+        _floor: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        Ok(Box::new(StanceSmiteCommand {
             subject_id,
             tile: self.tile,
         }))
