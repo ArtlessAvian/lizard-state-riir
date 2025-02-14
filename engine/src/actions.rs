@@ -69,35 +69,97 @@ pub enum UnaimedAction {
     Direction(Rc<dyn DirectionActionTrait>),
 }
 
+/// Shared thingy.
+pub trait UnaimedTrait {
+    type Target;
+    type Error;
+}
+
 /// An action, something that someone could do. Who and when is not defined.
 ///
-/// Sort of like a dry run. If this returned floors immediately, it would be "most correct"
-/// but also create a lot of allocations.
+/// This does not immediately mutate the input floor or create a new Floor.
+/// That is instead done by `CommandTrait`.
+/// All user errors will be returned, though unrecoverable panic! may happen in `CommandTrait`.
 ///
-/// A generic flow.
+/// Technically this is dyn compatible, but not very useful if so.
+///
+/// There are type erased traits `ActionTrait`, `TileActionTrait`, `DirectionActionTrait`, etc.
+/// One may implement them without implementing this. If you do implement this, a blanket implementation
+/// will be given. If you intend to have it saved, use `rkyv_dyn`'s `register_impl!(MyType as SomethingActionTrait)`.
+///
+/// Avoid setting the output type to `Wrapper<dyn CommandTrait>`, where `Wrapper<dyn CommandTrait>` implements `CommandTrait`.
+/// This causes pointless indirection.
+///
+/// # Example Usage
 /// ```rust
-/// use std::rc::Rc;
 /// use engine::actions::*;
 /// use engine::floor::*;
 /// use engine::entity::*;
-/// fn context(action: Box<dyn ActionTrait>, floor: &Floor, player_id: EntityId) -> FloorUpdate {
-///     let command = action.verify_and_box(floor, player_id).unwrap();
-///     command.do_action(floor)
+/// fn apply_action_to_floor<Action>(action: Action, floor: &Floor, player_id: EntityId, target: Action::Target) -> FloorUpdate
+/// where
+///     Action: UnaimedActionTrait
+/// {
+///     match action.verify(floor, player_id, target) {
+///         Ok(command) => command.do_action(floor),
+///         Err(err) => panic!(),
+///     }
 /// }
 /// ```
-///
-/// TODOs
-/// * Some indicator of an infallible action?
-/// * Maybe create another trait to describe an UnaimedAction? Currently you construct an action with the aiming built in.
-///   This would involve yet more type erasure. You would know what UnaimedAction you have, but you would forget when you aim it.
-///     * Consider ordering? First converting Unaimed to Aimed, then converting to Command (with Entity) is a bit awkward.
-///       Binding entity first makes more sense but requires twice as many traits (unbound -> unaimed -> command).
-/// * Alternatively, create an enum with all the options of `Box<dyn Trait>`? If you know the type, then no problem, parse into a command normally.
-///   If you don't (since its in the enum), match from enum and run targeting logic in each arm. Having only one conversion means all the validation is in one place.
-///   There's not likely to be some absurd targeting type not already defined.
-/// * Consider if subject should **always** the floor's next turn taker.
-/// * If not, can actions/commands call each other?
+pub trait UnaimedActionTrait: UnaimedTrait {
+    type Command: CommandTrait + 'static;
 
+    fn verify(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+        target: Self::Target,
+    ) -> Result<Self::Command, Self::Error>;
+
+    fn verify_and_box(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+        target: Self::Target,
+    ) -> Result<Box<dyn CommandTrait>, Self::Error> {
+        match self.verify(floor, subject_id, target) {
+            Ok(ok) => Ok(Box::new(ok)),
+            Err(err) => Err(err),
+        }
+    }
+}
+
+/// `UnaimedActionTrait` with type erased Command. Dyn compatible!
+///
+/// If an action returns the result of two separate commands, this may come in handy!
+/// You could write an enum and implement for that too, but its awkward.
+///
+/// See `UnaimedActionTrait`!
+pub trait UnaimedMacroTrait: UnaimedTrait {
+    fn verify_and_box(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+        target: Self::Target,
+    ) -> Result<Box<dyn CommandTrait>, Self::Error>;
+}
+
+impl<T: UnaimedActionTrait> UnaimedMacroTrait for T {
+    fn verify_and_box(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+        target: Self::Target,
+    ) -> Result<Box<dyn CommandTrait>, Self::Error> {
+        match self.verify(floor, subject_id, target) {
+            Ok(ok) => Ok(Box::new(ok)),
+            Err(err) => Err(err),
+        }
+    }
+}
+
+/// Dyn compatible version of `UnaimedMacroTrait`. Output command is type erased and Target type is known.
+///
+/// See `UnaimedActionTrait`!
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
 pub trait ActionTrait: Debug {
@@ -108,6 +170,22 @@ pub trait ActionTrait: Debug {
     ) -> Result<Box<dyn CommandTrait>, ActionError>;
 }
 
+impl<T> ActionTrait for T
+where
+    T: UnaimedMacroTrait<Target = (), Error = ActionError> + Debug,
+{
+    fn verify_and_box(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        UnaimedMacroTrait::verify_and_box(self, floor, subject_id, ())
+    }
+}
+
+/// Dyn compatible version of `UnaimedActionTrait`. Output command is type erased
+///
+/// See `UnaimedActionTrait`!
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
 pub trait TileActionTrait: Debug {
@@ -119,6 +197,23 @@ pub trait TileActionTrait: Debug {
     ) -> Result<Box<dyn CommandTrait>, ActionError>;
 }
 
+impl<T> TileActionTrait for T
+where
+    T: UnaimedMacroTrait<Target = AbsolutePosition, Error = ActionError> + Debug,
+{
+    fn verify_and_box(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+        tile: AbsolutePosition,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        UnaimedMacroTrait::verify_and_box(self, floor, subject_id, tile)
+    }
+}
+
+/// Dyn compatible version of `UnaimedActionTrait`. Output command is type erased
+///
+/// See `UnaimedActionTrait`!
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
 pub trait DirectionActionTrait: Debug {
@@ -128,6 +223,20 @@ pub trait DirectionActionTrait: Debug {
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<Box<dyn CommandTrait>, ActionError>;
+}
+
+impl<T> DirectionActionTrait for T
+where
+    T: UnaimedMacroTrait<Target = RelativePosition, Error = ActionError> + Debug,
+{
+    fn verify_and_box(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+        dir: RelativePosition,
+    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+        UnaimedMacroTrait::verify_and_box(self, floor, subject_id, dir)
+    }
 }
 
 /// Someone, doing something, in some context. Can panic!
