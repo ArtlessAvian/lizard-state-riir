@@ -12,11 +12,11 @@ use super::events::WakeupEvent;
 use super::utils;
 use super::utils::TakeKnockbackUtil;
 use super::ActionError;
-use super::ActionTrait;
 use super::CommandTrait;
-use super::DirectionActionTrait;
 use super::FloorEvent;
-use super::TileActionTrait;
+use super::UnaimedActionTrait;
+use super::UnaimedMacroTrait;
+use super::UnaimedTrait;
 use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
@@ -32,11 +32,17 @@ use crate::writer::Writer;
 #[derive(Debug)]
 pub struct WaitAction;
 
-impl ActionTrait for WaitAction {
+impl UnaimedTrait for WaitAction {
+    type Target = ();
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for WaitAction {
     fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
+        (): (),
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         if !(floor.entities.contains_id(subject_id)) {
             return Err(ActionError::DataMismatch);
@@ -67,13 +73,20 @@ impl CommandTrait for WaitCommand {
 #[derive(Debug)]
 pub struct StepAction;
 
-impl DirectionActionTrait for StepAction {
-    fn verify_and_box(
+impl UnaimedTrait for StepAction {
+    type Target = RelativePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedActionTrait for StepAction {
+    type Command = StepCommand;
+
+    fn verify(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<StepCommand, ActionError> {
         if !(floor.entities.contains_id(subject_id)) {
             return Err(ActionError::DataMismatch);
         }
@@ -101,12 +114,12 @@ impl DirectionActionTrait for StepAction {
             return Err(ActionError::InvalidTarget);
         }
 
-        Ok(Box::new(StepCommand { dir, subject_id }))
+        Ok(StepCommand { dir, subject_id })
     }
 }
 
 #[derive(Debug)]
-struct StepCommand {
+pub struct StepCommand {
     dir: RelativePosition,
     subject_id: EntityId,
 }
@@ -134,13 +147,20 @@ impl CommandTrait for StepCommand {
 #[derive(Debug)]
 pub struct BumpAction;
 
-impl DirectionActionTrait for BumpAction {
-    fn verify_and_box(
+impl UnaimedTrait for BumpAction {
+    type Target = RelativePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedActionTrait for BumpAction {
+    type Command = BumpCommand;
+
+    fn verify(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<BumpCommand, ActionError> {
         if !(floor.entities.contains_id(subject_id)) {
             return Err(ActionError::DataMismatch);
         }
@@ -149,7 +169,7 @@ impl DirectionActionTrait for BumpAction {
             return Err(ActionError::TargetOutOfRange);
         }
 
-        Ok(Box::new(BumpCommand {
+        Ok(BumpCommand {
             dir,
             subject_id,
             object_index: floor
@@ -157,12 +177,12 @@ impl DirectionActionTrait for BumpAction {
                 .get(floor.entities[subject_id].pos + dir)
                 .ok_or(ActionError::InvalidTarget)?,
             now: floor.get_current_turn().ok_or(ActionError::FloorInvalid)?,
-        }))
+        })
     }
 }
 
 #[derive(Debug)]
-struct BumpCommand {
+pub struct BumpCommand {
     dir: RelativePosition,
     subject_id: EntityId,
     object_index: EntityId,
@@ -223,7 +243,12 @@ impl CommandTrait for BumpCommand {
 #[derive(Debug)]
 pub struct StepMacroAction;
 
-impl DirectionActionTrait for StepMacroAction {
+impl UnaimedTrait for StepMacroAction {
+    type Target = RelativePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for StepMacroAction {
     fn verify_and_box(
         &self,
         floor: &Floor,
@@ -231,13 +256,13 @@ impl DirectionActionTrait for StepMacroAction {
         dir: RelativePosition,
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         let bump = BumpAction;
-        if let Ok(command) = bump.verify_and_box(floor, subject_id, dir) {
-            return Ok(command);
+        if let Ok(command) = bump.verify(floor, subject_id, dir) {
+            return Ok(Box::new(command));
         }
 
         let step = StepAction;
-        if let Ok(command) = step.verify_and_box(floor, subject_id, dir) {
-            return Ok(command);
+        if let Ok(command) = step.verify(floor, subject_id, dir) {
+            return Ok(Box::new(command));
         }
 
         Err(ActionError::MacroFallthrough)
@@ -247,7 +272,12 @@ impl DirectionActionTrait for StepMacroAction {
 #[derive(Debug)]
 pub struct GotoAction;
 
-impl TileActionTrait for GotoAction {
+impl UnaimedTrait for GotoAction {
+    type Target = AbsolutePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for GotoAction {
     fn verify_and_box(
         &self,
         _floor: &Floor,
@@ -275,7 +305,7 @@ impl CommandTrait for GotoCommand {
             .get_step(subject_pos, self.tile)
             .and_then(|target| {
                 StepAction
-                    .verify_and_box(
+                    .verify(
                         floor,
                         self.subject_id,
                         RelativePosition {
@@ -295,7 +325,7 @@ impl CommandTrait for GotoCommand {
                         .get_step(subject_pos, self.tile)
                         .and_then(|target| {
                             StepAction
-                                .verify_and_box(
+                                .verify(
                                     floor,
                                     self.subject_id,
                                     RelativePosition {
@@ -346,11 +376,17 @@ impl CommandTrait for GotoCommand {
 #[derive(Debug)]
 pub struct TryToStandUpAction;
 
-impl ActionTrait for TryToStandUpAction {
+impl UnaimedTrait for TryToStandUpAction {
+    type Target = ();
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for TryToStandUpAction {
     fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
+        (): (),
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         match floor.entities[subject_id].state {
             EntityState::Knockdown {
@@ -399,11 +435,17 @@ impl CommandTrait for TryToStandUpCommand {
 #[derive(Debug)]
 pub struct KnockdownAfterJuggleAction;
 
-impl ActionTrait for KnockdownAfterJuggleAction {
+impl UnaimedTrait for KnockdownAfterJuggleAction {
+    type Target = ();
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for KnockdownAfterJuggleAction {
     fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
+        (): (),
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         match floor.entities[subject_id].state {
             EntityState::Hitstun { next_round, .. } => Ok(Box::new(KnockdownAfterJuggleCommand {

@@ -17,15 +17,14 @@ use super::example::EnterStanceAction;
 use super::example::ExitStanceAction;
 use super::public::GotoCommand;
 use super::ActionError;
-use super::ActionTrait;
 use super::CommandTrait;
-use super::DirectionActionTrait;
 use super::SerializeActionTrait;
 use super::SerializeCommandTrait;
 use super::SerializeDirectionActionTrait;
 use super::SerializeTileActionTrait;
-use super::TileActionTrait;
 use super::UnaimedAction;
+use super::UnaimedMacroTrait;
+use super::UnaimedTrait;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
@@ -62,11 +61,17 @@ pub enum KnownAction {
     External(Rc<dyn SerializeActionTrait>),
 }
 
-impl ActionTrait for Rc<dyn SerializeActionTrait> {
+impl UnaimedTrait for Rc<dyn SerializeActionTrait> {
+    type Target = ();
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for Rc<dyn SerializeActionTrait> {
     fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
+        (): (),
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         self.as_ref().verify_and_box(floor, subject_id)
     }
@@ -81,7 +86,12 @@ pub enum KnownTileAction {
     External(Rc<dyn SerializeTileActionTrait>),
 }
 
-impl TileActionTrait for Rc<dyn SerializeTileActionTrait> {
+impl UnaimedTrait for Rc<dyn SerializeTileActionTrait> {
+    type Target = AbsolutePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for Rc<dyn SerializeTileActionTrait> {
     fn verify_and_box(
         &self,
         floor: &Floor,
@@ -101,7 +111,12 @@ pub enum KnownDirectionAction {
     External(Rc<dyn SerializeDirectionActionTrait>),
 }
 
-impl DirectionActionTrait for Rc<dyn SerializeDirectionActionTrait> {
+impl UnaimedTrait for Rc<dyn SerializeDirectionActionTrait> {
+    type Target = RelativePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for Rc<dyn SerializeDirectionActionTrait> {
     fn verify_and_box(
         &self,
         floor: &Floor,

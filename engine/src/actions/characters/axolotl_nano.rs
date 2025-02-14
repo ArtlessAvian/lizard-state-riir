@@ -9,9 +9,9 @@ use crate::actions::known_serializable::KnownAction;
 use crate::actions::known_serializable::KnownTileAction;
 use crate::actions::utils::start_juggle;
 use crate::actions::ActionError;
-use crate::actions::ActionTrait;
 use crate::actions::KnownUnaimedAction;
-use crate::actions::TileActionTrait;
+use crate::actions::UnaimedMacroTrait;
+use crate::actions::UnaimedTrait;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
 use crate::floor::Floor;
@@ -22,7 +22,12 @@ use crate::positional::AbsolutePosition;
 #[archive_attr(derive(Debug))]
 pub struct EnterSmiteStanceAction;
 
-impl TileActionTrait for EnterSmiteStanceAction {
+impl UnaimedTrait for EnterSmiteStanceAction {
+    type Target = AbsolutePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for EnterSmiteStanceAction {
     fn verify_and_box(
         &self,
         _floor: &Floor,
@@ -62,11 +67,17 @@ pub struct StanceSmiteAction {
     tile: AbsolutePosition,
 }
 
-impl ActionTrait for StanceSmiteAction {
+impl UnaimedTrait for StanceSmiteAction {
+    type Target = ();
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for StanceSmiteAction {
     fn verify_and_box(
         &self,
         _floor: &Floor,
         subject_id: EntityId,
+        (): (),
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         Ok(Box::new(StanceSmiteCommand {
             subject_id,

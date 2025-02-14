@@ -11,11 +11,11 @@ use super::known_serializable::KnownAction;
 use super::known_serializable::KnownDirectionAction;
 use super::utils::DelayCommand;
 use super::ActionError;
-use super::ActionTrait;
 use super::CommandTrait;
-use super::DirectionActionTrait;
 use super::FloorEvent;
 use super::KnownUnaimedAction;
+use super::UnaimedMacroTrait;
+use super::UnaimedTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -29,7 +29,12 @@ use crate::positional::RelativePosition;
 #[archive_attr(derive(Debug))]
 pub struct DoubleHitAction;
 
-impl DirectionActionTrait for DoubleHitAction {
+impl UnaimedTrait for DoubleHitAction {
+    type Target = RelativePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for DoubleHitAction {
     fn verify_and_box(
         &self,
         floor: &Floor,
@@ -157,11 +162,17 @@ impl CommandTrait for DoubleHitFollowup {
 #[archive_attr(derive(Debug))]
 pub struct EnterStanceAction;
 
-impl ActionTrait for EnterStanceAction {
+impl UnaimedTrait for EnterStanceAction {
+    type Target = ();
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for EnterStanceAction {
     fn verify_and_box(
         &self,
         _: &Floor,
         subject_id: EntityId,
+        (): (),
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         Ok(Box::new(EnterStanceCommand { subject_id }))
     }
@@ -194,11 +205,17 @@ impl CommandTrait for EnterStanceCommand {
 #[archive_attr(derive(Debug))]
 pub struct ExitStanceAction;
 
-impl ActionTrait for ExitStanceAction {
+impl UnaimedTrait for ExitStanceAction {
+    type Target = ();
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for ExitStanceAction {
     fn verify_and_box(
         &self,
         _: &Floor,
         subject_id: EntityId,
+        (): (),
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         Ok(Box::new(ExitStanceCommand { subject_id }))
     }

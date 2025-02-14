@@ -5,17 +5,19 @@ use rkyv::Serialize;
 use super::super::events::AttackHitEvent;
 use super::super::events::StartAttackEvent;
 use super::super::CommandTrait;
-use super::super::DirectionActionTrait;
 use super::super::FloorEvent;
 use crate::actions::events::PrepareAttackEvent;
 use crate::actions::known_serializable::KnownDirectionAction;
 use crate::actions::known_serializable::KnownTileAction;
 use crate::actions::public::StepAction;
+use crate::actions::public::StepCommand;
 use crate::actions::utils::DelayCommand;
 use crate::actions::utils::TakeKnockbackUtil;
 use crate::actions::ActionError;
 use crate::actions::KnownUnaimedAction;
-use crate::actions::TileActionTrait;
+use crate::actions::UnaimedActionTrait;
+use crate::actions::UnaimedMacroTrait;
+use crate::actions::UnaimedTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -30,7 +32,12 @@ use crate::positional::RelativePosition;
 #[archive_attr(derive(Debug))]
 pub struct ForwardHeavyAction;
 
-impl DirectionActionTrait for ForwardHeavyAction {
+impl UnaimedTrait for ForwardHeavyAction {
+    type Target = RelativePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for ForwardHeavyAction {
     fn verify_and_box(
         &self,
         floor: &Floor,
@@ -41,7 +48,7 @@ impl DirectionActionTrait for ForwardHeavyAction {
             return Err(ActionError::NotEnoughEnergy);
         }
         Ok(Box::new(ForwardHeavyCommand {
-            step: StepAction.verify_and_box(floor, subject_id, dir)?,
+            step: StepAction.verify(floor, subject_id, dir)?,
             dir,
             subject_id,
         }))
@@ -55,8 +62,8 @@ impl From<ForwardHeavyAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug)]
-struct ForwardHeavyCommand {
-    step: Box<dyn CommandTrait>,
+pub struct ForwardHeavyCommand {
+    step: StepCommand,
     dir: RelativePosition,
     subject_id: EntityId,
 }
@@ -143,7 +150,12 @@ impl CommandTrait for ForwardHeavyFollowup {
 #[archive_attr(derive(Debug))]
 pub struct TrackingAction;
 
-impl TileActionTrait for TrackingAction {
+impl UnaimedTrait for TrackingAction {
+    type Target = AbsolutePosition;
+    type Error = ActionError;
+}
+
+impl UnaimedMacroTrait for TrackingAction {
     fn verify_and_box(
         &self,
         floor: &Floor,
