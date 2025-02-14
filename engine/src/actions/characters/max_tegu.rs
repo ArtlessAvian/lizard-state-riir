@@ -15,6 +15,7 @@ use crate::actions::utils::DelayCommand;
 use crate::actions::utils::TakeKnockbackUtil;
 use crate::actions::ActionError;
 use crate::actions::KnownUnaimedAction;
+use crate::actions::Never;
 use crate::actions::UnaimedActionTrait;
 use crate::actions::UnaimedMacroTrait;
 use crate::actions::UnaimedTrait;
@@ -75,11 +76,7 @@ impl CommandTrait for ForwardHeavyCommand {
             .bind(|floor| {
                 DelayCommand {
                     subject_id: self.subject_id,
-                    queued_command: ForwardHeavyFollowup {
-                        dir: self.dir,
-                        subject_id: self.subject_id,
-                    }
-                    .into(),
+                    queued_command: ForwardHeavyFollowupAction { dir: self.dir }.into(),
                     turns: 0, // The step already takes a turn.
                     event: None,
                 }
@@ -94,6 +91,32 @@ impl CommandTrait for ForwardHeavyCommand {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
+pub struct ForwardHeavyFollowupAction {
+    dir: RelativePosition,
+}
+
+impl UnaimedTrait for ForwardHeavyFollowupAction {
+    type Target = ();
+    type Error = Never;
+}
+
+impl UnaimedActionTrait for ForwardHeavyFollowupAction {
+    type Command = ForwardHeavyFollowup;
+
+    fn verify(
+        &self,
+        _floor: &Floor,
+        subject_id: EntityId,
+        (): (),
+    ) -> Result<Self::Command, Self::Error> {
+        Ok(ForwardHeavyFollowup {
+            dir: self.dir,
+            subject_id,
+        })
+    }
+}
+
+#[derive(Debug)]
 pub struct ForwardHeavyFollowup {
     dir: RelativePosition,
     subject_id: EntityId,
@@ -177,11 +200,7 @@ impl UnaimedMacroTrait for TrackingAction {
 
         Ok(Box::new(DelayCommand {
             subject_id,
-            queued_command: TrackingFollowup {
-                tracking_id,
-                subject_id,
-            }
-            .into(),
+            queued_command: TrackingFollowupAction { tracking_id }.into(),
             turns: 1,
             event: Some(FloorEvent::PrepareAttack(PrepareAttackEvent {
                 subject: subject_id,
@@ -199,6 +218,32 @@ impl From<TrackingAction> for KnownUnaimedAction {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
+pub struct TrackingFollowupAction {
+    tracking_id: EntityId,
+}
+
+impl UnaimedTrait for TrackingFollowupAction {
+    type Target = ();
+    type Error = Never;
+}
+
+impl UnaimedActionTrait for TrackingFollowupAction {
+    type Command = TrackingFollowup;
+
+    fn verify(
+        &self,
+        _floor: &Floor,
+        subject_id: EntityId,
+        (): (),
+    ) -> Result<Self::Command, Self::Error> {
+        Ok(TrackingFollowup {
+            tracking_id: self.tracking_id,
+            subject_id,
+        })
+    }
+}
+
+#[derive(Debug)]
 pub struct TrackingFollowup {
     tracking_id: EntityId,
     subject_id: EntityId,

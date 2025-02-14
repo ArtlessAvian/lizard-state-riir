@@ -10,7 +10,7 @@ use crate::actions::events::FloorEvent;
 use crate::actions::public::KnockdownAfterJuggleAction;
 use crate::actions::public::TryToStandUpAction;
 use crate::actions::ActionTrait;
-use crate::actions::CommandTrait;
+use crate::actions::InfallibleActionTrait;
 use crate::entity::BatchEntityUpdate;
 use crate::entity::BatchEntityUpdateContextless;
 use crate::entity::Entity;
@@ -246,7 +246,7 @@ impl Floor {
         // Return early depending on state.
         match &self.entities[next_id].state {
             EntityState::Committed { queued_command, .. } => {
-                return Ok(queued_command.do_action(self));
+                return Ok(queued_command.verify_and_box(self, next_id).do_action(self));
             }
             EntityState::Knockdown { .. } => {
                 return Ok(TryToStandUpAction

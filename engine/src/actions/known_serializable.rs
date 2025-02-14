@@ -8,26 +8,27 @@ use rkyv::Serialize;
 use super::characters::axolotl_nano::EnterSmiteStanceAction;
 use super::characters::axolotl_nano::StanceSmiteAction;
 use super::characters::max_tegu::ForwardHeavyAction;
-use super::characters::max_tegu::ForwardHeavyFollowup;
+use super::characters::max_tegu::ForwardHeavyFollowupAction;
 use super::characters::max_tegu::TrackingAction;
-use super::characters::max_tegu::TrackingFollowup;
+use super::characters::max_tegu::TrackingFollowupAction;
 use super::example::DoubleHitAction;
-use super::example::DoubleHitFollowup;
+use super::example::DoubleHitFollowupAction;
 use super::example::EnterStanceAction;
 use super::example::ExitStanceAction;
-use super::public::GotoCommand;
+use super::public::GoingAction;
 use super::ActionError;
 use super::CommandTrait;
+use super::InfallibleActionTrait;
+use super::Never;
 use super::SerializeActionTrait;
-use super::SerializeCommandTrait;
 use super::SerializeDirectionActionTrait;
+use super::SerializeInfallibleActionTrait;
 use super::SerializeTileActionTrait;
 use super::UnaimedAction;
 use super::UnaimedMacroTrait;
 use super::UnaimedTrait;
 use crate::entity::EntityId;
 use crate::floor::Floor;
-use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
@@ -129,17 +130,31 @@ impl UnaimedMacroTrait for Rc<dyn SerializeDirectionActionTrait> {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
-#[enum_dispatch(CommandTrait)]
-pub enum KnownCommand {
-    DoubleHitFollowup(DoubleHitFollowup),
-    ForwardHeavyFollowup(ForwardHeavyFollowup),
-    TrackingFollowup(TrackingFollowup),
-    Goto(GotoCommand),
-    External(Rc<dyn SerializeCommandTrait>),
+#[enum_dispatch(InfallibleActionTrait)]
+pub enum KnownInfallibleAction {
+    DoubleHitFollowupAction(DoubleHitFollowupAction),
+    ForwardHeavyFollowupAction(ForwardHeavyFollowupAction),
+    TrackingFollowupAction(TrackingFollowupAction),
+    GoingAction(GoingAction),
+    External(Rc<dyn SerializeInfallibleActionTrait>),
 }
 
-impl CommandTrait for Rc<dyn SerializeCommandTrait> {
-    fn do_action(&self, floor: &Floor) -> FloorUpdate {
-        self.as_ref().do_action(floor)
+impl UnaimedTrait for Rc<dyn SerializeInfallibleActionTrait> {
+    type Target = ();
+    type Error = Never;
+}
+
+impl UnaimedMacroTrait for Rc<dyn SerializeInfallibleActionTrait> {
+    fn verify_and_box(
+        &self,
+        floor: &Floor,
+        subject_id: EntityId,
+        (): (),
+    ) -> Result<Box<dyn CommandTrait>, Never> {
+        Ok(InfallibleActionTrait::verify_and_box(
+            self.as_ref(),
+            floor,
+            subject_id,
+        ))
     }
 }

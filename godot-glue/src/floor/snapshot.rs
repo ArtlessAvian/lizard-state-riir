@@ -5,8 +5,8 @@ use engine::entity::EntityState;
 use godot::prelude::*;
 
 use crate::actions::Action;
-use crate::actions::Command;
 use crate::actions::DirectionAction;
+use crate::actions::InfallibleAction;
 use crate::actions::TileAction;
 
 /// Does not update when the Floor updates.
@@ -57,8 +57,10 @@ impl EntitySnapshot {
     }
 
     #[func]
-    fn get_command_to_confirm(&self) -> Option<Gd<Command>> {
-        Some(Command::new(Rc::new(self.entity.get_command_to_confirm()?)))
+    fn get_command_to_confirm(&self) -> Option<Gd<InfallibleAction>> {
+        Some(InfallibleAction::new(Rc::new(
+            self.entity.get_command_to_confirm()?,
+        )))
     }
 
     #[func]

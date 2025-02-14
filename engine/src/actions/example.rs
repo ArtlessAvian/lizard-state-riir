@@ -14,6 +14,8 @@ use super::ActionError;
 use super::CommandTrait;
 use super::FloorEvent;
 use super::KnownUnaimedAction;
+use super::Never;
+use super::UnaimedActionTrait;
 use super::UnaimedMacroTrait;
 use super::UnaimedTrait;
 use crate::entity::Entity;
@@ -96,11 +98,7 @@ impl CommandTrait for DoubleHitCommand {
             .bind(|floor| {
                 DelayCommand {
                     subject_id: self.subject_id,
-                    queued_command: DoubleHitFollowup {
-                        dir: self.dir,
-                        subject_id: self.subject_id,
-                    }
-                    .into(),
+                    queued_command: DoubleHitFollowupAction { dir: self.dir }.into(),
                     turns: 1,
                     event: Some(FloorEvent::PrepareAttack(PrepareAttackEvent {
                         subject: self.subject_id,
@@ -114,6 +112,32 @@ impl CommandTrait for DoubleHitCommand {
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
+pub struct DoubleHitFollowupAction {
+    dir: RelativePosition,
+}
+
+impl UnaimedTrait for DoubleHitFollowupAction {
+    type Target = ();
+    type Error = Never;
+}
+
+impl UnaimedActionTrait for DoubleHitFollowupAction {
+    type Command = DoubleHitFollowup;
+
+    fn verify(
+        &self,
+        _floor: &Floor,
+        subject_id: EntityId,
+        (): (),
+    ) -> Result<Self::Command, Self::Error> {
+        Ok(DoubleHitFollowup {
+            dir: self.dir,
+            subject_id,
+        })
+    }
+}
+
+#[derive(Debug)]
 pub struct DoubleHitFollowup {
     dir: RelativePosition,
     subject_id: EntityId,

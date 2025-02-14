@@ -5,6 +5,7 @@ use std::rc::Rc;
 use engine::actions::ActionTrait;
 use engine::actions::CommandTrait;
 use engine::actions::DirectionActionTrait;
+use engine::actions::InfallibleActionTrait;
 use engine::actions::TileActionTrait;
 use godot::prelude::*;
 
@@ -99,6 +100,32 @@ impl DirectionAction {
             .verify_and_box(&floor.bind().internal, subject_id, dir.into())
             .ok()?;
         Some(Command::new(verify_action.into()))
+    }
+}
+
+/// An opaque object containing an Action. Has no logic.
+#[derive(GodotClass)]
+#[class(no_init)]
+pub struct InfallibleAction {
+    // Godot doesn't see this anyways.
+    action: Rc<dyn InfallibleActionTrait>,
+}
+
+#[godot_api]
+impl InfallibleAction {
+    pub fn new(action: Rc<dyn InfallibleActionTrait>) -> Gd<Self> {
+        Gd::from_object(Self { action })
+    }
+
+    #[func]
+    #[must_use]
+    pub fn to_command(&self, floor: Gd<ActiveFloor>, subject: Gd<EntityId>) -> Gd<Command> {
+        let binding = subject.bind();
+        let subject_id = binding.id;
+        let verify_action = self
+            .action
+            .verify_and_box(&floor.bind().internal, subject_id);
+        Command::new(verify_action.into())
     }
 }
 

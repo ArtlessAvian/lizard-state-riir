@@ -14,6 +14,7 @@ use super::utils::TakeKnockbackUtil;
 use super::ActionError;
 use super::CommandTrait;
 use super::FloorEvent;
+use super::Never;
 use super::UnaimedActionTrait;
 use super::UnaimedMacroTrait;
 use super::UnaimedTrait;
@@ -291,6 +292,32 @@ impl UnaimedMacroTrait for GotoAction {
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
+pub struct GoingAction {
+    tile: AbsolutePosition,
+}
+
+impl UnaimedTrait for GoingAction {
+    type Target = ();
+    type Error = Never;
+}
+
+impl UnaimedActionTrait for GoingAction {
+    type Command = GotoCommand;
+
+    fn verify(
+        &self,
+        _floor: &Floor,
+        subject_id: EntityId,
+        (): (),
+    ) -> Result<Self::Command, Self::Error> {
+        Ok(GotoCommand {
+            tile: self.tile,
+            subject_id,
+        })
+    }
+}
+
+#[derive(Debug)]
 pub struct GotoCommand {
     pub tile: AbsolutePosition,
     subject_id: EntityId,
@@ -364,7 +391,7 @@ impl CommandTrait for GotoCommand {
                             next_round: subject_clone
                                 .get_next_round()
                                 .expect("This entity just took a step so it has a next turn."),
-                            to_confirm: self.clone().into(),
+                            to_confirm: GoingAction { tile: self.tile }.into(),
                         }
                     };
                     floor.update_entity((self.subject_id, subject_clone))
@@ -484,8 +511,8 @@ mod test {
     use crate::actions::events::StartAttackEvent;
     use crate::actions::public::BumpAction;
     use crate::actions::public::GotoAction;
-    use crate::actions::CommandTrait;
     use crate::actions::DirectionActionTrait;
+    use crate::actions::InfallibleActionTrait;
     use crate::actions::TileActionTrait;
     use crate::entity::Entity;
     use crate::entity::EntityState;
@@ -562,7 +589,9 @@ mod test {
         });
 
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
-            EntityState::ConfirmCommand { to_confirm, .. } => to_confirm.do_action(&floor),
+            EntityState::ConfirmCommand { to_confirm, .. } => to_confirm
+                .verify_and_box(&floor, player_id)
+                .do_action(&floor),
             _ => panic!(
                 "Expected ConfirmCommand state. Got value: {:?}",
                 floor.entities[player_id].state
@@ -612,7 +641,9 @@ mod test {
         });
 
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
-            EntityState::ConfirmCommand { to_confirm, .. } => to_confirm.do_action(&floor),
+            EntityState::ConfirmCommand { to_confirm, .. } => to_confirm
+                .verify_and_box(&floor, player_id)
+                .do_action(&floor),
             _ => panic!(
                 "Expected ConfirmCommand state. Got value: {:?}",
                 floor.entities[player_id].state
