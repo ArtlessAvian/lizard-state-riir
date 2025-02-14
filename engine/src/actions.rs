@@ -81,7 +81,7 @@ pub enum UnaimedAction {
 /// use engine::floor::*;
 /// use engine::entity::*;
 /// fn context(action: Box<dyn ActionTrait>, floor: &Floor, player_id: EntityId) -> FloorUpdate {
-///     let command = action.verify_action(floor, player_id).unwrap();
+///     let command = action.verify_and_box(floor, player_id).unwrap();
 ///     command.do_action(floor)
 /// }
 /// ```
@@ -101,7 +101,7 @@ pub enum UnaimedAction {
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
 pub trait ActionTrait: Debug {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
@@ -111,7 +111,7 @@ pub trait ActionTrait: Debug {
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
 pub trait TileActionTrait: Debug {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
@@ -122,7 +122,7 @@ pub trait TileActionTrait: Debug {
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
 pub trait DirectionActionTrait: Debug {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,

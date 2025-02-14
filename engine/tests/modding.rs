@@ -35,7 +35,7 @@ struct TestAction {}
 
 #[archive_dyn(deserialize)]
 impl ActionTrait for TestAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         _floor: &Floor,
         subject_id: EntityId,
@@ -45,14 +45,14 @@ impl ActionTrait for TestAction {
 }
 
 impl ActionTrait for Archived<TestAction> {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         Deserialize::<TestAction, _>::deserialize(self, &mut Infallible)
             .unwrap()
-            .verify_action(floor, subject_id)
+            .verify_and_box(floor, subject_id)
     }
 }
 
@@ -98,7 +98,7 @@ fn expect_test_action_side_effects(type_erased: Rc<dyn ActionTrait>) {
             payload: "Hello!".to_owned(),
         })
         .split_pair();
-    let update = update.bind(|f| type_erased.verify_action(&f, id).unwrap().do_action(&f));
+    let update = update.bind(|f| type_erased.verify_and_box(&f, id).unwrap().do_action(&f));
     let dingus = update.into_both().1;
     assert_eq!(dingus, vec![FloorEvent::Exit(ExitEvent { subject: id }); 3])
 }

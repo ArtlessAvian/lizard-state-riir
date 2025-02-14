@@ -63,12 +63,12 @@ pub enum KnownAction {
 }
 
 impl ActionTrait for Rc<dyn SerializeActionTrait> {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
-        self.as_ref().verify_action(floor, subject_id)
+        self.as_ref().verify_and_box(floor, subject_id)
     }
 }
 
@@ -82,13 +82,13 @@ pub enum KnownTileAction {
 }
 
 impl TileActionTrait for Rc<dyn SerializeTileActionTrait> {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
-        self.as_ref().verify_action(floor, subject_id, tile)
+        self.as_ref().verify_and_box(floor, subject_id, tile)
     }
 }
 
@@ -102,13 +102,13 @@ pub enum KnownDirectionAction {
 }
 
 impl DirectionActionTrait for Rc<dyn SerializeDirectionActionTrait> {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
-        self.as_ref().verify_action(floor, subject_id, dir)
+        self.as_ref().verify_and_box(floor, subject_id, dir)
     }
 }
 

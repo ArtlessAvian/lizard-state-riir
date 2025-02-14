@@ -31,7 +31,7 @@ use crate::positional::RelativePosition;
 pub struct ForwardHeavyAction;
 
 impl DirectionActionTrait for ForwardHeavyAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
@@ -41,7 +41,7 @@ impl DirectionActionTrait for ForwardHeavyAction {
             return Err(ActionError::NotEnoughEnergy);
         }
         Ok(Box::new(ForwardHeavyCommand {
-            step: StepAction.verify_action(floor, subject_id, dir)?,
+            step: StepAction.verify_and_box(floor, subject_id, dir)?,
             dir,
             subject_id,
         }))
@@ -144,7 +144,7 @@ impl CommandTrait for ForwardHeavyFollowup {
 pub struct TrackingAction;
 
 impl TileActionTrait for TrackingAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,

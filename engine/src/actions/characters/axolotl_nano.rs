@@ -23,7 +23,7 @@ use crate::positional::AbsolutePosition;
 pub struct EnterSmiteStanceAction;
 
 impl TileActionTrait for EnterSmiteStanceAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         _floor: &Floor,
         subject_id: EntityId,
@@ -63,7 +63,7 @@ pub struct StanceSmiteAction {
 }
 
 impl ActionTrait for StanceSmiteAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         _floor: &Floor,
         subject_id: EntityId,

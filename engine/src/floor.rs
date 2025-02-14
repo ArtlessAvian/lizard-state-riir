@@ -250,13 +250,13 @@ impl Floor {
             }
             EntityState::Knockdown { .. } => {
                 return Ok(TryToStandUpAction
-                    .verify_action(self, next_id)
+                    .verify_and_box(self, next_id)
                     .expect("only fails if entity is not knockdown state")
                     .do_action(self))
             }
             EntityState::Hitstun { .. } => {
                 return Ok(KnockdownAfterJuggleAction
-                    .verify_action(self, next_id)
+                    .verify_and_box(self, next_id)
                     .expect("only fails if entity is not hitstun state")
                     .do_action(self))
             }

@@ -33,7 +33,7 @@ use crate::writer::Writer;
 pub struct WaitAction;
 
 impl ActionTrait for WaitAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
@@ -68,7 +68,7 @@ impl CommandTrait for WaitCommand {
 pub struct StepAction;
 
 impl DirectionActionTrait for StepAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
@@ -135,7 +135,7 @@ impl CommandTrait for StepCommand {
 pub struct BumpAction;
 
 impl DirectionActionTrait for BumpAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
@@ -224,19 +224,19 @@ impl CommandTrait for BumpCommand {
 pub struct StepMacroAction;
 
 impl DirectionActionTrait for StepMacroAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<Box<dyn CommandTrait>, ActionError> {
         let bump = BumpAction;
-        if let Ok(command) = bump.verify_action(floor, subject_id, dir) {
+        if let Ok(command) = bump.verify_and_box(floor, subject_id, dir) {
             return Ok(command);
         }
 
         let step = StepAction;
-        if let Ok(command) = step.verify_action(floor, subject_id, dir) {
+        if let Ok(command) = step.verify_and_box(floor, subject_id, dir) {
             return Ok(command);
         }
 
@@ -248,7 +248,7 @@ impl DirectionActionTrait for StepMacroAction {
 pub struct GotoAction;
 
 impl TileActionTrait for GotoAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         _floor: &Floor,
         subject_id: EntityId,
@@ -275,7 +275,7 @@ impl CommandTrait for GotoCommand {
             .get_step(subject_pos, self.tile)
             .and_then(|target| {
                 StepAction
-                    .verify_action(
+                    .verify_and_box(
                         floor,
                         self.subject_id,
                         RelativePosition {
@@ -295,7 +295,7 @@ impl CommandTrait for GotoCommand {
                         .get_step(subject_pos, self.tile)
                         .and_then(|target| {
                             StepAction
-                                .verify_action(
+                                .verify_and_box(
                                     floor,
                                     self.subject_id,
                                     RelativePosition {
@@ -347,7 +347,7 @@ impl CommandTrait for GotoCommand {
 pub struct TryToStandUpAction;
 
 impl ActionTrait for TryToStandUpAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
@@ -400,7 +400,7 @@ impl CommandTrait for TryToStandUpCommand {
 pub struct KnockdownAfterJuggleAction;
 
 impl ActionTrait for KnockdownAfterJuggleAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
@@ -475,7 +475,7 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             BumpAction
-                .verify_action(&floor, player_id, RelativePosition::new(1, 0))
+                .verify_and_box(&floor, player_id, RelativePosition::new(1, 0))
                 .unwrap()
                 .do_action(&floor)
         });
@@ -514,7 +514,7 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             GotoAction {}
-                .verify_action(&floor, player_id, AbsolutePosition::new(5, 3))
+                .verify_and_box(&floor, player_id, AbsolutePosition::new(5, 3))
                 .unwrap()
                 .do_action(&floor)
         });
@@ -564,7 +564,7 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             GotoAction {}
-                .verify_action(&floor, player_id, AbsolutePosition::new(5, 5))
+                .verify_and_box(&floor, player_id, AbsolutePosition::new(5, 5))
                 .unwrap()
                 .do_action(&floor)
         });

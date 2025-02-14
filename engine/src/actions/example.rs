@@ -30,7 +30,7 @@ use crate::positional::RelativePosition;
 pub struct DoubleHitAction;
 
 impl DirectionActionTrait for DoubleHitAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
@@ -158,7 +158,7 @@ impl CommandTrait for DoubleHitFollowup {
 pub struct EnterStanceAction;
 
 impl ActionTrait for EnterStanceAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         _: &Floor,
         subject_id: EntityId,
@@ -195,7 +195,7 @@ impl CommandTrait for EnterStanceCommand {
 pub struct ExitStanceAction;
 
 impl ActionTrait for ExitStanceAction {
-    fn verify_action(
+    fn verify_and_box(
         &self,
         _: &Floor,
         subject_id: EntityId,
@@ -267,7 +267,7 @@ mod test {
         let update = update
             .bind(|floor| {
                 DoubleHitAction
-                    .verify_action(&floor, player_id, RelativePosition::new(1, 0))
+                    .verify_and_box(&floor, player_id, RelativePosition::new(1, 0))
                     .unwrap()
                     .do_action(&floor)
             })
