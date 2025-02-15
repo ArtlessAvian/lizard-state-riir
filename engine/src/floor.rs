@@ -238,7 +238,7 @@ impl Floor {
     // Maybe we can make it impossible to call `do_action` unless you're the floor.
     // Also maybe we wrap EntityId with something to signify its their turn.
     // This again raises the question, does it need to be your turn to run a Command?
-    pub fn take_npc_turn(&self) -> Result<FloorUpdate, TurntakingError> {
+    pub fn take_npc_turn(self) -> Result<FloorUpdate, TurntakingError> {
         let next_id = self
             .get_current_entity()
             .ok_or(TurntakingError::NoTurntakers)?;
@@ -246,17 +246,19 @@ impl Floor {
         // Return early depending on state.
         match &self.entities[next_id].state {
             EntityState::Committed { queued_command, .. } => {
-                return Ok(queued_command.verify_and_box(self, next_id).do_action(self));
+                return Ok(queued_command
+                    .verify_and_box(&self, next_id)
+                    .do_action(self));
             }
             EntityState::Knockdown { .. } => {
                 return Ok(TryToStandUpAction
-                    .verify_and_box(self, next_id)
+                    .verify_and_box(&self, next_id)
                     .expect("only fails if entity is not knockdown state")
                     .do_action(self))
             }
             EntityState::Hitstun { .. } => {
                 return Ok(KnockdownAfterJuggleAction
-                    .verify_and_box(self, next_id)
+                    .verify_and_box(&self, next_id)
                     .expect("only fails if entity is not hitstun state")
                     .do_action(self))
             }
@@ -273,7 +275,8 @@ impl Floor {
         }
 
         // TODO: do something interesting
-        Result::Ok(self.entities[next_id].strategy.take_turn(self, next_id))
+        let strategy = self.entities[next_id].strategy.clone();
+        Result::Ok(strategy.take_turn(self, next_id))
     }
 
     #[must_use]

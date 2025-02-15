@@ -136,9 +136,9 @@ impl InfallibleAction {
 /// use godot::prelude::*;
 /// use godot_glue::actions::Command;
 /// use godot_glue::floor::ActiveFloor;
-/// use engine::actions::CommandTrait;
+/// use engine::actions::BoxedCommand;
 /// use engine::floor::Floor;
-/// fn engine_context(floor: &Floor, command: &dyn CommandTrait) {
+/// fn engine_context(floor: Floor, command: BoxedCommand) {
 ///     command.do_action(floor);
 /// }
 /// fn glue_context(floor: &mut ActiveFloor, command: Gd<Command>) {

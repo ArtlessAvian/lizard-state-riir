@@ -53,7 +53,7 @@ pub struct EnterSmiteStanceCommand {
 }
 
 impl CommandTrait for EnterSmiteStanceCommand {
-    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+    fn do_action(self, floor: Floor) -> FloorUpdate {
         let mut clone = floor.entities[self.subject_id].clone();
         clone.state = EntityState::RestrictedActions {
             next_round: floor.get_current_round() + 1,
@@ -103,7 +103,7 @@ pub struct StanceSmiteCommand {
 }
 
 impl CommandTrait for StanceSmiteCommand {
-    fn do_action(&self, floor: &Floor) -> FloorUpdate {
+    fn do_action(self, floor: Floor) -> FloorUpdate {
         let now = floor.get_current_turn().unwrap();
 
         let mut clone = floor.entities[self.subject_id].clone();
