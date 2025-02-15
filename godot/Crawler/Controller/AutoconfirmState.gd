@@ -37,11 +37,13 @@ func _poll_held_input(floor_container: FloorContainer):
 # 		return FloorContainer.ExtraTransitions.EXIT
 
 	var player = floor_container.active_floor.get_entity_by_id(floor_container.player_id)
-	var command = player.get_command_to_confirm()
-	if command:
-		self.debug_autoconfirms += 1
-		floor_container.active_floor.do_action(command)
-		floor_container.emit_signal("floor_dirtied")
-		return FloorContainer.ExtraTransitions.NONE
+	var infallible = player.get_command_to_confirm()
+	if infallible:
+		var command = infallible.to_command(floor_container.active_floor, floor_container.player_id)
+		if command:
+			self.debug_autoconfirms += 1
+			floor_container.active_floor.do_action(command)
+			floor_container.emit_signal("floor_dirtied")
+			return FloorContainer.ExtraTransitions.NONE
 
 	return FloorContainer.ExtraTransitions.CLEAR

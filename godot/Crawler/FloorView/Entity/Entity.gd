@@ -85,6 +85,8 @@ func snapshot_to_idle_animation(snapshot):
 		return "Entity/StateKnockdown"
 	if snapshot.get_state_name() == "Hitstun":
 		return "Entity/StateHitstun"
+	if snapshot.get_state_name() == "RestrictedActions":
+		return "Entity/StateCommitted"
 	if snapshot.get_state_name() == "Committed":
 		return "Entity/StateCommitted"
 	if snapshot.get_state_name() == "Downed":
