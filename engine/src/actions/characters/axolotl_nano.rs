@@ -10,7 +10,7 @@ use crate::actions::known_serializable::KnownTileAction;
 use crate::actions::utils::start_juggle;
 use crate::actions::ActionError;
 use crate::actions::KnownUnaimedAction;
-use crate::actions::UnaimedMacroTrait;
+use crate::actions::UnaimedActionTrait;
 use crate::actions::UnaimedTrait;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -27,14 +27,16 @@ impl UnaimedTrait for EnterSmiteStanceAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for EnterSmiteStanceAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for EnterSmiteStanceAction {
+    type Command = EnterSmiteStanceCommand;
+
+    fn verify(
         &self,
         _floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
-        Ok(Box::new(EnterSmiteStanceCommand { subject_id, tile }))
+    ) -> Result<Self::Command, ActionError> {
+        Ok(EnterSmiteStanceCommand { subject_id, tile })
     }
 }
 
@@ -72,17 +74,19 @@ impl UnaimedTrait for StanceSmiteAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for StanceSmiteAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for StanceSmiteAction {
+    type Command = StanceSmiteCommand;
+
+    fn verify(
         &self,
         _floor: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
-        Ok(Box::new(StanceSmiteCommand {
+    ) -> Result<Self::Command, ActionError> {
+        Ok(StanceSmiteCommand {
             subject_id,
             tile: self.tile,
-        }))
+        })
     }
 }
 

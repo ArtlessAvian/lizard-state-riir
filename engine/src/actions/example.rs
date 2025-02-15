@@ -16,7 +16,6 @@ use super::FloorEvent;
 use super::KnownUnaimedAction;
 use super::Never;
 use super::UnaimedActionTrait;
-use super::UnaimedMacroTrait;
 use super::UnaimedTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
@@ -36,13 +35,15 @@ impl UnaimedTrait for DoubleHitAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for DoubleHitAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for DoubleHitAction {
+    type Command = DoubleHitCommand;
+
+    fn verify(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<Self::Command, ActionError> {
         if !(floor.entities.contains_id(subject_id)) {
             return Err(ActionError::DataMismatch);
         }
@@ -51,7 +52,7 @@ impl UnaimedMacroTrait for DoubleHitAction {
             return Err(ActionError::TargetOutOfRange);
         }
 
-        Ok(Box::new(DoubleHitCommand { dir, subject_id }))
+        Ok(DoubleHitCommand { dir, subject_id })
     }
 }
 
@@ -62,7 +63,7 @@ impl From<DoubleHitAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug)]
-struct DoubleHitCommand {
+pub struct DoubleHitCommand {
     dir: RelativePosition,
     subject_id: EntityId,
 }
@@ -129,7 +130,7 @@ impl UnaimedActionTrait for DoubleHitFollowupAction {
         _floor: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, Self::Error> {
+    ) -> Result<DoubleHitFollowup, Self::Error> {
         Ok(DoubleHitFollowup {
             dir: self.dir,
             subject_id,
@@ -191,14 +192,16 @@ impl UnaimedTrait for EnterStanceAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for EnterStanceAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for EnterStanceAction {
+    type Command = EnterStanceCommand;
+
+    fn verify(
         &self,
         _: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
-        Ok(Box::new(EnterStanceCommand { subject_id }))
+    ) -> Result<Self::Command, ActionError> {
+        Ok(EnterStanceCommand { subject_id })
     }
 }
 
@@ -234,14 +237,16 @@ impl UnaimedTrait for ExitStanceAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for ExitStanceAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for ExitStanceAction {
+    type Command = ExitStanceCommand;
+
+    fn verify(
         &self,
         _: &Floor,
         subject_id: EntityId,
-        (): (),
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
-        Ok(Box::new(ExitStanceCommand { subject_id }))
+        (): Self::Target,
+    ) -> Result<ExitStanceCommand, ActionError> {
+        Ok(ExitStanceCommand { subject_id })
     }
 }
 

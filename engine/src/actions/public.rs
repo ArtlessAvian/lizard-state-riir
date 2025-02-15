@@ -38,23 +38,25 @@ impl UnaimedTrait for WaitAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for WaitAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for WaitAction {
+    type Command = WaitCommand;
+
+    fn verify(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<Self::Command, ActionError> {
         if !(floor.entities.contains_id(subject_id)) {
             return Err(ActionError::DataMismatch);
         }
 
-        Ok(Box::new(WaitCommand { subject_id }))
+        Ok(WaitCommand { subject_id })
     }
 }
 
 #[derive(Debug)]
-struct WaitCommand {
+pub struct WaitCommand {
     subject_id: EntityId,
 }
 
@@ -278,15 +280,17 @@ impl UnaimedTrait for GotoAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for GotoAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for GotoAction {
+    type Command = GotoCommand;
+
+    fn verify(
         &self,
         _floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<Self::Command, ActionError> {
         // Pathfind to target.
-        Ok(Box::new(GotoCommand { tile, subject_id }))
+        Ok(GotoCommand { tile, subject_id })
     }
 }
 
@@ -408,20 +412,22 @@ impl UnaimedTrait for TryToStandUpAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for TryToStandUpAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for TryToStandUpAction {
+    type Command = TryToStandUpCommand;
+
+    fn verify(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<Self::Command, ActionError> {
         match floor.entities[subject_id].state {
             EntityState::Knockdown {
                 next_round: current_round,
-            } => Ok(Box::new(TryToStandUpCommand {
+            } => Ok(TryToStandUpCommand {
                 subject_id,
                 now: current_round,
-            })),
+            }),
             _ => Err(ActionError::InvalidState),
         }
     }
@@ -467,18 +473,20 @@ impl UnaimedTrait for KnockdownAfterJuggleAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for KnockdownAfterJuggleAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for KnockdownAfterJuggleAction {
+    type Command = KnockdownAfterJuggleCommand;
+
+    fn verify(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<Self::Command, ActionError> {
         match floor.entities[subject_id].state {
-            EntityState::Hitstun { next_round, .. } => Ok(Box::new(KnockdownAfterJuggleCommand {
+            EntityState::Hitstun { next_round, .. } => Ok(KnockdownAfterJuggleCommand {
                 subject_id,
                 now: next_round,
-            })),
+            }),
             _ => Err(ActionError::InvalidState),
         }
     }

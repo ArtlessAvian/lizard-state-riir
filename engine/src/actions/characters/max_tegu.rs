@@ -17,7 +17,6 @@ use crate::actions::ActionError;
 use crate::actions::KnownUnaimedAction;
 use crate::actions::Never;
 use crate::actions::UnaimedActionTrait;
-use crate::actions::UnaimedMacroTrait;
 use crate::actions::UnaimedTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
@@ -38,21 +37,23 @@ impl UnaimedTrait for ForwardHeavyAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for ForwardHeavyAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for ForwardHeavyAction {
+    type Command = ForwardHeavyCommand;
+
+    fn verify(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<Self::Command, ActionError> {
         if floor.entities[subject_id].energy <= 0 {
             return Err(ActionError::NotEnoughEnergy);
         }
-        Ok(Box::new(ForwardHeavyCommand {
+        Ok(ForwardHeavyCommand {
             step: StepAction.verify(floor, subject_id, dir)?,
             dir,
             subject_id,
-        }))
+        })
     }
 }
 
@@ -178,13 +179,15 @@ impl UnaimedTrait for TrackingAction {
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for TrackingAction {
-    fn verify_and_box(
+impl UnaimedActionTrait for TrackingAction {
+    type Command = DelayCommand;
+
+    fn verify(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<Self::Command, ActionError> {
         if floor.entities[subject_id].energy <= 0 {
             return Err(ActionError::NotEnoughEnergy);
         }
@@ -198,7 +201,7 @@ impl UnaimedMacroTrait for TrackingAction {
             return Err(ActionError::InvalidTarget);
         }
 
-        Ok(Box::new(DelayCommand {
+        Ok(DelayCommand {
             subject_id,
             queued_command: TrackingFollowupAction { tracking_id }.into(),
             turns: 1,
@@ -206,7 +209,7 @@ impl UnaimedMacroTrait for TrackingAction {
                 subject: subject_id,
                 tile: floor.entities[tracking_id].pos,
             })),
-        }))
+        })
     }
 }
 
