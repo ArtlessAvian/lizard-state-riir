@@ -17,7 +17,7 @@ use super::example::EnterStanceAction;
 use super::example::ExitStanceAction;
 use super::public::GoingAction;
 use super::ActionError;
-use super::CommandTrait;
+use super::BoxedCommand;
 use super::InfallibleActionTrait;
 use super::Never;
 use super::SerializeActionTrait;
@@ -73,7 +73,7 @@ impl UnaimedMacroTrait for Rc<dyn SerializeActionTrait> {
         floor: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<BoxedCommand, ActionError> {
         self.as_ref().verify_and_box(floor, subject_id)
     }
 }
@@ -98,7 +98,7 @@ impl UnaimedMacroTrait for Rc<dyn SerializeTileActionTrait> {
         floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<BoxedCommand, ActionError> {
         self.as_ref().verify_and_box(floor, subject_id, tile)
     }
 }
@@ -123,7 +123,7 @@ impl UnaimedMacroTrait for Rc<dyn SerializeDirectionActionTrait> {
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<BoxedCommand, ActionError> {
         self.as_ref().verify_and_box(floor, subject_id, dir)
     }
 }
@@ -150,7 +150,7 @@ impl UnaimedMacroTrait for Rc<dyn SerializeInfallibleActionTrait> {
         floor: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Box<dyn CommandTrait>, Never> {
+    ) -> Result<BoxedCommand, Never> {
         Ok(InfallibleActionTrait::verify_and_box(
             self.as_ref(),
             floor,

@@ -209,17 +209,24 @@ impl ActiveFloor {
         false
     }
 
+    // TODO: Use Godot built in error types!
     #[func]
     #[instrument(skip_all)]
-    pub fn do_action(&mut self, command: Gd<Command>) {
-        let (next, log) = command.bind().command.do_action(&self.internal).into_both();
-        self.internal = next;
+    pub fn do_action(&mut self, mut command: Gd<Command>) -> bool {
+        let inner = command.bind_mut().command.take();
+        if let Some(some) = inner {
+            let (next, log) = some.do_action(&self.internal).into_both();
+            self.internal = next;
 
-        let temp = log
-            .into_iter()
-            .map(|ev| FloorEvent::to_variant(&mut self.id_cache, ev))
-            .collect();
-        self.log.extend_array(&temp);
+            let temp = log
+                .into_iter()
+                .map(|ev| FloorEvent::to_variant(&mut self.id_cache, ev))
+                .collect();
+            self.log.extend_array(&temp);
+
+            return true;
+        }
+        false
     }
 
     #[func]

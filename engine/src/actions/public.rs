@@ -12,6 +12,7 @@ use super::events::WakeupEvent;
 use super::utils;
 use super::utils::TakeKnockbackUtil;
 use super::ActionError;
+use super::BoxedCommand;
 use super::CommandTrait;
 use super::FloorEvent;
 use super::Never;
@@ -257,15 +258,15 @@ impl UnaimedMacroTrait for StepMacroAction {
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<BoxedCommand, ActionError> {
         let bump = BumpAction;
         if let Ok(command) = bump.verify(floor, subject_id, dir) {
-            return Ok(Box::new(command));
+            return Ok(BoxedCommand::new_from_trait(command));
         }
 
         let step = StepAction;
         if let Ok(command) = step.verify(floor, subject_id, dir) {
-            return Ok(Box::new(command));
+            return Ok(BoxedCommand::new_from_trait(command));
         }
 
         Err(ActionError::MacroFallthrough)

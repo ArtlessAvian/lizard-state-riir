@@ -9,6 +9,7 @@ use engine::actions::events::FloorEvent;
 use engine::actions::known_serializable::KnownAction;
 use engine::actions::ActionError;
 use engine::actions::ActionTrait;
+use engine::actions::BoxedCommand;
 use engine::actions::CommandTrait;
 use engine::actions::DeserializeActionTrait;
 use engine::actions::SerializeActionTrait;
@@ -37,8 +38,8 @@ impl ActionTrait for TestAction {
         &self,
         _floor: &Floor,
         subject_id: EntityId,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
-        Ok(Box::new(TestCommand { subject_id }))
+    ) -> Result<BoxedCommand, ActionError> {
+        Ok(BoxedCommand::new_from_trait(TestCommand { subject_id }))
     }
 }
 
@@ -47,7 +48,7 @@ impl ActionTrait for Archived<TestAction> {
         &self,
         floor: &Floor,
         subject_id: EntityId,
-    ) -> Result<Box<dyn CommandTrait>, ActionError> {
+    ) -> Result<BoxedCommand, ActionError> {
         Deserialize::<TestAction, _>::deserialize(self, &mut Infallible)
             .unwrap()
             .verify_and_box(floor, subject_id)

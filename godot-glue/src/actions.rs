@@ -3,7 +3,7 @@ pub(crate) mod public;
 use std::rc::Rc;
 
 use engine::actions::ActionTrait;
-use engine::actions::CommandTrait;
+use engine::actions::BoxedCommand;
 use engine::actions::DirectionActionTrait;
 use engine::actions::InfallibleActionTrait;
 use engine::actions::TileActionTrait;
@@ -35,7 +35,7 @@ impl Action {
             .action
             .verify_and_box(&floor.bind().internal, subject_id)
             .ok()?;
-        Some(Command::new(verify_action.into()))
+        Some(Command::new(verify_action))
     }
 }
 
@@ -67,7 +67,7 @@ impl TileAction {
             .action
             .verify_and_box(&floor.bind().internal, subject_id, tile.into())
             .ok()?;
-        Some(Command::new(verify_action.into()))
+        Some(Command::new(verify_action))
     }
 }
 
@@ -99,7 +99,7 @@ impl DirectionAction {
             .action
             .verify_and_box(&floor.bind().internal, subject_id, dir.into())
             .ok()?;
-        Some(Command::new(verify_action.into()))
+        Some(Command::new(verify_action))
     }
 }
 
@@ -125,7 +125,7 @@ impl InfallibleAction {
         let verify_action = self
             .action
             .verify_and_box(&floor.bind().internal, subject_id);
-        Command::new(verify_action.into())
+        Command::new(verify_action)
     }
 }
 
@@ -149,12 +149,15 @@ impl InfallibleAction {
 #[class(no_init)]
 pub struct Command {
     // Godot doesn't see this anyways.
-    pub command: Rc<dyn CommandTrait>,
+    pub command: Option<BoxedCommand>,
 }
 
 #[godot_api]
 impl Command {
-    pub fn new(command: Rc<dyn CommandTrait>) -> Gd<Self> {
-        Gd::from_object(Self { command })
+    #[must_use]
+    pub fn new(command: BoxedCommand) -> Gd<Self> {
+        Gd::from_object(Self {
+            command: Some(command),
+        })
     }
 }
