@@ -87,10 +87,13 @@ impl PartialEq for PartialPath {
     }
 }
 
+pub struct NoPath;
+
 pub struct PathfindingContext<'a> {
     // Config stuff. Don't mess with this after construction.
     blocked: Rc<dyn Fn(AbsolutePosition) -> bool + 'a>,
-    heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a>,
+    // Always an underestimate. Therefore, if NoPath is returned, then there really is no path.
+    heuristic: Box<dyn FnMut(AbsolutePosition, AbsolutePosition) -> Result<u32, NoPath> + 'a>,
     // Partial information that gets filled out over calls.
     // Imagine the Floyd-Warshall algorithm's matrix.
     known_distance: SymmetricMatrix<AbsolutePosition, u32>,
@@ -101,27 +104,19 @@ pub struct PathfindingContext<'a> {
     step_between: SymmetricMatrix<AbsolutePosition, AbsolutePosition>,
 }
 
-impl PathfindingContext<'static> {
-    #[must_use]
-    pub fn new(
-        blocked: impl Fn(AbsolutePosition) -> bool + 'static,
-        heuristic: impl FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'static,
-    ) -> Self {
-        Self {
-            blocked: Rc::new(blocked),
-            heuristic: Box::new(heuristic),
-            known_distance: SymmetricMatrix::default(),
-            diagonal_steps: SymmetricMatrix::default(),
-            step_between: SymmetricMatrix::default(),
-        }
-    }
-}
-
 impl<'a> PathfindingContext<'a> {
     #[must_use]
-    pub fn new_temp(
+    pub fn new(
         blocked: impl Fn(AbsolutePosition) -> bool + 'a,
-        heuristic: impl FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a,
+        mut heuristic: impl FnMut(AbsolutePosition, AbsolutePosition) -> u32 + 'a,
+    ) -> Self {
+        Self::new_disconnected(blocked, move |a, b| Ok(heuristic(a, b)))
+    }
+
+    #[must_use]
+    pub fn new_disconnected(
+        blocked: impl Fn(AbsolutePosition) -> bool + 'a,
+        heuristic: impl FnMut(AbsolutePosition, AbsolutePosition) -> Result<u32, NoPath> + 'a,
     ) -> Self {
         Self {
             blocked: Rc::new(blocked),
@@ -141,10 +136,10 @@ impl<'a> PathfindingContext<'a> {
         let blocked = move |x| my_blocked(x) || also_blocked(x);
         let heuristic = |x, y| {
             let _ = self.find_path(x, y);
-            self.get_distance(x, y).unwrap_or(u32::MAX)
+            self.get_distance(x, y)
         };
 
-        PathfindingContext::<'into>::new_temp(blocked, heuristic)
+        PathfindingContext::<'into>::new_disconnected(blocked, heuristic)
     }
 }
 
@@ -156,7 +151,10 @@ impl PathfindingContext<'_> {
             return true;
         }
 
-        let optimistic_estimate = (self.heuristic)(start, destination);
+        let Ok(optimistic_estimate) = (self.heuristic)(start, destination) else {
+            return false;
+        };
+
         // Keep the frontier small.
         let within_limit =
             |partial: &PartialPath| partial.estimated_cost <= 5 + optimistic_estimate;
@@ -170,7 +168,7 @@ impl PathfindingContext<'_> {
             previous: start,
             known_cost_so_far: 0,
             known_diagonal: 0,
-            estimated_cost: (self.heuristic)(start, destination),
+            estimated_cost: optimistic_estimate,
             estimated_diagonal: 0,
         });
 
@@ -222,11 +220,12 @@ impl PathfindingContext<'_> {
             }
 
             // Add known paths.
-            frontier.extend(
-                self.known_distance
-                    .iter_row(partial_path.tile)
-                    .filter(|(path, _)| !visited.contains(&path.1))
-                    .map(|(path, cost)| PartialPath {
+            let bingus = self
+                .known_distance
+                .iter_row(partial_path.tile)
+                .filter(|(path, _)| !visited.contains(&path.1))
+                .filter_map(|(path, cost)| {
+                    Some(PartialPath {
                         tile: path.1,
                         previous: path.0, // path.0 is betweeen start and path.1.
                         known_cost_so_far: partial_path.known_cost_so_far + cost,
@@ -234,14 +233,15 @@ impl PathfindingContext<'_> {
                             + self.diagonal_steps.get(path).unwrap(),
                         estimated_cost: partial_path.known_cost_so_far
                             + cost
-                            + (self.heuristic)(path.1, destination),
+                            + (self.heuristic)(path.1, destination).ok()?,
                         estimated_diagonal: partial_path.known_diagonal
                             + self.diagonal_steps.get(path).unwrap()
                             + (destination - path.1).dx.unsigned_abs()
                             + (destination - path.1).dy.unsigned_abs(),
                     })
-                    .filter(within_limit),
-            );
+                });
+
+            frontier.extend(bingus.filter(within_limit));
         }
         false
     }
@@ -266,13 +266,15 @@ impl PathfindingContext<'_> {
     }
 
     // TODO: Probably make this part of find_path.
-    #[must_use]
     pub fn get_distance(
         &self,
         start: AbsolutePosition,
         destination: AbsolutePosition,
-    ) -> Option<u32> {
-        self.known_distance.get((start, destination)).copied()
+    ) -> Result<u32, NoPath> {
+        self.known_distance
+            .get((start, destination))
+            .copied()
+            .ok_or(NoPath)
     }
 }
 
@@ -287,6 +289,7 @@ impl Debug for PathfindingContext<'_> {
 
 #[cfg(test)]
 mod test {
+    use crate::pathfinding::NoPath;
     use crate::pathfinding::PathfindingContext;
     use crate::positional::AbsolutePosition;
 
@@ -353,6 +356,13 @@ mod test {
             PathfindingContext::new(|pos| pos.x == 1 && pos.y == 1, AbsolutePosition::distance);
 
         assert!(!context.find_path(AbsolutePosition::new(0, 0), AbsolutePosition::new(1, 1)));
+    }
+
+    #[test]
+    fn known_disconnected() {
+        let mut context = PathfindingContext::new_disconnected(|_| false, |_, _| Err(NoPath));
+
+        assert!(!context.find_path(AbsolutePosition::new(0, 0), AbsolutePosition::new(1, 0)));
     }
 
     #[test]
