@@ -5,11 +5,12 @@ use rkyv::Deserialize;
 use rkyv::Serialize;
 
 use super::super::CommandTrait;
-use crate::actions::known_serializable::KnownAction;
+use crate::actions::known_serializable::KnownInfallibleAction;
 use crate::actions::known_serializable::KnownTileAction;
 use crate::actions::utils::start_juggle;
 use crate::actions::ActionError;
 use crate::actions::KnownUnaimedAction;
+use crate::actions::Never;
 use crate::actions::UnaimedActionTrait;
 use crate::actions::UnaimedTrait;
 use crate::entity::EntityId;
@@ -57,7 +58,7 @@ impl CommandTrait for EnterSmiteStanceCommand {
         let mut clone = floor.entities[self.subject_id].clone();
         clone.state = EntityState::RestrictedActions {
             next_round: floor.get_current_round() + 1,
-            restricted_actions: vec![StanceSmiteAction { tile: self.tile }.into()],
+            restricted_actions: Vec::from([StanceSmiteAction { tile: self.tile }.into()]),
         };
         floor.update_entity((self.subject_id, clone))
     }
@@ -71,7 +72,7 @@ pub struct StanceSmiteAction {
 
 impl UnaimedTrait for StanceSmiteAction {
     type Target = ();
-    type Error = ActionError;
+    type Error = Never;
 }
 
 impl UnaimedActionTrait for StanceSmiteAction {
@@ -82,7 +83,7 @@ impl UnaimedActionTrait for StanceSmiteAction {
         _floor: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command, Self::Error> {
         Ok(StanceSmiteCommand {
             subject_id,
             tile: self.tile,
@@ -92,7 +93,7 @@ impl UnaimedActionTrait for StanceSmiteAction {
 
 impl From<StanceSmiteAction> for KnownUnaimedAction {
     fn from(value: StanceSmiteAction) -> Self {
-        KnownUnaimedAction::None(KnownAction::StanceSmite(value))
+        KnownUnaimedAction::Infallible(KnownInfallibleAction::StanceSmite(value))
     }
 }
 

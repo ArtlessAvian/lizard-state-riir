@@ -5,8 +5,8 @@ use rkyv::Serialize;
 use super::events::AttackHitEvent;
 use super::events::PrepareAttackEvent;
 use super::events::StartAttackEvent;
-use super::known_serializable::KnownAction;
 use super::known_serializable::KnownDirectionAction;
+use super::known_serializable::KnownInfallibleAction;
 use super::utils::DelayCommand;
 use super::ActionError;
 use super::CommandTrait;
@@ -186,7 +186,7 @@ pub struct EnterStanceAction;
 
 impl UnaimedTrait for EnterStanceAction {
     type Target = ();
-    type Error = ActionError;
+    type Error = Never;
 }
 
 impl UnaimedActionTrait for EnterStanceAction {
@@ -197,14 +197,14 @@ impl UnaimedActionTrait for EnterStanceAction {
         _: &Floor,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command, Self::Error> {
         Ok(EnterStanceCommand { subject_id })
     }
 }
 
 impl From<EnterStanceAction> for KnownUnaimedAction {
     fn from(value: EnterStanceAction) -> Self {
-        KnownUnaimedAction::None(KnownAction::EnterStance(value))
+        KnownUnaimedAction::Infallible(KnownInfallibleAction::EnterStance(value))
     }
 }
 
@@ -231,7 +231,7 @@ pub struct ExitStanceAction;
 
 impl UnaimedTrait for ExitStanceAction {
     type Target = ();
-    type Error = ActionError;
+    type Error = Never;
 }
 
 impl UnaimedActionTrait for ExitStanceAction {
@@ -242,14 +242,14 @@ impl UnaimedActionTrait for ExitStanceAction {
         _: &Floor,
         subject_id: EntityId,
         (): Self::Target,
-    ) -> Result<ExitStanceCommand, ActionError> {
+    ) -> Result<ExitStanceCommand, Self::Error> {
         Ok(ExitStanceCommand { subject_id })
     }
 }
 
 impl From<ExitStanceAction> for KnownUnaimedAction {
     fn from(value: ExitStanceAction) -> Self {
-        KnownUnaimedAction::None(KnownAction::ExitStance(value))
+        KnownUnaimedAction::Infallible(KnownInfallibleAction::ExitStance(value))
     }
 }
 

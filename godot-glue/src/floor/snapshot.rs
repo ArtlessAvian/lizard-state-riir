@@ -52,6 +52,9 @@ impl EntitySnapshot {
                 engine::actions::UnaimedAction::Direction(x) => {
                     DirectionAction::new(Rc::clone(x)).to_variant()
                 }
+                engine::actions::UnaimedAction::Infallible(x) => {
+                    InfallibleAction::new(Rc::clone(x)).to_variant()
+                }
             })
             .collect()
     }

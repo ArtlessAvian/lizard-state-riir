@@ -67,6 +67,7 @@ pub enum UnaimedAction {
     None(Rc<dyn ActionTrait>),
     Tile(Rc<dyn TileActionTrait>),
     Direction(Rc<dyn DirectionActionTrait>),
+    Infallible(Rc<dyn InfallibleActionTrait>),
 }
 
 /// Shared thingy.

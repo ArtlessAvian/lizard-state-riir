@@ -39,6 +39,7 @@ pub enum KnownUnaimedAction {
     None(KnownAction),
     Tile(KnownTileAction),
     Direction(KnownDirectionAction),
+    Infallible(KnownInfallibleAction),
 }
 
 impl From<KnownUnaimedAction> for UnaimedAction {
@@ -48,6 +49,7 @@ impl From<KnownUnaimedAction> for UnaimedAction {
             KnownUnaimedAction::None(x) => UnaimedAction::None(Rc::new(x)),
             KnownUnaimedAction::Tile(x) => UnaimedAction::Tile(Rc::new(x)),
             KnownUnaimedAction::Direction(x) => UnaimedAction::Direction(Rc::new(x)),
+            KnownUnaimedAction::Infallible(x) => UnaimedAction::Infallible(Rc::new(x)),
         }
     }
 }
@@ -56,9 +58,6 @@ impl From<KnownUnaimedAction> for UnaimedAction {
 #[archive_attr(derive(Debug))]
 #[enum_dispatch(ActionTrait)]
 pub enum KnownAction {
-    EnterStance(EnterStanceAction),
-    ExitStance(ExitStanceAction),
-    StanceSmite(StanceSmiteAction),
     External(Rc<dyn SerializeActionTrait>),
 }
 
@@ -132,6 +131,9 @@ impl UnaimedMacroTrait for Rc<dyn SerializeDirectionActionTrait> {
 #[archive_attr(derive(Debug))]
 #[enum_dispatch(InfallibleActionTrait)]
 pub enum KnownInfallibleAction {
+    EnterStance(EnterStanceAction),
+    ExitStance(ExitStanceAction),
+    StanceSmite(StanceSmiteAction),
     DoubleHitFollowupAction(DoubleHitFollowupAction),
     ForwardHeavyFollowupAction(ForwardHeavyFollowupAction),
     TrackingFollowupAction(TrackingFollowupAction),
