@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::rc::Rc;
 
 use enum_dispatch::enum_dispatch;
@@ -34,7 +35,6 @@ use crate::positional::RelativePosition;
 
 // Same as above, but more specialized. Has an ugly conversion.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub enum KnownUnaimedAction {
     None(KnownAction),
     Tile(KnownTileAction),
@@ -54,11 +54,18 @@ impl From<KnownUnaimedAction> for UnaimedAction {
     }
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[derive(Clone, Archive, Serialize, Deserialize)]
 #[enum_dispatch(ActionTrait)]
 pub enum KnownAction {
     External(Rc<dyn SerializeActionTrait>),
+}
+
+impl Debug for KnownAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::External(_) => f.debug_tuple("External").finish_non_exhaustive(),
+        }
+    }
 }
 
 impl UnaimedTrait for Rc<dyn SerializeActionTrait> {
@@ -77,13 +84,22 @@ impl UnaimedMacroTrait for Rc<dyn SerializeActionTrait> {
     }
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[derive(Clone, Archive, Serialize, Deserialize)]
 #[enum_dispatch(TileActionTrait)]
 pub enum KnownTileAction {
     Tracking(TrackingAction),
     EnterSmiteStance(EnterSmiteStanceAction),
     External(Rc<dyn SerializeTileActionTrait>),
+}
+
+impl Debug for KnownTileAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Tracking(arg0) => f.debug_tuple("Tracking").field(arg0).finish(),
+            Self::EnterSmiteStance(arg0) => f.debug_tuple("EnterSmiteStance").field(arg0).finish(),
+            Self::External(_) => f.debug_tuple("External").finish_non_exhaustive(),
+        }
+    }
 }
 
 impl UnaimedTrait for Rc<dyn SerializeTileActionTrait> {
@@ -102,13 +118,22 @@ impl UnaimedMacroTrait for Rc<dyn SerializeTileActionTrait> {
     }
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[derive(Clone, Archive, Serialize, Deserialize)]
 #[enum_dispatch(DirectionActionTrait)]
 pub enum KnownDirectionAction {
     DoubleHit(DoubleHitAction),
     ForwardHeavy(ForwardHeavyAction),
     External(Rc<dyn SerializeDirectionActionTrait>),
+}
+
+impl Debug for KnownDirectionAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::DoubleHit(arg0) => f.debug_tuple("DoubleHit").field(arg0).finish(),
+            Self::ForwardHeavy(arg0) => f.debug_tuple("ForwardHeavy").field(arg0).finish(),
+            Self::External(_) => f.debug_tuple("External").finish_non_exhaustive(),
+        }
+    }
 }
 
 impl UnaimedTrait for Rc<dyn SerializeDirectionActionTrait> {
@@ -127,8 +152,7 @@ impl UnaimedMacroTrait for Rc<dyn SerializeDirectionActionTrait> {
     }
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
+#[derive(Clone, Archive, Serialize, Deserialize)]
 #[enum_dispatch(InfallibleActionTrait)]
 pub enum KnownInfallibleAction {
     EnterStance(EnterStanceAction),
@@ -139,6 +163,29 @@ pub enum KnownInfallibleAction {
     TrackingFollowupAction(TrackingFollowupAction),
     GoingAction(GoingAction),
     External(Rc<dyn SerializeInfallibleActionTrait>),
+}
+
+impl Debug for KnownInfallibleAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::EnterStance(arg0) => f.debug_tuple("EnterStance").field(arg0).finish(),
+            Self::ExitStance(arg0) => f.debug_tuple("ExitStance").field(arg0).finish(),
+            Self::StanceSmite(arg0) => f.debug_tuple("StanceSmite").field(arg0).finish(),
+            Self::DoubleHitFollowupAction(arg0) => f
+                .debug_tuple("DoubleHitFollowupAction")
+                .field(arg0)
+                .finish(),
+            Self::ForwardHeavyFollowupAction(arg0) => f
+                .debug_tuple("ForwardHeavyFollowupAction")
+                .field(arg0)
+                .finish(),
+            Self::TrackingFollowupAction(arg0) => {
+                f.debug_tuple("TrackingFollowupAction").field(arg0).finish()
+            }
+            Self::GoingAction(arg0) => f.debug_tuple("GoingAction").field(arg0).finish(),
+            Self::External(_) => f.debug_tuple("External").finish_non_exhaustive(),
+        }
+    }
 }
 
 impl UnaimedTrait for Rc<dyn SerializeInfallibleActionTrait> {

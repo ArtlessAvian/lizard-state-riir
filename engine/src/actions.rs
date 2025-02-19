@@ -62,7 +62,7 @@ pub enum ActionError {
 }
 
 // Rc to allow cloning trait objects, also its cheap!
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum UnaimedAction {
     None(Rc<dyn ActionTrait>),
     Tile(Rc<dyn TileActionTrait>),
@@ -148,7 +148,7 @@ impl<T: UnaimedActionTrait> UnaimedMacroTrait for T {
 /// See `UnaimedActionTrait`!
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
-pub trait ActionTrait: Debug {
+pub trait ActionTrait {
     fn verify_and_box(
         &self,
         floor: &Floor,
@@ -158,7 +158,7 @@ pub trait ActionTrait: Debug {
 
 impl<T> ActionTrait for T
 where
-    T: UnaimedMacroTrait<Target = (), Error = ActionError> + Debug,
+    T: UnaimedMacroTrait<Target = (), Error = ActionError>,
 {
     fn verify_and_box(
         &self,
@@ -174,7 +174,7 @@ where
 /// See `UnaimedActionTrait`!
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
-pub trait TileActionTrait: Debug {
+pub trait TileActionTrait {
     fn verify_and_box(
         &self,
         floor: &Floor,
@@ -185,7 +185,7 @@ pub trait TileActionTrait: Debug {
 
 impl<T> TileActionTrait for T
 where
-    T: UnaimedMacroTrait<Target = AbsolutePosition, Error = ActionError> + Debug,
+    T: UnaimedMacroTrait<Target = AbsolutePosition, Error = ActionError>,
 {
     fn verify_and_box(
         &self,
@@ -202,7 +202,7 @@ where
 /// See `UnaimedActionTrait`!
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
-pub trait DirectionActionTrait: Debug {
+pub trait DirectionActionTrait {
     fn verify_and_box(
         &self,
         floor: &Floor,
@@ -213,7 +213,7 @@ pub trait DirectionActionTrait: Debug {
 
 impl<T> DirectionActionTrait for T
 where
-    T: UnaimedMacroTrait<Target = RelativePosition, Error = ActionError> + Debug,
+    T: UnaimedMacroTrait<Target = RelativePosition, Error = ActionError>,
 {
     fn verify_and_box(
         &self,
@@ -234,13 +234,13 @@ pub enum Never {}
 /// No chat, I am not writing all permutations.
 #[archive_dyn(deserialize)]
 #[enum_dispatch]
-pub trait InfallibleActionTrait: Debug {
+pub trait InfallibleActionTrait {
     fn verify_and_box(&self, floor: &Floor, subject_id: EntityId) -> BoxedCommand;
 }
 
 impl<T> InfallibleActionTrait for T
 where
-    T: UnaimedMacroTrait<Target = (), Error = Never> + Debug,
+    T: UnaimedMacroTrait<Target = (), Error = Never>,
 {
     fn verify_and_box(&self, floor: &Floor, subject_id: EntityId) -> BoxedCommand {
         match UnaimedMacroTrait::verify_and_box(self, floor, subject_id, ()) {
@@ -256,7 +256,7 @@ where
 ///
 /// Invoking the command consumes both the implementor and the floor.
 /// PRESUMABLY the command was created by an action, which takes a floor as input.
-pub trait CommandTrait: Debug {
+pub trait CommandTrait {
     fn do_action(self, floor: Floor) -> FloorUpdate;
 }
 

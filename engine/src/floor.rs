@@ -65,7 +65,6 @@ pub type BorrowedFloorUpdate<'a> = Writer<&'a Floor, FloorEvent>;
 // }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.
