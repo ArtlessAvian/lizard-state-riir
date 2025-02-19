@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use engine::actions::events::ExitEvent;
 use engine::actions::events::FloorEvent;
-use engine::actions::known_serializable::KnownAction;
+use engine::actions::known_serializable::SerializableAction;
 use engine::actions::ActionError;
 use engine::actions::ActionTrait;
 use engine::actions::BoxedCommand;
@@ -109,16 +109,16 @@ fn test_test_action() {
 #[test]
 fn rkyv_roundtrip() {
     let action = TestAction {};
-    let known_external = KnownAction::External(Rc::new(action.clone()));
+    let known_external = SerializableAction::Erased(Rc::new(action.clone()));
     {
         let mut serializer = AllocSerializer::<256>::default();
         serializer.serialize_value(&known_external).unwrap();
 
         let bytes = serializer.into_serializer().into_inner();
-        let archived = unsafe { rkyv::archived_root::<KnownAction>(&bytes[..]) };
+        let archived = unsafe { rkyv::archived_root::<SerializableAction>(&bytes[..]) };
         // TODO: Validate bytes somehow.
 
-        let deserialized: KnownAction = archived
+        let deserialized: SerializableAction = archived
             .deserialize(&mut rkyv::de::deserializers::SharedDeserializeMap::new())
             .unwrap();
 

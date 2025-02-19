@@ -45,5 +45,5 @@ fn serialize_deserialize() {
     // Oh well.
 
     // Fun stuff.
-    assert_eq!(bytes.len(), 9476);
+    assert_eq!(bytes.len(), 9452);
 }
