@@ -17,21 +17,11 @@ use super::example::DoubleHitFollowupAction;
 use super::example::EnterStanceAction;
 use super::example::ExitStanceAction;
 use super::public::GoingAction;
-use super::ActionError;
-use super::BoxedCommand;
-use super::InfallibleActionTrait;
-use super::Never;
 use super::SerializeActionTrait;
 use super::SerializeDirectionActionTrait;
 use super::SerializeInfallibleActionTrait;
 use super::SerializeTileActionTrait;
 use super::UnaimedAction;
-use super::UnaimedMacroTrait;
-use super::UnaimedTrait;
-use crate::entity::EntityId;
-use crate::floor::Floor;
-use crate::positional::AbsolutePosition;
-use crate::positional::RelativePosition;
 
 // Same as above, but more specialized. Has an ugly conversion.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
@@ -68,22 +58,6 @@ impl Debug for KnownAction {
     }
 }
 
-impl UnaimedTrait for Rc<dyn SerializeActionTrait> {
-    type Target = ();
-    type Error = ActionError;
-}
-
-impl UnaimedMacroTrait for Rc<dyn SerializeActionTrait> {
-    fn verify_and_box(
-        &self,
-        floor: &Floor,
-        subject_id: EntityId,
-        (): (),
-    ) -> Result<BoxedCommand, ActionError> {
-        self.as_ref().verify_and_box(floor, subject_id)
-    }
-}
-
 #[derive(Clone, Archive, Serialize, Deserialize)]
 #[enum_dispatch(TileActionTrait)]
 pub enum KnownTileAction {
@@ -102,22 +76,6 @@ impl Debug for KnownTileAction {
     }
 }
 
-impl UnaimedTrait for Rc<dyn SerializeTileActionTrait> {
-    type Target = AbsolutePosition;
-    type Error = ActionError;
-}
-
-impl UnaimedMacroTrait for Rc<dyn SerializeTileActionTrait> {
-    fn verify_and_box(
-        &self,
-        floor: &Floor,
-        subject_id: EntityId,
-        tile: AbsolutePosition,
-    ) -> Result<BoxedCommand, ActionError> {
-        self.as_ref().verify_and_box(floor, subject_id, tile)
-    }
-}
-
 #[derive(Clone, Archive, Serialize, Deserialize)]
 #[enum_dispatch(DirectionActionTrait)]
 pub enum KnownDirectionAction {
@@ -133,22 +91,6 @@ impl Debug for KnownDirectionAction {
             Self::ForwardHeavy(arg0) => f.debug_tuple("ForwardHeavy").field(arg0).finish(),
             Self::External(_) => f.debug_tuple("External").finish_non_exhaustive(),
         }
-    }
-}
-
-impl UnaimedTrait for Rc<dyn SerializeDirectionActionTrait> {
-    type Target = RelativePosition;
-    type Error = ActionError;
-}
-
-impl UnaimedMacroTrait for Rc<dyn SerializeDirectionActionTrait> {
-    fn verify_and_box(
-        &self,
-        floor: &Floor,
-        subject_id: EntityId,
-        dir: RelativePosition,
-    ) -> Result<BoxedCommand, ActionError> {
-        self.as_ref().verify_and_box(floor, subject_id, dir)
     }
 }
 
@@ -185,25 +127,5 @@ impl Debug for KnownInfallibleAction {
             Self::GoingAction(arg0) => f.debug_tuple("GoingAction").field(arg0).finish(),
             Self::External(_) => f.debug_tuple("External").finish_non_exhaustive(),
         }
-    }
-}
-
-impl UnaimedTrait for Rc<dyn SerializeInfallibleActionTrait> {
-    type Target = ();
-    type Error = Never;
-}
-
-impl UnaimedMacroTrait for Rc<dyn SerializeInfallibleActionTrait> {
-    fn verify_and_box(
-        &self,
-        floor: &Floor,
-        subject_id: EntityId,
-        (): (),
-    ) -> Result<BoxedCommand, Never> {
-        Ok(InfallibleActionTrait::verify_and_box(
-            self.as_ref(),
-            floor,
-            subject_id,
-        ))
     }
 }

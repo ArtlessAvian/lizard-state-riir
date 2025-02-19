@@ -29,10 +29,16 @@ pub mod characters;
 /// External crates are encouraged to write their own static dispatch enum and only implement the `rkyv_dyn` crate for that.
 pub mod known_serializable;
 
+pub mod erased_serializable;
+
 use std::fmt::Debug;
 use std::rc::Rc;
 
 use enum_dispatch::enum_dispatch;
+use erased_serializable::ErasedUnaimedAction;
+use rkyv::Archive;
+use rkyv::Deserialize;
+use rkyv::Serialize;
 use rkyv_dyn::archive_dyn;
 
 use self::characters::axolotl_nano::*;
@@ -68,6 +74,29 @@ pub enum UnaimedAction {
     Tile(Rc<dyn TileActionTrait>),
     Direction(Rc<dyn DirectionActionTrait>),
     Infallible(Rc<dyn InfallibleActionTrait>),
+}
+
+// We don't need to go from KnownAction to Rc<dyn Trait> (often).
+// The other three enum unwrap paths make sense and are easy to do.
+// Other crates can implement Rc<dyn Trait> to serialize their stuff in the model.
+// ```
+// Rc<dyn ActionTrait> -- Enum -> SerializableUnaimedAction -- Into -> UnaimedAction
+//     ^ Erasure ^                       ^ Enum ^
+//     KnownAction     -- Enum ->    KnownUnaimedAction
+// ```
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+pub enum SerializableUnaimedAction {
+    Known(KnownUnaimedAction),
+    Erased(ErasedUnaimedAction),
+}
+
+impl From<SerializableUnaimedAction> for UnaimedAction {
+    fn from(value: SerializableUnaimedAction) -> Self {
+        match value {
+            SerializableUnaimedAction::Known(x) => x.into(),
+            SerializableUnaimedAction::Erased(x) => x.into(),
+        }
+    }
 }
 
 /// Shared thingy.
