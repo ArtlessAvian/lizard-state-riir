@@ -21,23 +21,27 @@ use crate::floor::Floor;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
-#[derive(Clone, Archive, Serialize, Deserialize)]
-pub enum ErasedUnaimedAction {
-    None(Rc<dyn SerializeActionTrait>),
-    Tile(Rc<dyn SerializeTileActionTrait>),
-    Direction(Rc<dyn SerializeDirectionActionTrait>),
-    Infallible(Rc<dyn SerializeInfallibleActionTrait>),
+#[derive(Archive, Serialize, Deserialize)]
+pub struct ErasedAction<TraitObject: ?Sized>(pub Rc<TraitObject>);
+
+impl<T: ?Sized> Debug for ErasedAction<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("ErasedAction").finish_non_exhaustive()
+    }
 }
 
-impl Debug for ErasedUnaimedAction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None(_) => f.debug_tuple("None").finish_non_exhaustive(),
-            Self::Tile(_) => f.debug_tuple("Tile").finish_non_exhaustive(),
-            Self::Direction(_) => f.debug_tuple("Direction").finish_non_exhaustive(),
-            Self::Infallible(_) => f.debug_tuple("Infallible").finish_non_exhaustive(),
-        }
+impl<T: ?Sized> Clone for ErasedAction<T> {
+    fn clone(&self) -> Self {
+        Self(Rc::clone(&self.0))
     }
+}
+
+#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+pub enum ErasedUnaimedAction {
+    None(ErasedAction<dyn SerializeActionTrait>),
+    Tile(ErasedAction<dyn SerializeTileActionTrait>),
+    Direction(ErasedAction<dyn SerializeDirectionActionTrait>),
+    Infallible(ErasedAction<dyn SerializeInfallibleActionTrait>),
 }
 
 impl From<ErasedUnaimedAction> for UnaimedAction {
@@ -52,60 +56,60 @@ impl From<ErasedUnaimedAction> for UnaimedAction {
     }
 }
 
-impl UnaimedTrait for Rc<dyn SerializeActionTrait> {
+impl UnaimedTrait for ErasedAction<dyn SerializeActionTrait> {
     type Target = ();
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for Rc<dyn SerializeActionTrait> {
+impl UnaimedMacroTrait for ErasedAction<dyn SerializeActionTrait> {
     fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         (): (),
     ) -> Result<BoxedCommand, ActionError> {
-        self.as_ref().verify_and_box(floor, subject_id)
+        self.0.as_ref().verify_and_box(floor, subject_id)
     }
 }
 
-impl UnaimedTrait for Rc<dyn SerializeTileActionTrait> {
+impl UnaimedTrait for ErasedAction<dyn SerializeTileActionTrait> {
     type Target = AbsolutePosition;
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for Rc<dyn SerializeTileActionTrait> {
+impl UnaimedMacroTrait for ErasedAction<dyn SerializeTileActionTrait> {
     fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<BoxedCommand, ActionError> {
-        self.as_ref().verify_and_box(floor, subject_id, tile)
+        self.0.as_ref().verify_and_box(floor, subject_id, tile)
     }
 }
 
-impl UnaimedTrait for Rc<dyn SerializeDirectionActionTrait> {
+impl UnaimedTrait for ErasedAction<dyn SerializeDirectionActionTrait> {
     type Target = RelativePosition;
     type Error = ActionError;
 }
 
-impl UnaimedMacroTrait for Rc<dyn SerializeDirectionActionTrait> {
+impl UnaimedMacroTrait for ErasedAction<dyn SerializeDirectionActionTrait> {
     fn verify_and_box(
         &self,
         floor: &Floor,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<BoxedCommand, ActionError> {
-        self.as_ref().verify_and_box(floor, subject_id, dir)
+        self.0.as_ref().verify_and_box(floor, subject_id, dir)
     }
 }
 
-impl UnaimedTrait for Rc<dyn SerializeInfallibleActionTrait> {
+impl UnaimedTrait for ErasedAction<dyn SerializeInfallibleActionTrait> {
     type Target = ();
     type Error = Never;
 }
 
-impl UnaimedMacroTrait for Rc<dyn SerializeInfallibleActionTrait> {
+impl UnaimedMacroTrait for ErasedAction<dyn SerializeInfallibleActionTrait> {
     fn verify_and_box(
         &self,
         floor: &Floor,
@@ -113,7 +117,7 @@ impl UnaimedMacroTrait for Rc<dyn SerializeInfallibleActionTrait> {
         (): (),
     ) -> Result<BoxedCommand, Never> {
         Ok(InfallibleActionTrait::verify_and_box(
-            self.as_ref(),
+            self.0.as_ref(),
             floor,
             subject_id,
         ))

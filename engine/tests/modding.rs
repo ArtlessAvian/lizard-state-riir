@@ -4,6 +4,7 @@
 /// Or if someone actually wants to mod. That'd be crazy.
 use std::rc::Rc;
 
+use engine::actions::erased_serializable::ErasedAction;
 use engine::actions::erased_serializable::ErasedUnaimedAction;
 use engine::actions::events::ExitEvent;
 use engine::actions::events::FloorEvent;
@@ -110,8 +111,9 @@ fn test_test_action() {
 #[test]
 fn rkyv_roundtrip() {
     let action = TestAction {};
-    let known_external =
-        SerializableUnaimedAction::Erased(ErasedUnaimedAction::None(Rc::new(action.clone())));
+    let known_external = SerializableUnaimedAction::Erased(ErasedUnaimedAction::None(
+        ErasedAction(Rc::new(action.clone())),
+    ));
     {
         let mut serializer = AllocSerializer::<256>::default();
         serializer.serialize_value(&known_external).unwrap();
