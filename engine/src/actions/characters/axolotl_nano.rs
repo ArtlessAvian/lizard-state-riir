@@ -11,6 +11,7 @@ use crate::actions::utils::start_juggle;
 use crate::actions::ActionError;
 use crate::actions::KnownUnaimedAction;
 use crate::actions::Never;
+use crate::actions::SerializableUnaimedAction;
 use crate::actions::UnaimedActionTrait;
 use crate::actions::UnaimedTrait;
 use crate::entity::EntityId;
@@ -58,7 +59,9 @@ impl CommandTrait for EnterSmiteStanceCommand {
         let mut clone = floor.entities[self.subject_id].clone();
         clone.state = EntityState::RestrictedActions {
             next_round: floor.get_current_round() + 1,
-            restricted_actions: Vec::from([StanceSmiteAction { tile: self.tile }.into()]),
+            restricted_actions: Vec::from([SerializableUnaimedAction::Known(
+                StanceSmiteAction { tile: self.tile }.into(),
+            )]),
         };
         floor.update_entity((self.subject_id, clone))
     }

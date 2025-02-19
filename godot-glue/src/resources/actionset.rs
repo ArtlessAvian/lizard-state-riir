@@ -1,4 +1,4 @@
-use engine::actions::known_serializable::KnownUnaimedAction;
+use engine::actions::SerializableUnaimedAction;
 use godot::prelude::*;
 
 /// Very, very sussy.
@@ -7,7 +7,7 @@ use godot::prelude::*;
 #[derive(GodotClass, Debug)]
 #[class(no_init)]
 pub(super) struct GodotWrappedAction {
-    pub action: KnownUnaimedAction,
+    pub action: SerializableUnaimedAction,
 }
 
 #[derive(GodotClass, Debug)]
@@ -19,7 +19,7 @@ pub struct ActionSet {
 }
 
 impl ActionSet {
-    pub fn to_vec(&self) -> Vec<KnownUnaimedAction> {
+    pub fn to_vec(&self) -> Vec<SerializableUnaimedAction> {
         self.actions
             .iter_shared()
             .flatten()

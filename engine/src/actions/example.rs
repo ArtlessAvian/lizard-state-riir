@@ -13,6 +13,7 @@ use super::CommandTrait;
 use super::FloorEvent;
 use super::KnownUnaimedAction;
 use super::Never;
+use super::SerializableUnaimedAction;
 use super::UnaimedActionTrait;
 use super::UnaimedTrait;
 use crate::entity::Entity;
@@ -218,7 +219,7 @@ impl CommandTrait for EnterStanceCommand {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::RestrictedActions {
             next_round: floor.get_current_round() + 1,
-            restricted_actions: vec![ExitStanceAction.into()],
+            restricted_actions: vec![SerializableUnaimedAction::Known(ExitStanceAction.into())],
         };
 
         floor.update_entity((self.subject_id, subject_clone))
