@@ -7,6 +7,7 @@ use std::rc::Rc;
 use engine::actions::events::ExitEvent;
 use engine::actions::events::FloorEvent;
 use engine::actions::known_serializable::KnownAction;
+use engine::actions::serializable_wrapper::SerializableAction;
 use engine::actions::ActionError;
 use engine::actions::ActionTrait;
 use engine::actions::BoxedCommand;
@@ -109,7 +110,7 @@ fn test_test_action() {
 #[test]
 fn rkyv_roundtrip() {
     let action = TestAction {};
-    let known_external = KnownAction::External(Rc::new(action.clone()));
+    let known_external = KnownAction::External(SerializableAction(Rc::new(action.clone())));
     {
         let mut serializer = AllocSerializer::<256>::default();
         serializer.serialize_value(&known_external).unwrap();

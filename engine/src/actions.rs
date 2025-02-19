@@ -29,6 +29,8 @@ pub mod characters;
 /// External crates are encouraged to write their own static dispatch enum and only implement the `rkyv_dyn` crate for that.
 pub mod known_serializable;
 
+pub mod serializable_wrapper;
+
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -41,6 +43,7 @@ use self::events::FloorEvent;
 use self::example::*;
 use self::known_serializable::*;
 use self::public::*;
+use self::serializable_wrapper::*;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
