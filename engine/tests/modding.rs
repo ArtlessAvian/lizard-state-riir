@@ -30,7 +30,7 @@ use rkyv_dyn::archive_dyn;
 use rkyv_typename::TypeName;
 
 #[derive(PartialEq, Eq, Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug, TypeName))]
+#[archive_attr(derive(TypeName))]
 struct TestAction {}
 
 #[archive_dyn(deserialize)]
@@ -57,7 +57,7 @@ impl ActionTrait for Archived<TestAction> {
 }
 
 #[derive(PartialEq, Eq, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug, TypeName))]
+#[archive_attr(derive(TypeName))]
 struct TestCommand {
     subject_id: EntityId,
 }

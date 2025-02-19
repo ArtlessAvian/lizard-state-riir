@@ -297,7 +297,6 @@ impl UnaimedActionTrait for GotoAction {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct GoingAction {
     tile: AbsolutePosition,
 }

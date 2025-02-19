@@ -20,7 +20,6 @@ pub trait StrategyTrait {
 
 #[enum_delegate::implement(StrategyTrait)]
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub enum Strategy {
     Null(NullStrategy),
     Wander(WanderStrategy),
@@ -37,7 +36,6 @@ impl Default for Strategy {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct NullStrategy;
 impl StrategyTrait for NullStrategy {
     fn take_turn(self, original: Floor, subject_id: EntityId) -> FloorUpdate {
@@ -49,7 +47,6 @@ impl StrategyTrait for NullStrategy {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct WanderStrategy;
 
 impl StrategyTrait for WanderStrategy {
@@ -75,7 +72,6 @@ impl StrategyTrait for WanderStrategy {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct StandAndFightStrategy;
 
 impl StrategyTrait for StandAndFightStrategy {
@@ -105,7 +101,6 @@ impl StrategyTrait for StandAndFightStrategy {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct FollowStrategy;
 
 impl StrategyTrait for FollowStrategy {
@@ -193,7 +188,6 @@ impl StrategyTrait for FollowStrategy {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct RushdownStrategy;
 
 impl StrategyTrait for RushdownStrategy {

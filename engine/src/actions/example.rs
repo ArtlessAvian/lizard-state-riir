@@ -24,7 +24,6 @@ use crate::positional::RelativePosition;
 
 // Hits once, then queues another.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct DoubleHitAction;
 
 impl UnaimedTrait for DoubleHitAction {
@@ -109,7 +108,6 @@ impl CommandTrait for DoubleHitCommand {
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct DoubleHitFollowupAction {
     dir: RelativePosition,
 }
@@ -181,7 +179,6 @@ impl CommandTrait for DoubleHitFollowup {
 
 // Waits a turn, then lets the user do a big attack or exit stance.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct EnterStanceAction;
 
 impl UnaimedTrait for EnterStanceAction {
@@ -226,7 +223,6 @@ impl CommandTrait for EnterStanceCommand {
 }
 
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(Debug))]
 pub struct ExitStanceAction;
 
 impl UnaimedTrait for ExitStanceAction {

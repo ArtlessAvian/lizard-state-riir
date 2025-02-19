@@ -33,7 +33,7 @@ use crate::writer::Writer;
     Deserialize,
     Default,
 )]
-#[archive_attr(derive(Debug, PartialEq, Eq, Hash))]
+#[archive_attr(derive(PartialEq, Eq, Hash))]
 pub struct EntityId(usize);
 
 /// An entity as it exists in a Floor.
