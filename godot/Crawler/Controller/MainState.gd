@@ -107,6 +107,8 @@ func transition_to_action(floor_container: FloorContainer, action: Variant):
 		return preload("res://Crawler/Controller/AimDirectionActionState.gd").new(
 			floor_container, action
 		)
+	if action is InfallibleAction:
+		return preload("res://Crawler/Controller/AimInfallibleActionState.gd").new(action)
 	if action is Action:
 		return preload("res://Crawler/Controller/AimUnaimedActionState.gd").new(action)
 
