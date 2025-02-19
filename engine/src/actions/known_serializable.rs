@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use enum_dispatch::enum_dispatch;
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -18,11 +17,21 @@ use super::example::EnterStanceAction;
 use super::example::ExitStanceAction;
 use super::public::GoingAction;
 use super::serializable_wrapper::SerializableAction;
+use super::ActionError;
+use super::ActionTrait;
+use super::BoxedCommand;
+use super::DirectionActionTrait;
+use super::InfallibleActionTrait;
 use super::SerializeActionTrait;
 use super::SerializeDirectionActionTrait;
 use super::SerializeInfallibleActionTrait;
 use super::SerializeTileActionTrait;
+use super::TileActionTrait;
 use super::UnaimedAction;
+use crate::entity::EntityId;
+use crate::floor::Floor;
+use crate::positional::AbsolutePosition;
+use crate::positional::RelativePosition;
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 pub enum KnownUnaimedAction {
@@ -45,13 +54,13 @@ impl From<KnownUnaimedAction> for UnaimedAction {
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[enum_dispatch(ActionTrait)]
+#[enum_delegate::implement(ActionTrait)]
 pub enum KnownAction {
     External(SerializableAction<dyn SerializeActionTrait>),
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[enum_dispatch(TileActionTrait)]
+#[enum_delegate::implement(TileActionTrait)]
 pub enum KnownTileAction {
     Tracking(TrackingAction),
     EnterSmiteStance(EnterSmiteStanceAction),
@@ -59,7 +68,7 @@ pub enum KnownTileAction {
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[enum_dispatch(DirectionActionTrait)]
+#[enum_delegate::implement(DirectionActionTrait)]
 pub enum KnownDirectionAction {
     DoubleHit(DoubleHitAction),
     ForwardHeavy(ForwardHeavyAction),
@@ -67,7 +76,7 @@ pub enum KnownDirectionAction {
 }
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
-#[enum_dispatch(InfallibleActionTrait)]
+#[enum_delegate::implement(InfallibleActionTrait)]
 pub enum KnownInfallibleAction {
     EnterStance(EnterStanceAction),
     ExitStance(ExitStanceAction),

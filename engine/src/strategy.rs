@@ -1,4 +1,3 @@
-use enum_dispatch::enum_dispatch;
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -14,12 +13,12 @@ use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
 
-#[enum_dispatch]
+#[enum_delegate::register]
 pub trait StrategyTrait {
     fn take_turn(self, original: Floor, subject_id: EntityId) -> FloorUpdate;
 }
 
-#[enum_dispatch(StrategyTrait)]
+#[enum_delegate::implement(StrategyTrait)]
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 #[archive_attr(derive(Debug))]
 pub enum Strategy {

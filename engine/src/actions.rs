@@ -1,8 +1,3 @@
-#![allow(
-    clippy::wildcard_imports,
-    reason = "enum_dispatch macro needs the trait to know its implementors."
-)]
-
 pub(crate) mod utils;
 
 pub mod example;
@@ -34,16 +29,9 @@ pub mod serializable_wrapper;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use enum_dispatch::enum_dispatch;
 use rkyv_dyn::archive_dyn;
 
-use self::characters::axolotl_nano::*;
-use self::characters::max_tegu::*;
 use self::events::FloorEvent;
-use self::example::*;
-use self::known_serializable::*;
-use self::public::*;
-use self::serializable_wrapper::*;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
@@ -150,7 +138,7 @@ impl<T: UnaimedActionTrait> UnaimedMacroTrait for T {
 ///
 /// See `UnaimedActionTrait`!
 #[archive_dyn(deserialize)]
-#[enum_dispatch]
+#[enum_delegate::register]
 pub trait ActionTrait {
     fn verify_and_box(
         &self,
@@ -176,7 +164,7 @@ where
 ///
 /// See `UnaimedActionTrait`!
 #[archive_dyn(deserialize)]
-#[enum_dispatch]
+#[enum_delegate::register]
 pub trait TileActionTrait {
     fn verify_and_box(
         &self,
@@ -204,7 +192,7 @@ where
 ///
 /// See `UnaimedActionTrait`!
 #[archive_dyn(deserialize)]
-#[enum_dispatch]
+#[enum_delegate::register]
 pub trait DirectionActionTrait {
     fn verify_and_box(
         &self,
@@ -236,7 +224,7 @@ pub enum Never {}
 ///
 /// No chat, I am not writing all permutations.
 #[archive_dyn(deserialize)]
-#[enum_dispatch]
+#[enum_delegate::register]
 pub trait InfallibleActionTrait {
     fn verify_and_box(&self, floor: &Floor, subject_id: EntityId) -> BoxedCommand;
 }
