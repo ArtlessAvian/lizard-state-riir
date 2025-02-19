@@ -4,14 +4,15 @@
 /// Or if someone actually wants to mod. That'd be crazy.
 use std::rc::Rc;
 
+use engine::actions::erased_serializable::ErasedUnaimedAction;
 use engine::actions::events::ExitEvent;
 use engine::actions::events::FloorEvent;
-use engine::actions::known_serializable::KnownAction;
 use engine::actions::ActionError;
 use engine::actions::ActionTrait;
 use engine::actions::BoxedCommand;
 use engine::actions::CommandTrait;
 use engine::actions::DeserializeActionTrait;
+use engine::actions::SerializableUnaimedAction;
 use engine::actions::SerializeActionTrait;
 use engine::entity::Entity;
 use engine::entity::EntityId;
@@ -109,19 +110,24 @@ fn test_test_action() {
 #[test]
 fn rkyv_roundtrip() {
     let action = TestAction {};
-    let known_external = KnownAction::External(Rc::new(action.clone()));
+    let known_external =
+        SerializableUnaimedAction::Erased(ErasedUnaimedAction::None(Rc::new(action.clone())));
     {
         let mut serializer = AllocSerializer::<256>::default();
         serializer.serialize_value(&known_external).unwrap();
 
         let bytes = serializer.into_serializer().into_inner();
-        let archived = unsafe { rkyv::archived_root::<KnownAction>(&bytes[..]) };
+        let archived = unsafe { rkyv::archived_root::<SerializableUnaimedAction>(&bytes[..]) };
         // TODO: Validate bytes somehow.
 
-        let deserialized: KnownAction = archived
+        let deserialized: SerializableUnaimedAction = archived
             .deserialize(&mut rkyv::de::deserializers::SharedDeserializeMap::new())
             .unwrap();
 
-        expect_test_action_side_effects(Rc::new(deserialized));
+        if let SerializableUnaimedAction::Erased(ErasedUnaimedAction::None(x)) = deserialized {
+            expect_test_action_side_effects(Rc::new(x));
+        } else {
+            panic!("Pattern should match!")
+        }
     }
 }
