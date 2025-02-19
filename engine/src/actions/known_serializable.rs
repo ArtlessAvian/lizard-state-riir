@@ -33,7 +33,7 @@ use crate::floor::Floor;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
-// SerializableAction -- Enum -> SerializableUnaimedAction
+// SerializableAction -- Enum -> SerializableUnaimedAction -- Erasure -> UnaimedAction
 //      ^ Enum ^                        ^ Into ^
 //    KnownAction     -- Enum ->    KnownUnaimedAction
 
@@ -45,6 +45,21 @@ pub enum SerializableUnaimedAction {
     Infallible(SerializableInfallibleAction),
 }
 
+impl From<SerializableUnaimedAction> for UnaimedAction {
+    fn from(value: SerializableUnaimedAction) -> Self {
+        // mmm yes i love indirection
+        match value {
+            SerializableUnaimedAction::None(x) => UnaimedAction::None(Rc::new(x)),
+            SerializableUnaimedAction::Tile(x) => UnaimedAction::Tile(Rc::new(x)),
+            SerializableUnaimedAction::Direction(x) => UnaimedAction::Direction(Rc::new(x)),
+            SerializableUnaimedAction::Infallible(x) => UnaimedAction::Infallible(Rc::new(x)),
+        }
+    }
+}
+
+/// `UnaimedActions` known to this crate!
+///
+/// Other crates should create a similar type, and use the Erased Field in the `SerializableAction` types.
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
 pub enum KnownUnaimedAction {
     // None(KnownAction),
@@ -63,18 +78,6 @@ impl From<KnownUnaimedAction> for SerializableUnaimedAction {
             KnownUnaimedAction::Infallible(x) => {
                 Self::Infallible(SerializableInfallibleAction::Known(x))
             }
-        }
-    }
-}
-
-impl From<KnownUnaimedAction> for UnaimedAction {
-    fn from(value: KnownUnaimedAction) -> Self {
-        // mmm yes i love indirection
-        match value {
-            // KnownUnaimedAction::None(x) => UnaimedAction::None(Rc::new(x)),
-            KnownUnaimedAction::Tile(x) => UnaimedAction::Tile(Rc::new(x)),
-            KnownUnaimedAction::Direction(x) => UnaimedAction::Direction(Rc::new(x)),
-            KnownUnaimedAction::Infallible(x) => UnaimedAction::Infallible(Rc::new(x)),
         }
     }
 }

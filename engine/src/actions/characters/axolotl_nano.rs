@@ -7,6 +7,7 @@ use rkyv::Serialize;
 use super::super::CommandTrait;
 use crate::actions::known_serializable::KnownInfallibleAction;
 use crate::actions::known_serializable::KnownTileAction;
+use crate::actions::known_serializable::SerializableUnaimedAction;
 use crate::actions::utils::start_juggle;
 use crate::actions::ActionError;
 use crate::actions::KnownUnaimedAction;
@@ -58,7 +59,9 @@ impl CommandTrait for EnterSmiteStanceCommand {
         let mut clone = floor.entities[self.subject_id].clone();
         clone.state = EntityState::RestrictedActions {
             next_round: floor.get_current_round() + 1,
-            restricted_actions: Vec::from([StanceSmiteAction { tile: self.tile }.into()]),
+            restricted_actions: Vec::from([SerializableUnaimedAction::from(
+                KnownUnaimedAction::from(StanceSmiteAction { tile: self.tile }),
+            )]),
         };
         floor.update_entity((self.subject_id, clone))
     }

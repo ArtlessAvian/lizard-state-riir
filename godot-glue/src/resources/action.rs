@@ -3,6 +3,8 @@ use engine::actions::characters::max_tegu::ForwardHeavyAction;
 use engine::actions::characters::max_tegu::TrackingAction;
 use engine::actions::example::DoubleHitAction;
 use engine::actions::example::EnterStanceAction;
+use engine::actions::known_serializable::KnownUnaimedAction;
+use engine::actions::known_serializable::SerializableUnaimedAction;
 use godot::prelude::*;
 
 use super::actionset::GodotWrappedAction;
@@ -20,7 +22,7 @@ macro_rules! expose_action_to_godot {
             #[func]
             fn wrap() -> Gd<GodotWrappedAction> {
                 Gd::from_object(GodotWrappedAction {
-                    action: $cons.into(),
+                    action: SerializableUnaimedAction::from(KnownUnaimedAction::from($cons)),
                 })
             }
         }

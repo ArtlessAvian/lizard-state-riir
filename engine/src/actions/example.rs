@@ -7,6 +7,7 @@ use super::events::PrepareAttackEvent;
 use super::events::StartAttackEvent;
 use super::known_serializable::KnownDirectionAction;
 use super::known_serializable::KnownInfallibleAction;
+use super::known_serializable::SerializableUnaimedAction;
 use super::utils::DelayCommand;
 use super::ActionError;
 use super::CommandTrait;
@@ -218,7 +219,9 @@ impl CommandTrait for EnterStanceCommand {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::RestrictedActions {
             next_round: floor.get_current_round() + 1,
-            restricted_actions: vec![ExitStanceAction.into()],
+            restricted_actions: vec![SerializableUnaimedAction::from(KnownUnaimedAction::from(
+                ExitStanceAction,
+            ))],
         };
 
         floor.update_entity((self.subject_id, subject_clone))
