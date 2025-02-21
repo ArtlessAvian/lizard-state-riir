@@ -271,7 +271,8 @@ mod test {
     use crate::actions::events::FloorEvent;
     use crate::actions::events::StartAttackEvent;
     use crate::actions::example::DoubleHitAction;
-    use crate::actions::DirectionActionTrait;
+    use crate::actions::CommandTrait;
+    use crate::actions::UnaimedActionTrait;
     use crate::entity::Entity;
     use crate::floor::Floor;
     use crate::floor::FloorUpdate;
@@ -306,7 +307,7 @@ mod test {
         let update = update
             .bind(|floor| {
                 DoubleHitAction
-                    .verify_and_box(&floor, player_id, RelativePosition::new(1, 0))
+                    .verify(&floor, player_id, RelativePosition::new(1, 0))
                     .unwrap()
                     .do_action(floor)
             })

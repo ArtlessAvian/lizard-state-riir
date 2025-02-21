@@ -9,8 +9,9 @@ use rkyv::Serialize;
 use crate::actions::events::FloorEvent;
 use crate::actions::public::KnockdownAfterJuggleAction;
 use crate::actions::public::TryToStandUpAction;
-use crate::actions::ActionTrait;
+use crate::actions::CommandTrait;
 use crate::actions::InfallibleActionTrait;
+use crate::actions::UnaimedActionTrait;
 use crate::entity::BatchEntityUpdate;
 use crate::entity::BatchEntityUpdateContextless;
 use crate::entity::Entity;
@@ -251,13 +252,13 @@ impl Floor {
             }
             EntityState::Knockdown { .. } => {
                 return Ok(TryToStandUpAction
-                    .verify_and_box(&self, next_id)
+                    .verify(&self, next_id, ())
                     .expect("only fails if entity is not knockdown state")
                     .do_action(self))
             }
             EntityState::Hitstun { .. } => {
                 return Ok(KnockdownAfterJuggleAction
-                    .verify_and_box(&self, next_id)
+                    .verify(&self, next_id, ())
                     .expect("only fails if entity is not hitstun state")
                     .do_action(self))
             }

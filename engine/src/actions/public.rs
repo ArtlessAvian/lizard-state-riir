@@ -520,9 +520,9 @@ mod test {
     use crate::actions::events::StartAttackEvent;
     use crate::actions::public::BumpAction;
     use crate::actions::public::GotoAction;
-    use crate::actions::DirectionActionTrait;
+    use crate::actions::CommandTrait;
     use crate::actions::InfallibleActionTrait;
-    use crate::actions::TileActionTrait;
+    use crate::actions::UnaimedActionTrait;
     use crate::entity::Entity;
     use crate::entity::EntityState;
     use crate::floor::Floor;
@@ -553,7 +553,7 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             BumpAction
-                .verify_and_box(&floor, player_id, RelativePosition::new(1, 0))
+                .verify(&floor, player_id, RelativePosition::new(1, 0))
                 .unwrap()
                 .do_action(floor)
         });
@@ -592,7 +592,7 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             GotoAction {}
-                .verify_and_box(&floor, player_id, AbsolutePosition::new(5, 3))
+                .verify(&floor, player_id, AbsolutePosition::new(5, 3))
                 .unwrap()
                 .do_action(floor)
         });
@@ -644,7 +644,7 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             GotoAction {}
-                .verify_and_box(&floor, player_id, AbsolutePosition::new(5, 5))
+                .verify(&floor, player_id, AbsolutePosition::new(5, 5))
                 .unwrap()
                 .do_action(floor)
         });
