@@ -63,7 +63,7 @@ struct TestCommand {
 }
 
 impl CommandTrait for TestCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         FloorUpdate::new(floor.clone()).log_each(vec![
             FloorEvent::Exit(ExitEvent {
                 subject: self.subject_id,
@@ -74,7 +74,7 @@ impl CommandTrait for TestCommand {
 }
 
 impl CommandTrait for Archived<TestCommand> {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         Deserialize::<TestCommand, _>::deserialize(&self, &mut Infallible)
             .unwrap()
             .do_action(floor)
@@ -97,7 +97,7 @@ fn expect_test_action_side_effects(type_erased: Rc<dyn ActionTrait>) {
             payload: "Hello!".to_owned(),
         })
         .split_pair();
-    let update = update.bind(|f| type_erased.verify_and_box(&f, id).unwrap().do_action(f));
+    let update = update.bind(|f| type_erased.verify_and_box(&f, id).unwrap().do_action(&f));
     let dingus = update.into_both().1;
     assert_eq!(dingus, vec![FloorEvent::Exit(ExitEvent { subject: id }); 3])
 }

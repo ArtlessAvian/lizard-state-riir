@@ -21,6 +21,7 @@ use crate::actions::UnaimedTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
+use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
@@ -69,7 +70,7 @@ pub struct ForwardHeavyCommand {
 }
 
 impl CommandTrait for ForwardHeavyCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         self.step
             .do_action(floor) // (forcing indented formatting)
             .bind(|floor| {
@@ -79,13 +80,11 @@ impl CommandTrait for ForwardHeavyCommand {
                     turns: 0, // The step already takes a turn.
                     event: None,
                 }
-                .do_action(floor)
-                .peek_and_log(|floor| {
-                    FloorEvent::PrepareAttack(PrepareAttackEvent {
-                        subject: self.subject_id,
-                        tile: floor.entities[self.subject_id].pos + self.dir,
-                    })
-                })
+                .do_action(&floor)
+                .log(FloorEvent::PrepareAttack(PrepareAttackEvent {
+                    subject: self.subject_id,
+                    tile: floor.entities[self.subject_id].pos + self.dir,
+                }))
             })
     }
 }
@@ -123,8 +122,8 @@ pub struct ForwardHeavyFollowup {
 }
 
 impl CommandTrait for ForwardHeavyFollowup {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
-        FloorUpdate::new(floor)
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
+        BorrowedFloorUpdate::new(floor)
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {
@@ -162,7 +161,7 @@ impl CommandTrait for ForwardHeavyFollowup {
                                 entity: object_index,
                                 vector: 3 * self.dir,
                             }
-                            .do_action(floor)
+                            .do_action(&floor)
                         })
                 },
             )
@@ -251,8 +250,8 @@ pub struct TrackingFollowup {
 }
 
 impl CommandTrait for TrackingFollowup {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
-        FloorUpdate::new(floor)
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
+        BorrowedFloorUpdate::new(floor)
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {

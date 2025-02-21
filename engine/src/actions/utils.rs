@@ -27,7 +27,7 @@ pub struct TakeKnockbackUtil {
 }
 
 impl CommandTrait for TakeKnockbackUtil {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         let now = floor.get_current_round();
 
         let swept_tiles = Segment::calculate_relative(self.vector)
@@ -79,7 +79,7 @@ pub struct MultiKnockbackUtil {
 }
 
 impl CommandTrait for MultiKnockbackUtil {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         let now = floor.get_current_round();
 
         let each_swept_tiles = self
@@ -184,7 +184,7 @@ pub struct DelayCommand {
 }
 
 impl CommandTrait for DelayCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = floor.entities[self.subject_id].clone();
         subject_clone.state = EntityState::Committed {
             next_round: floor.get_current_round() + self.turns,
@@ -258,7 +258,7 @@ mod tests {
                 entity: id,
                 vector: RelativePosition::new(1, 0),
             }
-            .do_action(floor)
+            .do_action(&floor)
         });
         assert_eq!(
             update.get_contents().entities[id].pos,
@@ -277,7 +277,7 @@ mod tests {
                 entity: id,
                 vector: RelativePosition::new(0, 1),
             }
-            .do_action(floor)
+            .do_action(&floor)
         });
         assert_eq!(
             update.get_contents().entities[id].pos,
@@ -310,7 +310,7 @@ mod tests {
                 entity: id,
                 vector: RelativePosition::new(1, 0),
             }
-            .do_action(floor)
+            .do_action(&floor)
         });
         // TODO: Remove event ordering strictness.
         assert_eq!(
@@ -354,7 +354,7 @@ mod tests {
                     (other, RelativePosition::new(1, 0)),
                 ]),
             }
-            .do_action(floor)
+            .do_action(&floor)
         });
         // TODO: Remove event ordering strictness.
         assert_eq!(
@@ -396,7 +396,7 @@ mod tests {
             MultiKnockbackUtil {
                 all_displacements: HashMap::from([(id, RelativePosition::new(1, 0))]),
             }
-            .do_action(floor)
+            .do_action(&floor)
         });
         // TODO: Remove event ordering strictness.
         assert_eq!(
@@ -448,7 +448,7 @@ mod tests {
                     (other, RelativePosition::new(1, 0)),
                 ]),
             }
-            .do_action(floor)
+            .do_action(&floor)
         });
         // TODO: Remove event ordering strictness.
         assert_eq!(

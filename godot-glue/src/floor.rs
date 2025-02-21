@@ -194,7 +194,7 @@ impl ActiveFloor {
     #[func]
     pub fn take_npc_turn(&mut self) -> bool {
         // TODO: handle err.
-        let result = self.internal.clone().take_npc_turn();
+        let result = self.internal.take_npc_turn();
         if let Ok(update) = result {
             let (next, log) = update.into_both();
             self.internal = next;
@@ -215,7 +215,7 @@ impl ActiveFloor {
     pub fn do_action(&mut self, mut command: Gd<Command>) -> bool {
         let inner = command.bind_mut().command.take();
         if let Some(some) = inner {
-            let (next, log) = some.do_action(self.internal.clone()).into_both();
+            let (next, log) = some.do_action(&self.internal).into_both();
             self.internal = next;
 
             let temp = log

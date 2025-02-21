@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -18,6 +20,7 @@ use super::UnaimedTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
+use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
@@ -65,14 +68,15 @@ pub struct DoubleHitCommand {
 }
 
 impl CommandTrait for DoubleHitCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
-        FloorUpdate::new(floor)
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
+        BorrowedFloorUpdate::new(floor)
             .peek_and_log(|floor| {
                 FloorEvent::StartAttack(StartAttackEvent {
                     subject: self.subject_id,
                     tile: floor.entities[self.subject_id].pos + self.dir,
                 })
             })
+            .map(Cow::Borrowed)
             .bind_if_some(
                 |floor| {
                     floor
@@ -91,6 +95,7 @@ impl CommandTrait for DoubleHitCommand {
                             target: object_index,
                             damage: 1,
                         }))
+                        .map(Cow::Owned)
                 },
             )
             .bind(|floor| {
@@ -103,7 +108,7 @@ impl CommandTrait for DoubleHitCommand {
                         tile: floor.entities[self.subject_id].pos + self.dir,
                     })),
                 }
-                .do_action(floor)
+                .do_action(&floor)
             })
     }
 }
@@ -141,14 +146,15 @@ pub struct DoubleHitFollowup {
 }
 
 impl CommandTrait for DoubleHitFollowup {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
-        FloorUpdate::new(floor)
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
+        BorrowedFloorUpdate::new(floor)
             .peek_and_log(|floor| {
                 FloorEvent::StartAttack(StartAttackEvent {
                     subject: self.subject_id,
                     tile: floor.entities[self.subject_id].pos + self.dir,
                 })
             })
+            .map(Cow::Borrowed)
             .bind_if_some(
                 |floor| {
                     floor
@@ -167,6 +173,7 @@ impl CommandTrait for DoubleHitFollowup {
                             target: object_index,
                             damage: 1,
                         }))
+                        .map(Cow::Owned)
                 },
             )
             .bind(|floor| {
@@ -213,7 +220,7 @@ pub struct EnterStanceCommand {
 }
 
 impl CommandTrait for EnterStanceCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::RestrictedActions {
             next_round: floor.get_current_round() + 1,
@@ -257,7 +264,7 @@ pub struct ExitStanceCommand {
 }
 
 impl CommandTrait for ExitStanceCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
             next_round: floor.get_current_round(),
@@ -311,7 +318,7 @@ mod test {
                 DoubleHitAction
                     .verify(&floor, player_id, RelativePosition::new(1, 0))
                     .unwrap()
-                    .do_action(floor)
+                    .do_action(&floor)
             })
             .bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
 

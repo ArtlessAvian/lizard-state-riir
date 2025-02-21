@@ -23,6 +23,7 @@ use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
+use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
@@ -61,7 +62,7 @@ pub struct WaitCommand {
 }
 
 impl CommandTrait for WaitCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
             next_round: floor.get_current_round() + 1,
@@ -128,14 +129,14 @@ pub struct StepCommand {
 }
 
 impl CommandTrait for StepCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
         subject_clone.state = EntityState::Ok {
             next_round: floor.get_current_round() + 1,
         };
 
-        FloorUpdate::new(floor)
+        BorrowedFloorUpdate::new(floor)
             .log(FloorEvent::Move(MoveEvent {
                 subject: self.subject_id,
                 tile: subject_clone.pos,
@@ -193,14 +194,12 @@ pub struct BumpCommand {
 }
 
 impl CommandTrait for BumpCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
-        FloorUpdate::new(floor)
-            .peek_and_log(|floor| {
-                FloorEvent::StartAttack(StartAttackEvent {
-                    subject: self.subject_id,
-                    tile: floor.entities[self.subject_id].pos + self.dir,
-                })
-            })
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
+        BorrowedFloorUpdate::new(floor)
+            .log(FloorEvent::StartAttack(StartAttackEvent {
+                subject: self.subject_id,
+                tile: floor.entities[self.subject_id].pos + self.dir,
+            }))
             .log(FloorEvent::AttackHit(AttackHitEvent {
                 subject: self.subject_id,
                 target: self.object_index,
@@ -212,7 +211,7 @@ impl CommandTrait for BumpCommand {
                     batch
                         .apply_and_insert_writer(self.object_index, |_| {
                             utils::start_juggle(
-                                &floor,
+                                floor,
                                 self.object_index,
                                 self.now,
                                 NonZero::<u32>::new(1).unwrap(),
@@ -237,7 +236,7 @@ impl CommandTrait for BumpCommand {
                     entity: self.object_index,
                     vector: self.dir,
                 }
-                .do_action(floor)
+                .do_action(&floor)
             })
     }
 }
@@ -329,7 +328,7 @@ pub struct GotoCommand {
 }
 
 impl CommandTrait for GotoCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         // TODO: Clean up terrible, terrible nesting.
         let subject_pos = floor.entities[self.subject_id].pos;
         let verify_action = floor
@@ -338,7 +337,7 @@ impl CommandTrait for GotoCommand {
             .and_then(|target| {
                 StepAction
                     .verify(
-                        &floor,
+                        floor,
                         self.subject_id,
                         RelativePosition {
                             dx: (target.x - subject_pos.x).clamp(-1, 1),
@@ -358,7 +357,7 @@ impl CommandTrait for GotoCommand {
                         .and_then(|target| {
                             StepAction
                                 .verify(
-                                    &floor,
+                                    floor,
                                     self.subject_id,
                                     RelativePosition {
                                         dx: (target.x - subject_pos.x).clamp(-1, 1),
@@ -441,7 +440,7 @@ pub struct TryToStandUpCommand {
 }
 
 impl CommandTrait for TryToStandUpCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         if floor
             .occupiers
             .get(floor.entities[self.subject_id].pos)
@@ -500,7 +499,7 @@ pub struct KnockdownAfterJuggleCommand {
 }
 
 impl CommandTrait for KnockdownAfterJuggleCommand {
-    fn do_action(self, floor: Floor) -> FloorUpdate {
+    fn do_action(self, floor: &Floor) -> FloorUpdate {
         let mut clone = floor.entities[self.subject_id].clone();
         clone.state = EntityState::Knockdown {
             next_round: self.now + 1,
@@ -555,7 +554,7 @@ mod test {
             BumpAction
                 .verify(&floor, player_id, RelativePosition::new(1, 0))
                 .unwrap()
-                .do_action(floor)
+                .do_action(&floor)
         });
 
         let (floor, log) = update.into_both();
@@ -594,13 +593,13 @@ mod test {
             GotoAction {}
                 .verify(&floor, player_id, AbsolutePosition::new(5, 3))
                 .unwrap()
-                .do_action(floor)
+                .do_action(&floor)
         });
 
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
             EntityState::ConfirmCommand { to_confirm, .. } => to_confirm
                 .verify_and_box(&floor, player_id)
-                .do_action(floor),
+                .do_action(&floor),
             _ => panic!(
                 "Expected ConfirmCommand state. Got value: {:?}",
                 floor.entities[player_id].state
@@ -646,13 +645,13 @@ mod test {
             GotoAction {}
                 .verify(&floor, player_id, AbsolutePosition::new(5, 5))
                 .unwrap()
-                .do_action(floor)
+                .do_action(&floor)
         });
 
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
             EntityState::ConfirmCommand { to_confirm, .. } => to_confirm
                 .verify_and_box(&floor, player_id)
-                .do_action(floor),
+                .do_action(&floor),
             _ => panic!(
                 "Expected ConfirmCommand state. Got value: {:?}",
                 floor.entities[player_id].state

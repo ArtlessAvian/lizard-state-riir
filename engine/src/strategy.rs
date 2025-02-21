@@ -15,7 +15,7 @@ use crate::positional::RelativePosition;
 
 #[enum_delegate::register]
 pub trait StrategyTrait {
-    fn take_turn(self, original: Floor, subject_id: EntityId) -> FloorUpdate;
+    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate;
 }
 
 #[enum_delegate::implement(StrategyTrait)]
@@ -38,9 +38,9 @@ impl Default for Strategy {
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 pub struct NullStrategy;
 impl StrategyTrait for NullStrategy {
-    fn take_turn(self, original: Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         WaitAction {}
-            .verify(&original, subject_id, ())
+            .verify(original, subject_id, ())
             .expect("Wait should never fail")
             .do_action(original)
     }
@@ -50,9 +50,9 @@ impl StrategyTrait for NullStrategy {
 pub struct WanderStrategy;
 
 impl StrategyTrait for WanderStrategy {
-    fn take_turn(self, original: Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         if let Ok(x) = StepAction.verify(
-            &original,
+            original,
             subject_id,
             #[expect(clippy::cast_possible_wrap, reason = "Eh.")]
             #[expect(clippy::unreadable_literal, reason = "Randomish output")]
@@ -65,7 +65,7 @@ impl StrategyTrait for WanderStrategy {
         }
 
         WaitAction {}
-            .verify(&original, subject_id, ())
+            .verify(original, subject_id, ())
             .expect("Wait should never fail")
             .do_action(original)
     }
@@ -75,7 +75,7 @@ impl StrategyTrait for WanderStrategy {
 pub struct StandAndFightStrategy;
 
 impl StrategyTrait for StandAndFightStrategy {
-    fn take_turn(self, original: Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         // let in_range = original.entities.iter().find(|(id, entity)| {
         //     entity.pos.distance(original.entities[subject_id].pos) <= 2 && *id != subject_id
         // });
@@ -94,7 +94,7 @@ impl StrategyTrait for StandAndFightStrategy {
         // }
 
         WaitAction {}
-            .verify(&original, subject_id, ())
+            .verify(original, subject_id, ())
             .expect("Wait should never fail")
             .do_action(original)
     }
@@ -104,7 +104,7 @@ impl StrategyTrait for StandAndFightStrategy {
 pub struct FollowStrategy;
 
 impl StrategyTrait for FollowStrategy {
-    fn take_turn(self, original: Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         // TODO: Add teams/friendliness to the game.
         let subject = &original.entities[subject_id];
 
@@ -131,7 +131,7 @@ impl StrategyTrait for FollowStrategy {
                     RelativePosition::new(-1, 1),
                     RelativePosition::new(-1, -1),
                 ] {
-                    if let Ok(x) = StepAction.verify(&original, subject_id, dir) {
+                    if let Ok(x) = StepAction.verify(original, subject_id, dir) {
                         return x.do_action(original);
                     }
                 }
@@ -142,7 +142,7 @@ impl StrategyTrait for FollowStrategy {
             // If ally is too far, stepping is priority
             if subject.pos.distance(ally.pos) > 4 {
                 if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
-                    if let Ok(x) = StepAction.verify(&original, subject_id, step_to - subject.pos) {
+                    if let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos) {
                         return x.do_action(original);
                     }
                 }
@@ -154,12 +154,10 @@ impl StrategyTrait for FollowStrategy {
             .find(|(_, entity)| !entity.is_allied(subject) && entity.pos.distance(subject.pos) == 1)
         {
             if matches!(enemy.state, EntityState::Knockdown { .. }) {
-                if let Ok(x) = StepAction.verify(&original, subject_id, -(enemy.pos - subject.pos))
-                {
+                if let Ok(x) = StepAction.verify(original, subject_id, -(enemy.pos - subject.pos)) {
                     return x.do_action(original);
                 }
-            } else if let Ok(x) = BumpAction.verify(&original, subject_id, enemy.pos - subject.pos)
-            {
+            } else if let Ok(x) = BumpAction.verify(original, subject_id, enemy.pos - subject.pos) {
                 return x.do_action(original);
             }
         }
@@ -167,7 +165,7 @@ impl StrategyTrait for FollowStrategy {
         if let Some((_ally_id, ally)) = ally_in_range {
             if subject.pos.distance(ally.pos) > 2 {
                 if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
-                    if let Ok(x) = StepAction.verify(&original, subject_id, step_to - subject.pos) {
+                    if let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos) {
                         return x.do_action(original);
                     }
                 }
@@ -175,7 +173,7 @@ impl StrategyTrait for FollowStrategy {
         }
 
         WaitAction {}
-            .verify(&original, subject_id, ())
+            .verify(original, subject_id, ())
             .expect("Wait should never fail")
             .do_action(original)
     }
@@ -185,7 +183,7 @@ impl StrategyTrait for FollowStrategy {
 pub struct RushdownStrategy;
 
 impl StrategyTrait for RushdownStrategy {
-    fn take_turn(self, original: Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         let subject = &original.entities[subject_id];
 
         let in_range = original
@@ -198,19 +196,18 @@ impl StrategyTrait for RushdownStrategy {
         if let Some(other) = in_range {
             if subject.pos.distance(other.1.pos) > 1 {
                 if let Some(step_to) = original.map.get_step(subject.pos, other.1.pos) {
-                    if let Ok(x) = StepAction.verify(&original, subject_id, step_to - subject.pos) {
+                    if let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos) {
                         return x.do_action(original);
                     }
                 }
-            } else if let Ok(x) =
-                BumpAction.verify(&original, subject_id, other.1.pos - subject.pos)
+            } else if let Ok(x) = BumpAction.verify(original, subject_id, other.1.pos - subject.pos)
             {
                 return x.do_action(original);
             }
         }
 
         WaitAction {}
-            .verify(&original, subject_id, ())
+            .verify(original, subject_id, ())
             .expect("Wait should never fail")
             .do_action(original)
     }
