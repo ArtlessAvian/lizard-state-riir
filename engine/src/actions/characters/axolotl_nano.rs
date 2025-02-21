@@ -110,12 +110,12 @@ impl CommandTrait for StanceSmiteCommand {
             next_round: now.0 + 1,
         };
 
-        floor
-            .update_entity((self.subject_id, clone))
-            .bind_or_noop(|floor| {
-                let hit_id = floor.occupiers.get(self.tile)?;
-                let dingus = start_juggle(floor, hit_id, now, NonZero::new(1).unwrap());
-                Some(dingus.bind(|hit_clone| floor.update_entity((hit_id, hit_clone))))
-            })
+        floor.update_entity((self.subject_id, clone)).bind_if_some(
+            |floor| floor.occupiers.get(self.tile),
+            |floor, hit_id| {
+                let dingus = start_juggle(&floor, hit_id, now, NonZero::new(1).unwrap());
+                dingus.bind(|hit_clone| floor.update_entity((hit_id, hit_clone)))
+            },
+        )
     }
 }

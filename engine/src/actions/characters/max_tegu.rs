@@ -139,16 +139,17 @@ impl CommandTrait for ForwardHeavyFollowup {
                     .update_entity((self.subject_id, subject_update))
                     .log(event)
             })
-            .bind_or_noop(|floor| {
-                let object_index = floor
-                    .occupiers
-                    .get(floor.entities[self.subject_id].pos + self.dir)?;
+            .bind_if_some(
+                |floor| {
+                    floor
+                        .occupiers
+                        .get(floor.entities[self.subject_id].pos + self.dir)
+                },
+                |floor, object_index| {
+                    let object_ref = &floor.entities[object_index];
+                    let mut object_clone: Entity = object_ref.clone();
+                    object_clone.health -= 1;
 
-                let object_ref = &floor.entities[object_index];
-                let mut object_clone: Entity = object_ref.clone();
-                object_clone.health -= 1;
-
-                Some(
                     floor
                         .update_entity((object_index, object_clone))
                         .log(FloorEvent::AttackHit(AttackHitEvent {
@@ -162,9 +163,9 @@ impl CommandTrait for ForwardHeavyFollowup {
                                 vector: 3 * self.dir,
                             }
                             .do_action(floor)
-                        }),
-                )
-            })
+                        })
+                },
+            )
     }
 }
 

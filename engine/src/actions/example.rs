@@ -73,25 +73,26 @@ impl CommandTrait for DoubleHitCommand {
                     tile: floor.entities[self.subject_id].pos + self.dir,
                 })
             })
-            .bind_or_noop(|floor| {
-                let object_index = floor
-                    .occupiers
-                    .get(floor.entities[self.subject_id].pos + self.dir)?;
+            .bind_if_some(
+                |floor| {
+                    floor
+                        .occupiers
+                        .get(floor.entities[self.subject_id].pos + self.dir)
+                },
+                |floor, object_index| {
+                    let object_ref = &floor.entities[object_index];
+                    let mut object_clone: Entity = object_ref.clone();
+                    object_clone.health -= 1;
 
-                let object_ref = &floor.entities[object_index];
-                let mut object_clone: Entity = object_ref.clone();
-                object_clone.health -= 1;
-
-                Some(
                     floor
                         .update_entity((object_index, object_clone))
                         .log(FloorEvent::AttackHit(AttackHitEvent {
                             subject: self.subject_id,
                             target: object_index,
                             damage: 1,
-                        })),
-                )
-            })
+                        }))
+                },
+            )
             .bind(|floor| {
                 DelayCommand {
                     subject_id: self.subject_id,
@@ -148,25 +149,26 @@ impl CommandTrait for DoubleHitFollowup {
                     tile: floor.entities[self.subject_id].pos + self.dir,
                 })
             })
-            .bind_or_noop(|floor| {
-                let object_index = floor
-                    .occupiers
-                    .get(floor.entities[self.subject_id].pos + self.dir)?;
+            .bind_if_some(
+                |floor| {
+                    floor
+                        .occupiers
+                        .get(floor.entities[self.subject_id].pos + self.dir)
+                },
+                |floor, object_index| {
+                    let object_ref = &floor.entities[object_index];
+                    let mut object_clone: Entity = object_ref.clone();
+                    object_clone.health -= 1;
 
-                let object_ref = &floor.entities[object_index];
-                let mut object_clone: Entity = object_ref.clone();
-                object_clone.health -= 1;
-
-                Some(
                     floor
                         .update_entity((object_index, object_clone))
                         .log(FloorEvent::AttackHit(AttackHitEvent {
                             subject: self.subject_id,
                             target: object_index,
                             damage: 1,
-                        })),
-                )
-            })
+                        }))
+                },
+            )
             .bind(|floor| {
                 let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
                 subject_clone.state = EntityState::Ok {

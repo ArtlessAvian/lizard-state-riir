@@ -62,15 +62,18 @@ impl<T, Payload> Writer<T, Payload> {
         self.map(f).flatten_through_result()
     }
 
-    pub fn bind_or_noop<F>(self, f: F) -> Self
+    pub fn bind_if_some<Some, F, G>(self, f: F, g: G) -> Self
     where
-        F: FnOnce(&T) -> Option<Self>,
+        F: FnOnce(&T) -> Option<Some>,
+        G: FnOnce(T, Some) -> Self,
     {
-        if let Some(new_t) = f(self.get_contents()) {
-            self.bind(|_we_used_the_t_kinda| new_t)
-        } else {
-            self
-        }
+        self.borrow_and_pair(f).bind(|(t, opt)| {
+            if let Some(some) = opt {
+                g(t, some)
+            } else {
+                Writer::new(t)
+            }
+        })
     }
 
     // /// An abomination. It *looks* clean, but on the caller side, uhhh.
