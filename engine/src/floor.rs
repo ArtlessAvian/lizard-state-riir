@@ -252,13 +252,13 @@ impl Floor {
                 return Ok(TryToStandUpAction
                     .verify(self, next_id, ())
                     .expect("only fails if entity is not knockdown state")
-                    .do_action(self))
+                    .do_action())
             }
             EntityState::Hitstun { .. } => {
                 return Ok(KnockdownAfterJuggleAction
                     .verify(self, next_id, ())
                     .expect("only fails if entity is not hitstun state")
-                    .do_action(self))
+                    .do_action())
             }
             EntityState::Downed { .. } | EntityState::Exited { .. } => {
                 unreachable!("terminal state entities do not participate in turntaking")

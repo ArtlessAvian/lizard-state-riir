@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::rc::Rc;
 
 use rkyv::Archive;
 use rkyv::Deserialize;
@@ -51,7 +52,11 @@ impl UnaimedActionTrait for DoubleHitAction {
             return Err(ActionError::TargetOutOfRange);
         }
 
-        Ok(DoubleHitCommand { dir, subject_id })
+        Ok(DoubleHitCommand {
+            parsed_floor: Rc::new(floor.clone()),
+            dir,
+            subject_id,
+        })
     }
 }
 
@@ -63,13 +68,14 @@ impl From<DoubleHitAction> for KnownUnaimedAction {
 
 #[derive(Debug)]
 pub struct DoubleHitCommand {
+    parsed_floor: Rc<Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
 
 impl CommandTrait for DoubleHitCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        BorrowedFloorUpdate::new(floor)
+    fn do_action(self) -> FloorUpdate {
+        BorrowedFloorUpdate::new(&self.parsed_floor)
             .peek_and_log(|floor| {
                 FloorEvent::StartAttack(StartAttackEvent {
                     subject: self.subject_id,
@@ -99,16 +105,18 @@ impl CommandTrait for DoubleHitCommand {
                 },
             )
             .bind(|floor| {
+                let pos = floor.entities[self.subject_id].pos;
                 DelayCommand {
+                    parsed_floor: Rc::new(floor.into_owned()),
                     subject_id: self.subject_id,
                     queued_command: DoubleHitFollowupAction { dir: self.dir }.into(),
                     turns: 1,
                     event: Some(FloorEvent::PrepareAttack(PrepareAttackEvent {
                         subject: self.subject_id,
-                        tile: floor.entities[self.subject_id].pos + self.dir,
+                        tile: pos + self.dir,
                     })),
                 }
-                .do_action(&floor)
+                .do_action()
             })
     }
 }
@@ -128,11 +136,12 @@ impl UnaimedActionTrait for DoubleHitFollowupAction {
 
     fn verify(
         &self,
-        _floor: &Floor,
+        floor: &Floor,
         subject_id: EntityId,
         (): (),
     ) -> Result<DoubleHitFollowup, Self::Error> {
         Ok(DoubleHitFollowup {
+            parsed_floor: Rc::new(floor.clone()),
             dir: self.dir,
             subject_id,
         })
@@ -141,13 +150,14 @@ impl UnaimedActionTrait for DoubleHitFollowupAction {
 
 #[derive(Debug)]
 pub struct DoubleHitFollowup {
+    parsed_floor: Rc<Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
 
 impl CommandTrait for DoubleHitFollowup {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        BorrowedFloorUpdate::new(floor)
+    fn do_action(self) -> FloorUpdate {
+        BorrowedFloorUpdate::new(&self.parsed_floor)
             .peek_and_log(|floor| {
                 FloorEvent::StartAttack(StartAttackEvent {
                     subject: self.subject_id,
@@ -200,11 +210,14 @@ impl UnaimedActionTrait for EnterStanceAction {
 
     fn verify(
         &self,
-        _: &Floor,
+        floor: &Floor,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, Self::Error> {
-        Ok(EnterStanceCommand { subject_id })
+        Ok(EnterStanceCommand {
+            parsed_floor: Rc::new(floor.clone()),
+            subject_id,
+        })
     }
 }
 
@@ -216,18 +229,20 @@ impl From<EnterStanceAction> for KnownUnaimedAction {
 
 #[derive(Debug)]
 pub struct EnterStanceCommand {
+    parsed_floor: Rc<Floor>,
     subject_id: EntityId,
 }
 
 impl CommandTrait for EnterStanceCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
+    fn do_action(self) -> FloorUpdate {
+        let mut subject_clone: Entity = (self.parsed_floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::RestrictedActions {
-            next_round: floor.get_current_round() + 1,
+            next_round: self.parsed_floor.get_current_round() + 1,
             restricted_actions: vec![ExitStanceAction.into()],
         };
 
-        floor.update_entity((self.subject_id, subject_clone))
+        self.parsed_floor
+            .update_entity((self.subject_id, subject_clone))
     }
 }
 
@@ -244,11 +259,14 @@ impl UnaimedActionTrait for ExitStanceAction {
 
     fn verify(
         &self,
-        _: &Floor,
+        floor: &Floor,
         subject_id: EntityId,
         (): Self::Target,
     ) -> Result<ExitStanceCommand, Self::Error> {
-        Ok(ExitStanceCommand { subject_id })
+        Ok(ExitStanceCommand {
+            parsed_floor: Rc::new(floor.clone()),
+            subject_id,
+        })
     }
 }
 
@@ -260,17 +278,19 @@ impl From<ExitStanceAction> for KnownUnaimedAction {
 
 #[derive(Debug)]
 pub struct ExitStanceCommand {
+    parsed_floor: Rc<Floor>,
     subject_id: EntityId,
 }
 
 impl CommandTrait for ExitStanceCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
+    fn do_action(self) -> FloorUpdate {
+        let mut subject_clone: Entity = (self.parsed_floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
-            next_round: floor.get_current_round(),
+            next_round: self.parsed_floor.get_current_round(),
         };
 
-        floor.update_entity((self.subject_id, subject_clone))
+        self.parsed_floor
+            .update_entity((self.subject_id, subject_clone))
     }
 }
 
@@ -318,7 +338,7 @@ mod test {
                 DoubleHitAction
                     .verify(&floor, player_id, RelativePosition::new(1, 0))
                     .unwrap()
-                    .do_action(&floor)
+                    .do_action()
             })
             .bind(|floor| floor.take_npc_turn().unwrap()); // Second hit.
 

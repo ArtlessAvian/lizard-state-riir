@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -70,21 +72,24 @@ pub struct ForwardHeavyCommand {
 }
 
 impl CommandTrait for ForwardHeavyCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
+    fn do_action(self) -> FloorUpdate {
         self.step
-            .do_action(floor) // (forcing indented formatting)
+            .do_action() // (forcing indented formatting)
             .bind(|floor| {
                 DelayCommand {
+                    parsed_floor: Rc::new(floor),
                     subject_id: self.subject_id,
                     queued_command: ForwardHeavyFollowupAction { dir: self.dir }.into(),
                     turns: 0, // The step already takes a turn.
                     event: None,
                 }
-                .do_action(&floor)
-                .log(FloorEvent::PrepareAttack(PrepareAttackEvent {
-                    subject: self.subject_id,
-                    tile: floor.entities[self.subject_id].pos + self.dir,
-                }))
+                .do_action()
+                .peek_and_log(|floor| {
+                    FloorEvent::PrepareAttack(PrepareAttackEvent {
+                        subject: self.subject_id,
+                        tile: floor.entities[self.subject_id].pos + self.dir,
+                    })
+                })
             })
     }
 }
@@ -104,11 +109,12 @@ impl UnaimedActionTrait for ForwardHeavyFollowupAction {
 
     fn verify(
         &self,
-        _floor: &Floor,
+        floor: &Floor,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, Self::Error> {
         Ok(ForwardHeavyFollowup {
+            parsed_floor: Rc::new(floor.clone()),
             dir: self.dir,
             subject_id,
         })
@@ -117,13 +123,14 @@ impl UnaimedActionTrait for ForwardHeavyFollowupAction {
 
 #[derive(Debug)]
 pub struct ForwardHeavyFollowup {
+    parsed_floor: Rc<Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
 
 impl CommandTrait for ForwardHeavyFollowup {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        BorrowedFloorUpdate::new(floor)
+    fn do_action(self) -> FloorUpdate {
+        BorrowedFloorUpdate::new(&self.parsed_floor)
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {
@@ -158,10 +165,11 @@ impl CommandTrait for ForwardHeavyFollowup {
                         }))
                         .bind(|floor| {
                             TakeKnockbackUtil {
+                                parsed_floor: Rc::new(floor),
                                 entity: object_index,
                                 vector: 3 * self.dir,
                             }
-                            .do_action(&floor)
+                            .do_action()
                         })
                 },
             )
@@ -200,6 +208,7 @@ impl UnaimedActionTrait for TrackingAction {
         }
 
         Ok(DelayCommand {
+            parsed_floor: Rc::new(floor.clone()),
             subject_id,
             queued_command: TrackingFollowupAction { tracking_id }.into(),
             turns: 1,
@@ -232,11 +241,12 @@ impl UnaimedActionTrait for TrackingFollowupAction {
 
     fn verify(
         &self,
-        _floor: &Floor,
+        floor: &Floor,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, Self::Error> {
         Ok(TrackingFollowup {
+            parsed_floor: Rc::new(floor.clone()),
             tracking_id: self.tracking_id,
             subject_id,
         })
@@ -245,13 +255,14 @@ impl UnaimedActionTrait for TrackingFollowupAction {
 
 #[derive(Debug)]
 pub struct TrackingFollowup {
+    parsed_floor: Rc<Floor>,
     tracking_id: EntityId,
     subject_id: EntityId,
 }
 
 impl CommandTrait for TrackingFollowup {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        BorrowedFloorUpdate::new(floor)
+    fn do_action(self) -> FloorUpdate {
+        BorrowedFloorUpdate::new(&self.parsed_floor)
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {

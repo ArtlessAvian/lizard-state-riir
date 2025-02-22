@@ -42,7 +42,7 @@ impl StrategyTrait for NullStrategy {
         WaitAction {}
             .verify(original, subject_id, ())
             .expect("Wait should never fail")
-            .do_action(original)
+            .do_action()
     }
 }
 
@@ -61,13 +61,13 @@ impl StrategyTrait for WanderStrategy {
                 ((original.get_current_round() ^ 0xabcdef) % 3) as i32 - 1,
             ),
         ) {
-            return x.do_action(original);
+            return x.do_action();
         }
 
         WaitAction {}
             .verify(original, subject_id, ())
             .expect("Wait should never fail")
-            .do_action(original)
+            .do_action()
     }
 }
 
@@ -96,7 +96,7 @@ impl StrategyTrait for StandAndFightStrategy {
         WaitAction {}
             .verify(original, subject_id, ())
             .expect("Wait should never fail")
-            .do_action(original)
+            .do_action()
     }
 }
 
@@ -132,7 +132,7 @@ impl StrategyTrait for FollowStrategy {
                     RelativePosition::new(-1, -1),
                 ] {
                     if let Ok(x) = StepAction.verify(original, subject_id, dir) {
-                        return x.do_action(original);
+                        return x.do_action();
                     }
                 }
             }
@@ -143,7 +143,7 @@ impl StrategyTrait for FollowStrategy {
             if subject.pos.distance(ally.pos) > 4 {
                 if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
                     if let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos) {
-                        return x.do_action(original);
+                        return x.do_action();
                     }
                 }
             }
@@ -155,10 +155,10 @@ impl StrategyTrait for FollowStrategy {
         {
             if matches!(enemy.state, EntityState::Knockdown { .. }) {
                 if let Ok(x) = StepAction.verify(original, subject_id, -(enemy.pos - subject.pos)) {
-                    return x.do_action(original);
+                    return x.do_action();
                 }
             } else if let Ok(x) = BumpAction.verify(original, subject_id, enemy.pos - subject.pos) {
-                return x.do_action(original);
+                return x.do_action();
             }
         }
 
@@ -166,7 +166,7 @@ impl StrategyTrait for FollowStrategy {
             if subject.pos.distance(ally.pos) > 2 {
                 if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
                     if let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos) {
-                        return x.do_action(original);
+                        return x.do_action();
                     }
                 }
             }
@@ -175,7 +175,7 @@ impl StrategyTrait for FollowStrategy {
         WaitAction {}
             .verify(original, subject_id, ())
             .expect("Wait should never fail")
-            .do_action(original)
+            .do_action()
     }
 }
 
@@ -197,18 +197,18 @@ impl StrategyTrait for RushdownStrategy {
             if subject.pos.distance(other.1.pos) > 1 {
                 if let Some(step_to) = original.map.get_step(subject.pos, other.1.pos) {
                     if let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos) {
-                        return x.do_action(original);
+                        return x.do_action();
                     }
                 }
             } else if let Ok(x) = BumpAction.verify(original, subject_id, other.1.pos - subject.pos)
             {
-                return x.do_action(original);
+                return x.do_action();
             }
         }
 
         WaitAction {}
             .verify(original, subject_id, ())
             .expect("Wait should never fail")
-            .do_action(original)
+            .do_action()
     }
 }
