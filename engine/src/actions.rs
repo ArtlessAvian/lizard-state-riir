@@ -259,15 +259,15 @@ pub trait CommandTrait {
 /// This makes `CommandTrait` not dyn compatible!
 /// `FnOnce` is used to represent that.
 #[must_use]
-pub struct BoxedCommand<'floor>(Box<dyn FnOnce(&Floor) -> FloorUpdate + 'floor>);
+pub struct BoxedCommand<'floor>(Box<dyn FnOnce() -> FloorUpdate + 'floor>);
 
 impl<'floor> BoxedCommand<'floor> {
     pub fn new_from_trait(command: impl CommandTrait + 'floor) -> Self {
-        Self(Box::new(move |_| command.do_action()))
+        Self(Box::new(move || command.do_action()))
     }
 
-    pub fn do_action(self, floor: &Floor) -> FloorUpdate {
-        (self.0)(floor)
+    pub fn do_action(self) -> FloorUpdate {
+        (self.0)()
     }
 }
 

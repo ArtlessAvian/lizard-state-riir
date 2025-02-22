@@ -639,7 +639,7 @@ mod test {
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
             EntityState::ConfirmCommand { to_confirm, .. } => to_confirm
                 .verify_and_box(&Cow::Borrowed(&floor), player_id)
-                .do_action(&floor),
+                .do_action(),
             _ => panic!(
                 "Expected ConfirmCommand state. Got value: {:?}",
                 floor.entities[player_id].state
@@ -695,7 +695,7 @@ mod test {
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
             EntityState::ConfirmCommand { to_confirm, .. } => to_confirm
                 .verify_and_box(&Cow::Borrowed(&floor), player_id)
-                .do_action(&floor),
+                .do_action(),
             _ => panic!(
                 "Expected ConfirmCommand state. Got value: {:?}",
                 floor.entities[player_id].state

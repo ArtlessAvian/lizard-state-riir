@@ -98,7 +98,7 @@ fn expect_test_action_side_effects(type_erased: Rc<dyn ActionTrait>) {
         type_erased
             .verify_and_box(&Cow::Borrowed(&f), id)
             .unwrap()
-            .do_action(&f)
+            .do_action()
     });
     let dingus = update.into_both().1;
     assert_eq!(dingus, vec![FloorEvent::Exit(ExitEvent { subject: id }); 3])
