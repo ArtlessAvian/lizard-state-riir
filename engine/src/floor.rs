@@ -22,6 +22,7 @@ use crate::floor::map::vision::FloorMapVision;
 use crate::floor::map::FloorMap;
 use crate::floor::mutators::DownedStateMutator;
 use crate::floor::occupiers::Occupiers;
+use crate::lazyrc::LazyRc;
 use crate::strategy::StrategyTrait;
 use crate::writer::Writer;
 
@@ -46,6 +47,7 @@ pub enum FloorEndState {
 
 pub type UnitUpdate = Writer<(), FloorEvent>;
 pub type FloorUpdate = Writer<Floor, FloorEvent>;
+pub type FloorUpdateLike<T> = Writer<T, FloorEvent>;
 pub type BorrowedFloorUpdate<'a> = Writer<&'a Floor, FloorEvent>;
 
 // Proposal:
@@ -246,17 +248,19 @@ impl Floor {
         // Return early depending on state.
         match &self.entities[next_id].state {
             EntityState::Committed { queued_command, .. } => {
-                return Ok(queued_command.verify_and_box(self, next_id).do_action());
+                return Ok(queued_command
+                    .verify_and_box(&LazyRc::Owned(self.clone()), next_id)
+                    .do_action());
             }
             EntityState::Knockdown { .. } => {
                 return Ok(TryToStandUpAction
-                    .verify(self, next_id, ())
+                    .verify(&LazyRc::Owned(self.clone()), next_id, ())
                     .expect("only fails if entity is not knockdown state")
                     .do_action())
             }
             EntityState::Hitstun { .. } => {
                 return Ok(KnockdownAfterJuggleAction
-                    .verify(self, next_id, ())
+                    .verify(&LazyRc::Owned(self.clone()), next_id, ())
                     .expect("only fails if entity is not hitstun state")
                     .do_action())
             }
@@ -273,7 +277,11 @@ impl Floor {
         }
 
         // TODO: do something interesting
-        Result::Ok(self.entities[next_id].strategy.take_turn(self, next_id))
+        Result::Ok(
+            self.entities[next_id]
+                .strategy
+                .take_turn(&LazyRc::Owned(self.clone()), next_id),
+        )
     }
 
     #[must_use]

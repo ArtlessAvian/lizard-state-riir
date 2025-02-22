@@ -30,6 +30,7 @@ use super::TileActionTrait;
 use super::UnaimedAction;
 use crate::entity::EntityId;
 use crate::floor::Floor;
+use crate::lazyrc::LazyRc;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 

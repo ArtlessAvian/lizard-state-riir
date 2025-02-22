@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -26,6 +24,7 @@ use crate::entity::EntityState;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::lazyrc::LazyRc;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
@@ -43,7 +42,7 @@ impl UnaimedActionTrait for ForwardHeavyAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<Self::Command, ActionError> {
@@ -77,7 +76,7 @@ impl CommandTrait for ForwardHeavyCommand {
             .do_action() // (forcing indented formatting)
             .bind(|floor| {
                 DelayCommand {
-                    parsed_floor: Rc::new(floor),
+                    parsed_floor: LazyRc::Owned(floor),
                     subject_id: self.subject_id,
                     queued_command: ForwardHeavyFollowupAction { dir: self.dir }.into(),
                     turns: 0, // The step already takes a turn.
@@ -109,12 +108,12 @@ impl UnaimedActionTrait for ForwardHeavyFollowupAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, Self::Error> {
         Ok(ForwardHeavyFollowup {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             dir: self.dir,
             subject_id,
         })
@@ -123,7 +122,7 @@ impl UnaimedActionTrait for ForwardHeavyFollowupAction {
 
 #[derive(Debug)]
 pub struct ForwardHeavyFollowup {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
@@ -165,7 +164,7 @@ impl CommandTrait for ForwardHeavyFollowup {
                         }))
                         .bind(|floor| {
                             TakeKnockbackUtil {
-                                parsed_floor: Rc::new(floor),
+                                parsed_floor: LazyRc::Owned(floor),
                                 entity: object_index,
                                 vector: 3 * self.dir,
                             }
@@ -190,7 +189,7 @@ impl UnaimedActionTrait for TrackingAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<Self::Command, ActionError> {
@@ -208,7 +207,7 @@ impl UnaimedActionTrait for TrackingAction {
         }
 
         Ok(DelayCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             subject_id,
             queued_command: TrackingFollowupAction { tracking_id }.into(),
             turns: 1,
@@ -241,12 +240,12 @@ impl UnaimedActionTrait for TrackingFollowupAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, Self::Error> {
         Ok(TrackingFollowup {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             tracking_id: self.tracking_id,
             subject_id,
         })
@@ -255,7 +254,7 @@ impl UnaimedActionTrait for TrackingFollowupAction {
 
 #[derive(Debug)]
 pub struct TrackingFollowup {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     tracking_id: EntityId,
     subject_id: EntityId,
 }

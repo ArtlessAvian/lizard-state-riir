@@ -18,6 +18,7 @@ use engine::entity::Entity;
 use engine::entity::EntityId;
 use engine::floor::Floor;
 use engine::floor::FloorUpdate;
+use engine::lazyrc::LazyRc;
 use engine::strategy::NullStrategy;
 use rkyv::ser::serializers::AllocSerializer;
 use rkyv::ser::Serializer;
@@ -37,11 +38,11 @@ struct TestAction {}
 impl ActionTrait for TestAction {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<'_, Floor>,
         subject_id: EntityId,
     ) -> Result<BoxedCommand, ActionError> {
         Ok(BoxedCommand::new_from_trait(TestCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             subject_id,
         }))
     }
@@ -50,7 +51,7 @@ impl ActionTrait for TestAction {
 impl ActionTrait for Archived<TestAction> {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<'_, Floor>,
         subject_id: EntityId,
     ) -> Result<BoxedCommand, ActionError> {
         Deserialize::<TestAction, _>::deserialize(self, &mut Infallible)
@@ -60,7 +61,7 @@ impl ActionTrait for Archived<TestAction> {
 }
 
 struct TestCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     subject_id: EntityId,
 }
 
@@ -93,7 +94,12 @@ fn expect_test_action_side_effects(type_erased: Rc<dyn ActionTrait>) {
             payload: "Hello!".to_owned(),
         })
         .split_pair();
-    let update = update.bind(|f| type_erased.verify_and_box(&f, id).unwrap().do_action());
+    let update = update.bind(|f| {
+        type_erased
+            .verify_and_box(&LazyRc::Owned(f), id)
+            .unwrap()
+            .do_action()
+    });
     let dingus = update.into_both().1;
     assert_eq!(dingus, vec![FloorEvent::Exit(ExitEvent { subject: id }); 3])
 }

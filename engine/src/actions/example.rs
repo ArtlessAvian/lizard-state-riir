@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::rc::Rc;
 
 use rkyv::Archive;
 use rkyv::Deserialize;
@@ -24,6 +23,8 @@ use crate::entity::EntityState;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::floor::FloorUpdateLike;
+use crate::lazyrc::LazyRc;
 use crate::positional::RelativePosition;
 
 // Hits once, then queues another.
@@ -40,7 +41,7 @@ impl UnaimedActionTrait for DoubleHitAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<Self::Command, ActionError> {
@@ -53,7 +54,7 @@ impl UnaimedActionTrait for DoubleHitAction {
         }
 
         Ok(DoubleHitCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             dir,
             subject_id,
         })
@@ -68,21 +69,20 @@ impl From<DoubleHitAction> for KnownUnaimedAction {
 
 #[derive(Debug)]
 pub struct DoubleHitCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
 
 impl CommandTrait for DoubleHitCommand {
     fn do_action(self) -> FloorUpdate {
-        BorrowedFloorUpdate::new(&self.parsed_floor)
+        FloorUpdateLike::new(self.parsed_floor)
             .peek_and_log(|floor| {
                 FloorEvent::StartAttack(StartAttackEvent {
                     subject: self.subject_id,
                     tile: floor.entities[self.subject_id].pos + self.dir,
                 })
             })
-            .map(Cow::Borrowed)
             .bind_if_some(
                 |floor| {
                     floor
@@ -101,13 +101,13 @@ impl CommandTrait for DoubleHitCommand {
                             target: object_index,
                             damage: 1,
                         }))
-                        .map(Cow::Owned)
+                        .map(LazyRc::Owned)
                 },
             )
             .bind(|floor| {
                 let pos = floor.entities[self.subject_id].pos;
                 DelayCommand {
-                    parsed_floor: Rc::new(floor.into_owned()),
+                    parsed_floor: floor,
                     subject_id: self.subject_id,
                     queued_command: DoubleHitFollowupAction { dir: self.dir }.into(),
                     turns: 1,
@@ -136,12 +136,12 @@ impl UnaimedActionTrait for DoubleHitFollowupAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<DoubleHitFollowup, Self::Error> {
         Ok(DoubleHitFollowup {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             dir: self.dir,
             subject_id,
         })
@@ -150,7 +150,7 @@ impl UnaimedActionTrait for DoubleHitFollowupAction {
 
 #[derive(Debug)]
 pub struct DoubleHitFollowup {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
@@ -210,12 +210,12 @@ impl UnaimedActionTrait for EnterStanceAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, Self::Error> {
         Ok(EnterStanceCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             subject_id,
         })
     }
@@ -229,7 +229,7 @@ impl From<EnterStanceAction> for KnownUnaimedAction {
 
 #[derive(Debug)]
 pub struct EnterStanceCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     subject_id: EntityId,
 }
 
@@ -259,12 +259,12 @@ impl UnaimedActionTrait for ExitStanceAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): Self::Target,
     ) -> Result<ExitStanceCommand, Self::Error> {
         Ok(ExitStanceCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             subject_id,
         })
     }
@@ -278,7 +278,7 @@ impl From<ExitStanceAction> for KnownUnaimedAction {
 
 #[derive(Debug)]
 pub struct ExitStanceCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     subject_id: EntityId,
 }
 
@@ -296,6 +296,7 @@ impl CommandTrait for ExitStanceCommand {
 
 #[cfg(test)]
 mod test {
+
     use crate::actions::events::AttackHitEvent;
     use crate::actions::events::FloorEvent;
     use crate::actions::events::StartAttackEvent;
@@ -305,6 +306,7 @@ mod test {
     use crate::entity::Entity;
     use crate::floor::Floor;
     use crate::floor::FloorUpdate;
+    use crate::lazyrc::LazyRc;
     use crate::positional::RelativePosition;
 
     #[test]
@@ -336,7 +338,11 @@ mod test {
         let update = update
             .bind(|floor| {
                 DoubleHitAction
-                    .verify(&floor, player_id, RelativePosition::new(1, 0))
+                    .verify(
+                        &LazyRc::Owned(floor),
+                        player_id,
+                        RelativePosition::new(1, 0),
+                    )
                     .unwrap()
                     .do_action()
             })

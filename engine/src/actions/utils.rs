@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::num::NonZero;
 use std::ops::DerefMut;
-use std::rc::Rc;
 
 use super::events::FloorEvent;
 use super::events::JuggleHitEvent;
@@ -17,13 +16,14 @@ use crate::entity::EntityId;
 use crate::entity::EntityState;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::lazyrc::LazyRc;
 use crate::positional::algorithms::Segment;
 use crate::positional::RelativePosition;
 use crate::writer::Writer;
 
 #[derive(Debug)]
 pub struct TakeKnockbackUtil {
-    pub parsed_floor: Rc<Floor>,
+    pub parsed_floor: LazyRc<'static, Floor>,
     pub entity: EntityId,
     pub vector: RelativePosition,
 }
@@ -77,7 +77,7 @@ impl CommandTrait for TakeKnockbackUtil {
 
 #[derive(Debug)]
 pub struct MultiKnockbackUtil {
-    pub parsed_floor: Rc<Floor>,
+    pub parsed_floor: LazyRc<'static, Floor>,
     pub all_displacements: HashMap<EntityId, RelativePosition>,
 }
 
@@ -181,7 +181,7 @@ impl CommandTrait for MultiKnockbackUtil {
 
 #[derive(Debug)]
 pub struct DelayCommand {
-    pub parsed_floor: Rc<Floor>,
+    pub parsed_floor: LazyRc<'static, Floor>,
     pub subject_id: EntityId,
     pub queued_command: KnownInfallibleAction,
     pub turns: u32,
@@ -260,7 +260,7 @@ mod tests {
 
         let update = update.bind(|floor| {
             TakeKnockbackUtil {
-                parsed_floor: Rc::new(floor),
+                parsed_floor: LazyRc::Owned(floor),
                 entity: id,
                 vector: RelativePosition::new(1, 0),
             }
@@ -280,7 +280,7 @@ mod tests {
 
         let update = update.bind(|floor| {
             TakeKnockbackUtil {
-                parsed_floor: Rc::new(floor),
+                parsed_floor: LazyRc::Owned(floor),
                 entity: id,
                 vector: RelativePosition::new(0, 1),
             }
@@ -314,7 +314,7 @@ mod tests {
 
         let update = update.bind(|floor| {
             TakeKnockbackUtil {
-                parsed_floor: Rc::new(floor),
+                parsed_floor: LazyRc::Owned(floor),
                 entity: id,
                 vector: RelativePosition::new(1, 0),
             }
@@ -357,7 +357,7 @@ mod tests {
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
-                parsed_floor: Rc::new(floor),
+                parsed_floor: LazyRc::Owned(floor),
                 all_displacements: HashMap::from([
                     (id, RelativePosition::new(1, 0)),
                     (other, RelativePosition::new(1, 0)),
@@ -403,7 +403,7 @@ mod tests {
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
-                parsed_floor: Rc::new(floor),
+                parsed_floor: LazyRc::Owned(floor),
                 all_displacements: HashMap::from([(id, RelativePosition::new(1, 0))]),
             }
             .do_action()
@@ -453,7 +453,7 @@ mod tests {
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
-                parsed_floor: Rc::new(floor),
+                parsed_floor: LazyRc::Owned(floor),
                 all_displacements: HashMap::from([
                     (id, RelativePosition::new(1, 0)),
                     (other, RelativePosition::new(1, 0)),

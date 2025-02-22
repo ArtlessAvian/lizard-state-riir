@@ -18,6 +18,7 @@ use crate::entity::EntityId;
 use crate::entity::EntityState;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::lazyrc::LazyRc;
 use crate::positional::AbsolutePosition;
 
 #[derive(Debug, Clone, Archive, Serialize, Deserialize)]
@@ -33,12 +34,12 @@ impl UnaimedActionTrait for EnterSmiteStanceAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<Self::Command, ActionError> {
         Ok(EnterSmiteStanceCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_rc(floor),
             subject_id,
             tile,
         })
@@ -84,12 +85,12 @@ impl UnaimedActionTrait for StanceSmiteAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, Self::Error> {
         Ok(StanceSmiteCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_rc(floor),
             subject_id,
             tile: self.tile,
         })

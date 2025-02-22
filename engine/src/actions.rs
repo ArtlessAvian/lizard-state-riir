@@ -35,6 +35,7 @@ use self::events::FloorEvent;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::lazyrc::LazyRc;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
@@ -84,11 +85,12 @@ pub trait UnaimedTrait {
 /// use engine::actions::*;
 /// use engine::floor::*;
 /// use engine::entity::*;
-/// fn apply_action_to_floor<Action>(action: Action, floor: &Floor, player_id: EntityId, target: Action::Target) -> FloorUpdate
+/// use engine::lazyrc::LazyRc;
+/// fn apply_action_to_floor<Action>(action: Action, floor: Floor, player_id: EntityId, target: Action::Target) -> FloorUpdate
 /// where
 ///     Action: UnaimedActionTrait
 /// {
-///     match action.verify(floor, player_id, target) {
+///     match action.verify(&LazyRc::Owned(floor), player_id, target) {
 ///         Ok(command) => command.do_action(),
 ///         Err(err) => panic!(),
 ///     }
@@ -99,7 +101,7 @@ pub trait UnaimedActionTrait: UnaimedTrait {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         target: Self::Target,
     ) -> Result<Self::Command, Self::Error>;
@@ -114,7 +116,7 @@ pub trait UnaimedActionTrait: UnaimedTrait {
 pub trait UnaimedMacroTrait: UnaimedTrait {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         target: Self::Target,
     ) -> Result<BoxedCommand, Self::Error>;
@@ -123,7 +125,7 @@ pub trait UnaimedMacroTrait: UnaimedTrait {
 impl<T: UnaimedActionTrait> UnaimedMacroTrait for T {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         target: Self::Target,
     ) -> Result<BoxedCommand, Self::Error> {
@@ -142,7 +144,7 @@ impl<T: UnaimedActionTrait> UnaimedMacroTrait for T {
 pub trait ActionTrait {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
     ) -> Result<BoxedCommand, ActionError>;
 }
@@ -153,7 +155,7 @@ where
 {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
     ) -> Result<BoxedCommand, ActionError> {
         UnaimedMacroTrait::verify_and_box(self, floor, subject_id, ())
@@ -168,7 +170,7 @@ where
 pub trait TileActionTrait {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<BoxedCommand, ActionError>;
@@ -180,7 +182,7 @@ where
 {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<BoxedCommand, ActionError> {
@@ -196,7 +198,7 @@ where
 pub trait DirectionActionTrait {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<BoxedCommand, ActionError>;
@@ -208,7 +210,7 @@ where
 {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<BoxedCommand, ActionError> {
@@ -226,14 +228,14 @@ pub enum Never {}
 #[archive_dyn(deserialize)]
 #[enum_delegate::register]
 pub trait InfallibleActionTrait {
-    fn verify_and_box(&self, floor: &Floor, subject_id: EntityId) -> BoxedCommand;
+    fn verify_and_box(&self, floor: &LazyRc<Floor>, subject_id: EntityId) -> BoxedCommand;
 }
 
 impl<T> InfallibleActionTrait for T
 where
     T: UnaimedMacroTrait<Target = (), Error = Never>,
 {
-    fn verify_and_box(&self, floor: &Floor, subject_id: EntityId) -> BoxedCommand {
+    fn verify_and_box(&self, floor: &LazyRc<Floor>, subject_id: EntityId) -> BoxedCommand {
         match UnaimedMacroTrait::verify_and_box(self, floor, subject_id, ()) {
             Ok(x) => x,
             Err(_) => unreachable!("uninhabited never type"),

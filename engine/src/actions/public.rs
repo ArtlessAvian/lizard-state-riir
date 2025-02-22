@@ -1,5 +1,4 @@
 use std::num::NonZero;
-use std::rc::Rc;
 
 use rkyv::Archive;
 use rkyv::Deserialize;
@@ -27,6 +26,7 @@ use crate::entity::EntityState;
 use crate::floor::BorrowedFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::lazyrc::LazyRc;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 use crate::writer::Writer;
@@ -45,7 +45,7 @@ impl UnaimedActionTrait for WaitAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, ActionError> {
@@ -54,7 +54,7 @@ impl UnaimedActionTrait for WaitAction {
         }
 
         Ok(WaitCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             subject_id,
         })
     }
@@ -62,7 +62,7 @@ impl UnaimedActionTrait for WaitAction {
 
 #[derive(Debug)]
 pub struct WaitCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     subject_id: EntityId,
 }
 
@@ -93,7 +93,7 @@ impl UnaimedActionTrait for StepAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<StepCommand, ActionError> {
@@ -125,7 +125,7 @@ impl UnaimedActionTrait for StepAction {
         }
 
         Ok(StepCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             dir,
             subject_id,
         })
@@ -134,7 +134,7 @@ impl UnaimedActionTrait for StepAction {
 
 #[derive(Debug)]
 pub struct StepCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
@@ -172,7 +172,7 @@ impl UnaimedActionTrait for BumpAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<BumpCommand, ActionError> {
@@ -185,7 +185,7 @@ impl UnaimedActionTrait for BumpAction {
         }
 
         Ok(BumpCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             dir,
             subject_id,
             object_index: floor
@@ -199,7 +199,7 @@ impl UnaimedActionTrait for BumpAction {
 
 #[derive(Debug)]
 pub struct BumpCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
     object_index: EntityId,
@@ -248,7 +248,7 @@ impl CommandTrait for BumpCommand {
             })
             .bind(|floor| {
                 TakeKnockbackUtil {
-                    parsed_floor: Rc::new(floor),
+                    parsed_floor: LazyRc::Owned(floor),
                     entity: self.object_index,
                     vector: self.dir,
                 }
@@ -271,7 +271,7 @@ impl UnaimedTrait for StepMacroAction {
 impl UnaimedMacroTrait for StepMacroAction {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<BoxedCommand, ActionError> {
@@ -302,13 +302,13 @@ impl UnaimedActionTrait for GotoAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<Self::Command, ActionError> {
         // Pathfind to target.
         Ok(GotoCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             tile,
             subject_id,
         })
@@ -330,12 +330,12 @@ impl UnaimedActionTrait for GoingAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, Self::Error> {
         Ok(GotoCommand {
-            parsed_floor: Rc::new(floor.clone()),
+            parsed_floor: LazyRc::clone_to_static_self(floor),
             tile: self.tile,
             subject_id,
         })
@@ -344,7 +344,7 @@ impl UnaimedActionTrait for GoingAction {
 
 #[derive(Debug)]
 pub struct GotoCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     pub tile: AbsolutePosition,
     subject_id: EntityId,
 }
@@ -442,7 +442,7 @@ impl UnaimedActionTrait for TryToStandUpAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, ActionError> {
@@ -450,7 +450,7 @@ impl UnaimedActionTrait for TryToStandUpAction {
             EntityState::Knockdown {
                 next_round: current_round,
             } => Ok(TryToStandUpCommand {
-                parsed_floor: Rc::new(floor.clone()),
+                parsed_floor: LazyRc::clone_to_static_self(floor),
                 subject_id,
                 now: current_round,
             }),
@@ -461,7 +461,7 @@ impl UnaimedActionTrait for TryToStandUpAction {
 
 #[derive(Debug)]
 pub struct TryToStandUpCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     subject_id: EntityId,
     now: u32,
 }
@@ -506,13 +506,13 @@ impl UnaimedActionTrait for KnockdownAfterJuggleAction {
 
     fn verify(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command, ActionError> {
         match floor.entities[subject_id].state {
             EntityState::Hitstun { next_round, .. } => Ok(KnockdownAfterJuggleCommand {
-                parsed_floor: Rc::new(floor.clone()),
+                parsed_floor: LazyRc::clone_to_static_self(floor),
                 subject_id,
                 now: next_round,
             }),
@@ -523,7 +523,7 @@ impl UnaimedActionTrait for KnockdownAfterJuggleAction {
 
 #[derive(Debug)]
 pub struct KnockdownAfterJuggleCommand {
-    parsed_floor: Rc<Floor>,
+    parsed_floor: LazyRc<'static, Floor>,
     subject_id: EntityId,
     now: u32,
 }
@@ -544,6 +544,7 @@ impl CommandTrait for KnockdownAfterJuggleCommand {
 
 #[cfg(test)]
 mod test {
+
     use crate::actions::events::AttackHitEvent;
     use crate::actions::events::FloorEvent;
     use crate::actions::events::StartAttackEvent;
@@ -556,6 +557,7 @@ mod test {
     use crate::entity::EntityState;
     use crate::floor::Floor;
     use crate::floor::FloorUpdate;
+    use crate::lazyrc::LazyRc;
     use crate::positional::AbsolutePosition;
     use crate::positional::RelativePosition;
 
@@ -582,7 +584,11 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             BumpAction
-                .verify(&floor, player_id, RelativePosition::new(1, 0))
+                .verify(
+                    &LazyRc::Owned(floor),
+                    player_id,
+                    RelativePosition::new(1, 0),
+                )
                 .unwrap()
                 .do_action()
         });
@@ -621,19 +627,26 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             GotoAction {}
-                .verify(&floor, player_id, AbsolutePosition::new(5, 3))
+                .verify(
+                    &LazyRc::Owned(floor),
+                    player_id,
+                    AbsolutePosition::new(5, 3),
+                )
                 .unwrap()
                 .do_action()
         });
 
-        let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
-            EntityState::ConfirmCommand { to_confirm, .. } => {
-                to_confirm.verify_and_box(&floor, player_id).do_action()
+        let confirm_command = |floor: Floor| {
+            let rc = LazyRc::Owned(floor);
+            match &rc.entities[player_id].state {
+                EntityState::ConfirmCommand { to_confirm, .. } => {
+                    to_confirm.verify_and_box(&rc, player_id).do_action()
+                }
+                _ => panic!(
+                    "Expected ConfirmCommand state. Got value: {:?}",
+                    rc.entities[player_id].state
+                ),
             }
-            _ => panic!(
-                "Expected ConfirmCommand state. Got value: {:?}",
-                floor.entities[player_id].state
-            ),
         };
 
         let update = update
@@ -673,19 +686,26 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             GotoAction {}
-                .verify(&floor, player_id, AbsolutePosition::new(5, 5))
+                .verify(
+                    &LazyRc::Owned(floor),
+                    player_id,
+                    AbsolutePosition::new(5, 5),
+                )
                 .unwrap()
                 .do_action()
         });
 
-        let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
-            EntityState::ConfirmCommand { to_confirm, .. } => {
-                to_confirm.verify_and_box(&floor, player_id).do_action()
+        let confirm_command = |floor: Floor| {
+            let rc = LazyRc::Owned(floor);
+            match &rc.entities[player_id].state {
+                EntityState::ConfirmCommand { to_confirm, .. } => {
+                    to_confirm.verify_and_box(&rc, player_id).do_action()
+                }
+                _ => panic!(
+                    "Expected ConfirmCommand state. Got value: {:?}",
+                    rc.entities[player_id].state
+                ),
             }
-            _ => panic!(
-                "Expected ConfirmCommand state. Got value: {:?}",
-                floor.entities[player_id].state
-            ),
         };
 
         let update = update

@@ -11,11 +11,12 @@ use crate::entity::EntityId;
 use crate::entity::EntityState;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
+use crate::lazyrc::LazyRc;
 use crate::positional::RelativePosition;
 
 #[enum_delegate::register]
 pub trait StrategyTrait {
-    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate;
+    fn take_turn(&self, original: &LazyRc<Floor>, subject_id: EntityId) -> FloorUpdate;
 }
 
 #[enum_delegate::implement(StrategyTrait)]
@@ -38,7 +39,7 @@ impl Default for Strategy {
 #[derive(Clone, Debug, Archive, Serialize, Deserialize)]
 pub struct NullStrategy;
 impl StrategyTrait for NullStrategy {
-    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &LazyRc<Floor>, subject_id: EntityId) -> FloorUpdate {
         WaitAction {}
             .verify(original, subject_id, ())
             .expect("Wait should never fail")
@@ -50,7 +51,7 @@ impl StrategyTrait for NullStrategy {
 pub struct WanderStrategy;
 
 impl StrategyTrait for WanderStrategy {
-    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &LazyRc<Floor>, subject_id: EntityId) -> FloorUpdate {
         if let Ok(x) = StepAction.verify(
             original,
             subject_id,
@@ -75,7 +76,7 @@ impl StrategyTrait for WanderStrategy {
 pub struct StandAndFightStrategy;
 
 impl StrategyTrait for StandAndFightStrategy {
-    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &LazyRc<Floor>, subject_id: EntityId) -> FloorUpdate {
         // let in_range = original.entities.iter().find(|(id, entity)| {
         //     entity.pos.distance(original.entities[subject_id].pos) <= 2 && *id != subject_id
         // });
@@ -104,7 +105,7 @@ impl StrategyTrait for StandAndFightStrategy {
 pub struct FollowStrategy;
 
 impl StrategyTrait for FollowStrategy {
-    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &LazyRc<Floor>, subject_id: EntityId) -> FloorUpdate {
         // TODO: Add teams/friendliness to the game.
         let subject = &original.entities[subject_id];
 
@@ -183,7 +184,7 @@ impl StrategyTrait for FollowStrategy {
 pub struct RushdownStrategy;
 
 impl StrategyTrait for RushdownStrategy {
-    fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+    fn take_turn(&self, original: &LazyRc<Floor>, subject_id: EntityId) -> FloorUpdate {
         let subject = &original.entities[subject_id];
 
         let in_range = original

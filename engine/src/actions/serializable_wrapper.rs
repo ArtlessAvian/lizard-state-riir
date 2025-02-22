@@ -18,6 +18,7 @@ use super::UnaimedMacroTrait;
 use super::UnaimedTrait;
 use crate::entity::EntityId;
 use crate::floor::Floor;
+use crate::lazyrc::LazyRc;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
@@ -45,7 +46,7 @@ impl UnaimedTrait for SerializableAction<dyn SerializeActionTrait> {
 impl UnaimedMacroTrait for SerializableAction<dyn SerializeActionTrait> {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<BoxedCommand, ActionError> {
@@ -61,7 +62,7 @@ impl UnaimedTrait for SerializableAction<dyn SerializeTileActionTrait> {
 impl UnaimedMacroTrait for SerializableAction<dyn SerializeTileActionTrait> {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<BoxedCommand, ActionError> {
@@ -77,7 +78,7 @@ impl UnaimedTrait for SerializableAction<dyn SerializeDirectionActionTrait> {
 impl UnaimedMacroTrait for SerializableAction<dyn SerializeDirectionActionTrait> {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
     ) -> Result<BoxedCommand, ActionError> {
@@ -93,7 +94,7 @@ impl UnaimedTrait for SerializableAction<dyn SerializeInfallibleActionTrait> {
 impl UnaimedMacroTrait for SerializableAction<dyn SerializeInfallibleActionTrait> {
     fn verify_and_box(
         &self,
-        floor: &Floor,
+        floor: &LazyRc<Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<BoxedCommand, Never> {
