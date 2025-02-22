@@ -86,12 +86,12 @@ pub trait UnaimedTrait {
 /// use engine::actions::*;
 /// use engine::floor::*;
 /// use engine::entity::*;
-/// fn apply_action_to_floor<Action>(action: Action, floor: &Floor, player_id: EntityId, target: Action::Target) -> FloorUpdate
+/// fn apply_action_to_floor<Action>(action: Action, floor: Floor, player_id: EntityId, target: Action::Target) -> FloorUpdate
 /// where
 ///     Action: UnaimedActionTrait
 /// {
-///     match action.verify(&Cow::Borrowed(floor), player_id, target) {
-///         Ok(command) => command.do_action(floor),
+///     match action.verify(&Cow::Owned(floor), player_id, target) {
+///         Ok(command) => command.do_action(),
 ///         Err(err) => panic!(),
 ///     }
 /// }
@@ -250,7 +250,7 @@ where
 /// Invoking the command consumes both the implementor and the floor.
 /// PRESUMABLY the command was created by an action, which takes a floor as input.
 pub trait CommandTrait {
-    fn do_action(self, floor: &Floor) -> FloorUpdate;
+    fn do_action(self) -> FloorUpdate;
 }
 
 /// Newtype around `Box<dyn FnOnce(Floor) -> FloorUpdate>`.
@@ -263,17 +263,11 @@ pub struct BoxedCommand<'floor>(Box<dyn FnOnce(&Floor) -> FloorUpdate + 'floor>)
 
 impl<'floor> BoxedCommand<'floor> {
     pub fn new_from_trait(command: impl CommandTrait + 'floor) -> Self {
-        Self(Box::new(move |floor| command.do_action(floor)))
+        Self(Box::new(move |_| command.do_action()))
     }
 
     pub fn do_action(self, floor: &Floor) -> FloorUpdate {
         (self.0)(floor)
-    }
-}
-
-impl BoxedCommand<'static> {
-    pub fn new_static_from_trait(command: impl CommandTrait + 'static) -> Self {
-        Self(Box::new(move |floor| command.do_action(floor)))
     }
 }
 

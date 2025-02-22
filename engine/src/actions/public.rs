@@ -41,7 +41,7 @@ impl UnaimedTrait for WaitAction {
 }
 
 impl UnaimedActionTrait for WaitAction {
-    type Command<'a> = WaitCommand;
+    type Command<'a> = WaitCommand<'a>;
 
     fn verify<'a>(
         &self,
@@ -53,24 +53,29 @@ impl UnaimedActionTrait for WaitAction {
             return Err(ActionError::DataMismatch);
         }
 
-        Ok(WaitCommand { subject_id })
+        Ok(WaitCommand {
+            parsed_floor: floor.clone(),
+            subject_id,
+        })
     }
 }
 
 #[derive(Debug)]
-pub struct WaitCommand {
+pub struct WaitCommand<'a> {
+    parsed_floor: Cow<'a, Floor>,
     subject_id: EntityId,
 }
 
-impl CommandTrait for WaitCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
+impl CommandTrait for WaitCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
+        let mut subject_clone: Entity = (self.parsed_floor.entities[self.subject_id]).clone();
         subject_clone.state = EntityState::Ok {
-            next_round: floor.get_current_round() + 1,
+            next_round: self.parsed_floor.get_current_round() + 1,
         };
         subject_clone.energy = i8::min(subject_clone.energy + 1, subject_clone.max_energy);
 
-        floor.update_entity((self.subject_id, subject_clone))
+        self.parsed_floor
+            .update_entity((self.subject_id, subject_clone))
     }
 }
 
@@ -84,7 +89,7 @@ impl UnaimedTrait for StepAction {
 }
 
 impl UnaimedActionTrait for StepAction {
-    type Command<'a> = StepCommand;
+    type Command<'a> = StepCommand<'a>;
 
     fn verify<'a>(
         &self,
@@ -119,25 +124,30 @@ impl UnaimedActionTrait for StepAction {
             return Err(ActionError::InvalidTarget);
         }
 
-        Ok(StepCommand { dir, subject_id })
+        Ok(StepCommand {
+            parsed_floor: floor.clone(),
+            dir,
+            subject_id,
+        })
     }
 }
 
 #[derive(Debug)]
-pub struct StepCommand {
+pub struct StepCommand<'a> {
+    parsed_floor: Cow<'a, Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
 
-impl CommandTrait for StepCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
+impl CommandTrait for StepCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
+        let mut subject_clone: Entity = (self.parsed_floor.entities[self.subject_id]).clone();
         subject_clone.pos = subject_clone.pos + self.dir;
         subject_clone.state = EntityState::Ok {
-            next_round: floor.get_current_round() + 1,
+            next_round: self.parsed_floor.get_current_round() + 1,
         };
 
-        BorrowedFloorUpdate::new(floor)
+        BorrowedFloorUpdate::new(&self.parsed_floor)
             .log(FloorEvent::Move(MoveEvent {
                 subject: self.subject_id,
                 tile: subject_clone.pos,
@@ -158,7 +168,7 @@ impl UnaimedTrait for BumpAction {
 }
 
 impl UnaimedActionTrait for BumpAction {
-    type Command<'a> = BumpCommand;
+    type Command<'a> = BumpCommand<'a>;
 
     fn verify<'a>(
         &self,
@@ -175,6 +185,7 @@ impl UnaimedActionTrait for BumpAction {
         }
 
         Ok(BumpCommand {
+            parsed_floor: floor.clone(),
             dir,
             subject_id,
             object_index: floor
@@ -187,20 +198,23 @@ impl UnaimedActionTrait for BumpAction {
 }
 
 #[derive(Debug)]
-pub struct BumpCommand {
+pub struct BumpCommand<'a> {
+    parsed_floor: Cow<'a, Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
     object_index: EntityId,
     now: (u32, EntityId),
 }
 
-impl CommandTrait for BumpCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        BorrowedFloorUpdate::new(floor)
-            .log(FloorEvent::StartAttack(StartAttackEvent {
-                subject: self.subject_id,
-                tile: floor.entities[self.subject_id].pos + self.dir,
-            }))
+impl CommandTrait for BumpCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
+        BorrowedFloorUpdate::new(&self.parsed_floor)
+            .peek_and_log(|floor| {
+                FloorEvent::StartAttack(StartAttackEvent {
+                    subject: self.subject_id,
+                    tile: floor.entities[self.subject_id].pos + self.dir,
+                })
+            })
             .log(FloorEvent::AttackHit(AttackHitEvent {
                 subject: self.subject_id,
                 target: self.object_index,
@@ -234,10 +248,11 @@ impl CommandTrait for BumpCommand {
             })
             .bind(|floor| {
                 TakeKnockbackUtil {
+                    parsed_floor: Cow::Owned(floor),
                     entity: self.object_index,
                     vector: self.dir,
                 }
-                .do_action(&floor)
+                .do_action()
             })
     }
 }
@@ -283,16 +298,20 @@ impl UnaimedTrait for GotoAction {
 }
 
 impl UnaimedActionTrait for GotoAction {
-    type Command<'a> = GotoCommand;
+    type Command<'a> = GotoCommand<'a>;
 
     fn verify<'a>(
         &self,
-        _floor: &Cow<'a, Floor>,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<Self::Command<'a>, ActionError> {
         // Pathfind to target.
-        Ok(GotoCommand { tile, subject_id })
+        Ok(GotoCommand {
+            parsed_floor: floor.clone(),
+            tile,
+            subject_id,
+        })
     }
 }
 
@@ -307,15 +326,16 @@ impl UnaimedTrait for GoingAction {
 }
 
 impl UnaimedActionTrait for GoingAction {
-    type Command<'a> = GotoCommand;
+    type Command<'a> = GotoCommand<'a>;
 
     fn verify<'a>(
         &self,
-        _floor: &Cow<'a, Floor>,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(GotoCommand {
+            parsed_floor: floor.clone(),
             tile: self.tile,
             subject_id,
         })
@@ -323,24 +343,24 @@ impl UnaimedActionTrait for GoingAction {
 }
 
 #[derive(Debug)]
-pub struct GotoCommand {
+pub struct GotoCommand<'a> {
+    parsed_floor: Cow<'a, Floor>,
     pub tile: AbsolutePosition,
     subject_id: EntityId,
 }
 
-impl CommandTrait for GotoCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let floor = &Cow::Borrowed(floor);
-
+impl CommandTrait for GotoCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
         // TODO: Clean up terrible, terrible nesting.
-        let subject_pos = floor.entities[self.subject_id].pos;
-        let verify_action = floor
+        let subject_pos = self.parsed_floor.entities[self.subject_id].pos;
+        let verify_action = self
+            .parsed_floor
             .map
             .get_step(subject_pos, self.tile)
             .and_then(|target| {
                 StepAction
                     .verify(
-                        floor,
+                        &self.parsed_floor,
                         self.subject_id,
                         RelativePosition {
                             dx: (target.x - subject_pos.x).clamp(-1, 1),
@@ -350,8 +370,8 @@ impl CommandTrait for GotoCommand {
                     .ok()
             })
             .or_else(|| {
-                let mut context = floor.map.pathfinder.get()?.borrow_mut();
-                let in_the_way = |pos| floor.occupiers.get(pos).is_some();
+                let mut context = self.parsed_floor.map.pathfinder.get()?.borrow_mut();
+                let in_the_way = |pos| self.parsed_floor.occupiers.get(pos).is_some();
                 let mut step_around = context.create_subgraph(in_the_way);
 
                 if step_around.find_path(subject_pos, self.tile) {
@@ -360,7 +380,7 @@ impl CommandTrait for GotoCommand {
                         .and_then(|target| {
                             StepAction
                                 .verify(
-                                    floor,
+                                    &self.parsed_floor,
                                     self.subject_id,
                                     RelativePosition {
                                         dx: (target.x - subject_pos.x).clamp(-1, 1),
@@ -377,14 +397,16 @@ impl CommandTrait for GotoCommand {
         match verify_action {
             None => {
                 // Give up immediately, a failed step is not retryable.
-                let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
+                let mut subject_clone: Entity =
+                    (self.parsed_floor.entities[self.subject_id]).clone();
                 subject_clone.state = EntityState::Ok {
-                    next_round: floor.get_current_round(),
+                    next_round: self.parsed_floor.get_current_round(),
                 };
-                floor.update_entity((self.subject_id, subject_clone))
+                self.parsed_floor
+                    .update_entity((self.subject_id, subject_clone))
             }
             Some(command) => command
-                .do_action(floor) // (force indent)
+                .do_action() // (force indent)
                 .bind(|floor| {
                     let mut subject_clone: Entity = (floor.entities[self.subject_id]).clone();
                     subject_clone.state = if floor.entities[self.subject_id].pos == self.tile {
@@ -416,7 +438,7 @@ impl UnaimedTrait for TryToStandUpAction {
 }
 
 impl UnaimedActionTrait for TryToStandUpAction {
-    type Command<'a> = TryToStandUpCommand;
+    type Command<'a> = TryToStandUpCommand<'a>;
 
     fn verify<'a>(
         &self,
@@ -428,6 +450,7 @@ impl UnaimedActionTrait for TryToStandUpAction {
             EntityState::Knockdown {
                 next_round: current_round,
             } => Ok(TryToStandUpCommand {
+                parsed_floor: floor.clone(),
                 subject_id,
                 now: current_round,
             }),
@@ -437,29 +460,31 @@ impl UnaimedActionTrait for TryToStandUpAction {
 }
 
 #[derive(Debug)]
-pub struct TryToStandUpCommand {
+pub struct TryToStandUpCommand<'a> {
+    parsed_floor: Cow<'a, Floor>,
     subject_id: EntityId,
     now: u32,
 }
 
-impl CommandTrait for TryToStandUpCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        if floor
+impl CommandTrait for TryToStandUpCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
+        if self
+            .parsed_floor
             .occupiers
-            .get(floor.entities[self.subject_id].pos)
+            .get(self.parsed_floor.entities[self.subject_id].pos)
             .is_some()
         {
-            let mut clone = floor.entities[self.subject_id].clone();
+            let mut clone = self.parsed_floor.entities[self.subject_id].clone();
             clone.state = EntityState::Knockdown {
                 next_round: self.now + 1,
             };
-            floor.update_entity((self.subject_id, clone))
+            self.parsed_floor.update_entity((self.subject_id, clone))
         } else {
-            let mut clone = floor.entities[self.subject_id].clone();
+            let mut clone = self.parsed_floor.entities[self.subject_id].clone();
             clone.state = EntityState::Ok {
                 next_round: self.now,
             };
-            floor
+            self.parsed_floor
                 .update_entity((self.subject_id, clone))
                 .log(FloorEvent::Wakeup(WakeupEvent {
                     subject: self.subject_id,
@@ -477,7 +502,7 @@ impl UnaimedTrait for KnockdownAfterJuggleAction {
 }
 
 impl UnaimedActionTrait for KnockdownAfterJuggleAction {
-    type Command<'a> = KnockdownAfterJuggleCommand;
+    type Command<'a> = KnockdownAfterJuggleCommand<'a>;
 
     fn verify<'a>(
         &self,
@@ -487,6 +512,7 @@ impl UnaimedActionTrait for KnockdownAfterJuggleAction {
     ) -> Result<Self::Command<'a>, ActionError> {
         match floor.entities[subject_id].state {
             EntityState::Hitstun { next_round, .. } => Ok(KnockdownAfterJuggleCommand {
+                parsed_floor: floor.clone(),
                 subject_id,
                 now: next_round,
             }),
@@ -496,18 +522,19 @@ impl UnaimedActionTrait for KnockdownAfterJuggleAction {
 }
 
 #[derive(Debug)]
-pub struct KnockdownAfterJuggleCommand {
+pub struct KnockdownAfterJuggleCommand<'a> {
+    parsed_floor: Cow<'a, Floor>,
     subject_id: EntityId,
     now: u32,
 }
 
-impl CommandTrait for KnockdownAfterJuggleCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let mut clone = floor.entities[self.subject_id].clone();
+impl CommandTrait for KnockdownAfterJuggleCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
+        let mut clone = self.parsed_floor.entities[self.subject_id].clone();
         clone.state = EntityState::Knockdown {
             next_round: self.now + 1,
         };
-        floor
+        self.parsed_floor
             .update_entity((self.subject_id, clone))
             .log(FloorEvent::KnockdownEvent(KnockdownEvent {
                 subject: self.subject_id,
@@ -563,7 +590,7 @@ mod test {
                     RelativePosition::new(1, 0),
                 )
                 .unwrap()
-                .do_action(&floor)
+                .do_action()
         });
 
         let (floor, log) = update.into_both();
@@ -606,7 +633,7 @@ mod test {
                     AbsolutePosition::new(5, 3),
                 )
                 .unwrap()
-                .do_action(&floor)
+                .do_action()
         });
 
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
@@ -662,7 +689,7 @@ mod test {
                     AbsolutePosition::new(5, 5),
                 )
                 .unwrap()
-                .do_action(&floor)
+                .do_action()
         });
 
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {

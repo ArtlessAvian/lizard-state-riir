@@ -39,7 +39,7 @@ impl UnaimedTrait for ForwardHeavyAction {
 }
 
 impl UnaimedActionTrait for ForwardHeavyAction {
-    type Command<'a> = ForwardHeavyCommand;
+    type Command<'a> = ForwardHeavyCommand<'a>;
 
     fn verify<'a>(
         &self,
@@ -65,28 +65,31 @@ impl From<ForwardHeavyAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug)]
-pub struct ForwardHeavyCommand {
-    step: StepCommand,
+pub struct ForwardHeavyCommand<'a> {
+    step: StepCommand<'a>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
 
-impl CommandTrait for ForwardHeavyCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
+impl CommandTrait for ForwardHeavyCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
         self.step
-            .do_action(floor) // (forcing indented formatting)
+            .do_action() // (forcing indented formatting)
             .bind(|floor| {
                 DelayCommand {
+                    parsed_floor: Cow::Owned(floor),
                     subject_id: self.subject_id,
                     queued_command: ForwardHeavyFollowupAction { dir: self.dir }.into(),
                     turns: 0, // The step already takes a turn.
                     event: None,
                 }
-                .do_action(&floor)
-                .log(FloorEvent::PrepareAttack(PrepareAttackEvent {
-                    subject: self.subject_id,
-                    tile: floor.entities[self.subject_id].pos + self.dir,
-                }))
+                .do_action()
+                .peek_and_log(|floor| {
+                    FloorEvent::PrepareAttack(PrepareAttackEvent {
+                        subject: self.subject_id,
+                        tile: floor.entities[self.subject_id].pos + self.dir,
+                    })
+                })
             })
     }
 }
@@ -102,15 +105,16 @@ impl UnaimedTrait for ForwardHeavyFollowupAction {
 }
 
 impl UnaimedActionTrait for ForwardHeavyFollowupAction {
-    type Command<'a> = ForwardHeavyFollowup;
+    type Command<'a> = ForwardHeavyFollowup<'a>;
 
     fn verify<'a>(
         &self,
-        _floor: &Cow<'a, Floor>,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(ForwardHeavyFollowup {
+            parsed_floor: floor.clone(),
             dir: self.dir,
             subject_id,
         })
@@ -118,14 +122,15 @@ impl UnaimedActionTrait for ForwardHeavyFollowupAction {
 }
 
 #[derive(Debug)]
-pub struct ForwardHeavyFollowup {
+pub struct ForwardHeavyFollowup<'a> {
+    parsed_floor: Cow<'a, Floor>,
     dir: RelativePosition,
     subject_id: EntityId,
 }
 
-impl CommandTrait for ForwardHeavyFollowup {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        BorrowedFloorUpdate::new(floor)
+impl CommandTrait for ForwardHeavyFollowup<'_> {
+    fn do_action(self) -> FloorUpdate {
+        BorrowedFloorUpdate::new(&self.parsed_floor)
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {
@@ -160,10 +165,11 @@ impl CommandTrait for ForwardHeavyFollowup {
                         }))
                         .bind(|floor| {
                             TakeKnockbackUtil {
+                                parsed_floor: Cow::Owned(floor),
                                 entity: object_index,
                                 vector: 3 * self.dir,
                             }
-                            .do_action(&floor)
+                            .do_action()
                         })
                 },
             )
@@ -180,7 +186,7 @@ impl UnaimedTrait for TrackingAction {
 }
 
 impl UnaimedActionTrait for TrackingAction {
-    type Command<'a> = DelayCommand;
+    type Command<'a> = DelayCommand<'a>;
 
     fn verify<'a>(
         &self,
@@ -202,6 +208,7 @@ impl UnaimedActionTrait for TrackingAction {
         }
 
         Ok(DelayCommand {
+            parsed_floor: floor.clone(),
             subject_id,
             queued_command: TrackingFollowupAction { tracking_id }.into(),
             turns: 1,
@@ -230,15 +237,16 @@ impl UnaimedTrait for TrackingFollowupAction {
 }
 
 impl UnaimedActionTrait for TrackingFollowupAction {
-    type Command<'a> = TrackingFollowup;
+    type Command<'a> = TrackingFollowup<'a>;
 
     fn verify<'a>(
         &self,
-        _floor: &Cow<'a, Floor>,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(TrackingFollowup {
+            parsed_floor: floor.clone(),
             tracking_id: self.tracking_id,
             subject_id,
         })
@@ -246,14 +254,15 @@ impl UnaimedActionTrait for TrackingFollowupAction {
 }
 
 #[derive(Debug)]
-pub struct TrackingFollowup {
+pub struct TrackingFollowup<'a> {
+    parsed_floor: Cow<'a, Floor>,
     tracking_id: EntityId,
     subject_id: EntityId,
 }
 
-impl CommandTrait for TrackingFollowup {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        BorrowedFloorUpdate::new(floor)
+impl CommandTrait for TrackingFollowup<'_> {
+    fn do_action(self) -> FloorUpdate {
+        BorrowedFloorUpdate::new(&self.parsed_floor)
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {

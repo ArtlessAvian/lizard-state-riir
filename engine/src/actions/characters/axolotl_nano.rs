@@ -29,15 +29,19 @@ impl UnaimedTrait for EnterSmiteStanceAction {
 }
 
 impl UnaimedActionTrait for EnterSmiteStanceAction {
-    type Command<'a> = EnterSmiteStanceCommand;
+    type Command<'a> = EnterSmiteStanceCommand<'a>;
 
     fn verify<'a>(
         &self,
-        _floor: &Cow<'a, Floor>,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
     ) -> Result<Self::Command<'a>, ActionError> {
-        Ok(EnterSmiteStanceCommand { subject_id, tile })
+        Ok(EnterSmiteStanceCommand {
+            parsed_floor: floor.clone(),
+            subject_id,
+            tile,
+        })
     }
 }
 
@@ -48,19 +52,20 @@ impl From<EnterSmiteStanceAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug, Clone)]
-pub struct EnterSmiteStanceCommand {
+pub struct EnterSmiteStanceCommand<'a> {
+    parsed_floor: Cow<'a, Floor>,
     subject_id: EntityId,
     tile: AbsolutePosition,
 }
 
-impl CommandTrait for EnterSmiteStanceCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let mut clone = floor.entities[self.subject_id].clone();
+impl CommandTrait for EnterSmiteStanceCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
+        let mut clone = self.parsed_floor.entities[self.subject_id].clone();
         clone.state = EntityState::RestrictedActions {
-            next_round: floor.get_current_round() + 1,
+            next_round: self.parsed_floor.get_current_round() + 1,
             restricted_actions: Vec::from([StanceSmiteAction { tile: self.tile }.into()]),
         };
-        floor.update_entity((self.subject_id, clone))
+        self.parsed_floor.update_entity((self.subject_id, clone))
     }
 }
 
@@ -75,15 +80,16 @@ impl UnaimedTrait for StanceSmiteAction {
 }
 
 impl UnaimedActionTrait for StanceSmiteAction {
-    type Command<'a> = StanceSmiteCommand;
+    type Command<'a> = StanceSmiteCommand<'a>;
 
     fn verify<'a>(
         &self,
-        _floor: &Cow<'a, Floor>,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
     ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(StanceSmiteCommand {
+            parsed_floor: floor.clone(),
             subject_id,
             tile: self.tile,
         })
@@ -97,26 +103,29 @@ impl From<StanceSmiteAction> for KnownUnaimedAction {
 }
 
 #[derive(Debug, Clone)]
-pub struct StanceSmiteCommand {
+pub struct StanceSmiteCommand<'a> {
+    parsed_floor: Cow<'a, Floor>,
     subject_id: EntityId,
     tile: AbsolutePosition,
 }
 
-impl CommandTrait for StanceSmiteCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let now = floor.get_current_turn().unwrap();
+impl CommandTrait for StanceSmiteCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
+        let now = self.parsed_floor.get_current_turn().unwrap();
 
-        let mut clone = floor.entities[self.subject_id].clone();
+        let mut clone = self.parsed_floor.entities[self.subject_id].clone();
         clone.state = EntityState::Ok {
             next_round: now.0 + 1,
         };
 
-        floor.update_entity((self.subject_id, clone)).bind_if_some(
-            |floor| floor.occupiers.get(self.tile),
-            |floor, hit_id| {
-                let dingus = start_juggle(&floor, hit_id, now, NonZero::new(1).unwrap());
-                dingus.bind(|hit_clone| floor.update_entity((hit_id, hit_clone)))
-            },
-        )
+        self.parsed_floor
+            .update_entity((self.subject_id, clone))
+            .bind_if_some(
+                |floor| floor.occupiers.get(self.tile),
+                |floor, hit_id| {
+                    let dingus = start_juggle(&floor, hit_id, now, NonZero::new(1).unwrap());
+                    dingus.bind(|hit_clone| floor.update_entity((hit_id, hit_clone)))
+                },
+            )
     }
 }

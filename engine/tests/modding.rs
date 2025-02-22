@@ -38,10 +38,13 @@ struct TestAction {}
 impl ActionTrait for TestAction {
     fn verify_and_box<'a>(
         &self,
-        _floor: &Cow<'a, Floor>,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
     ) -> Result<BoxedCommand<'a>, ActionError> {
-        Ok(BoxedCommand::new_from_trait(TestCommand { subject_id }))
+        Ok(BoxedCommand::new_from_trait(TestCommand {
+            parsed_floor: floor.clone(),
+            subject_id,
+        }))
     }
 }
 
@@ -57,28 +60,21 @@ impl ActionTrait for Archived<TestAction> {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Archive, Serialize, Deserialize)]
-#[archive_attr(derive(TypeName))]
-struct TestCommand {
+struct TestCommand<'a> {
+    parsed_floor: Cow<'a, Floor>,
     subject_id: EntityId,
 }
 
-impl CommandTrait for TestCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        FloorUpdate::new(floor.clone()).log_each(vec![
-            FloorEvent::Exit(ExitEvent {
-                subject: self.subject_id,
-            });
+impl CommandTrait for TestCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
+        FloorUpdate::new(self.parsed_floor.as_ref().clone()).log_each(vec![
+            FloorEvent::Exit(
+                ExitEvent {
+                    subject: self.subject_id,
+                }
+            );
             3
         ])
-    }
-}
-
-impl CommandTrait for Archived<TestCommand> {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        Deserialize::<TestCommand, _>::deserialize(&self, &mut Infallible)
-            .unwrap()
-            .do_action(floor)
     }
 }
 

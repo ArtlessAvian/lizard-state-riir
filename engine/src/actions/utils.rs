@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::num::NonZero;
@@ -21,27 +22,28 @@ use crate::positional::RelativePosition;
 use crate::writer::Writer;
 
 #[derive(Debug)]
-pub struct TakeKnockbackUtil {
+pub struct TakeKnockbackUtil<'a> {
+    pub parsed_floor: Cow<'a, Floor>,
     pub entity: EntityId,
     pub vector: RelativePosition,
 }
 
-impl CommandTrait for TakeKnockbackUtil {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let now = floor.get_current_round();
+impl CommandTrait for TakeKnockbackUtil<'_> {
+    fn do_action(self) -> FloorUpdate {
+        let now = self.parsed_floor.get_current_round();
 
         let swept_tiles = Segment::calculate_relative(self.vector)
             .0
             .into_iter()
-            .map(|offset| floor.entities[self.entity].pos + offset)
-            .take_while(|tile| floor.map.is_tile_floor(*tile))
+            .map(|offset| self.parsed_floor.entities[self.entity].pos + offset)
+            .take_while(|tile| self.parsed_floor.map.is_tile_floor(*tile))
             .collect::<Vec<_>>();
 
         let final_position = *swept_tiles
             .last()
             .expect("Entity's current position should be a floor, which is part of the segment");
 
-        let mut writer = Writer::new(BatchEntityUpdate::new(&floor.entities));
+        let mut writer = Writer::new(BatchEntityUpdate::new(&self.parsed_floor.entities));
 
         writer.deref_mut().apply_and_insert(self.entity, |e| {
             let mut clone = e.clone();
@@ -57,7 +59,7 @@ impl CommandTrait for TakeKnockbackUtil {
 
         let knocked_over = swept_tiles
             .iter()
-            .filter_map(|tile| floor.occupiers.get(*tile))
+            .filter_map(|tile| self.parsed_floor.occupiers.get(*tile))
             .filter(|id| *id != self.entity);
 
         for id in knocked_over {
@@ -69,18 +71,19 @@ impl CommandTrait for TakeKnockbackUtil {
             writer = writer.log(FloorEvent::KnockdownEvent(KnockdownEvent { subject: id }));
         }
 
-        writer.bind(|dingus| floor.update_entities_batch(dingus))
+        writer.bind(|dingus| self.parsed_floor.update_entities_batch(dingus))
     }
 }
 
 #[derive(Debug)]
-pub struct MultiKnockbackUtil {
+pub struct MultiKnockbackUtil<'a> {
+    pub parsed_floor: Cow<'a, Floor>,
     pub all_displacements: HashMap<EntityId, RelativePosition>,
 }
 
-impl CommandTrait for MultiKnockbackUtil {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let now = floor.get_current_round();
+impl CommandTrait for MultiKnockbackUtil<'_> {
+    fn do_action(self) -> FloorUpdate {
+        let now = self.parsed_floor.get_current_round();
 
         let each_swept_tiles = self
             .all_displacements
@@ -91,8 +94,8 @@ impl CommandTrait for MultiKnockbackUtil {
                     Segment::calculate_relative(*displacement)
                         .0
                         .into_iter()
-                        .map(|offset| floor.entities[*id].pos + offset)
-                        .take_while(|tile| floor.map.is_tile_floor(*tile))
+                        .map(|offset| self.parsed_floor.entities[*id].pos + offset)
+                        .take_while(|tile| self.parsed_floor.map.is_tile_floor(*tile))
                         .collect::<Vec<_>>(),
                 )
             })
@@ -110,7 +113,7 @@ impl CommandTrait for MultiKnockbackUtil {
             })
             .collect::<Vec<_>>();
 
-        let mut writer_batch = Writer::new(BatchEntityUpdate::new(&floor.entities));
+        let mut writer_batch = Writer::new(BatchEntityUpdate::new(&self.parsed_floor.entities));
 
         for (id, final_pos) in &final_positions {
             writer_batch.deref_mut().apply_and_insert(*id, |e| {
@@ -131,8 +134,9 @@ impl CommandTrait for MultiKnockbackUtil {
                     .iter()
                     .filter(|(other_id, other_pos)| other_id != id && other_pos == pos)
                     .any(|(other_id, _)| {
-                        let my_distance = floor.entities[*id].pos.distance(*pos);
-                        let other_distance = floor.entities[*other_id].pos.distance(*pos);
+                        let my_distance = self.parsed_floor.entities[*id].pos.distance(*pos);
+                        let other_distance =
+                            self.parsed_floor.entities[*other_id].pos.distance(*pos);
                         my_distance
                             .cmp(&other_distance)
                             .then(id.cmp(other_id).reverse())
@@ -157,7 +161,7 @@ impl CommandTrait for MultiKnockbackUtil {
             .flat_map(|(_, segment)| segment.iter());
 
         let knocked_over = swept_tiles
-            .filter_map(|tile| floor.occupiers.get(*tile))
+            .filter_map(|tile| self.parsed_floor.occupiers.get(*tile))
             .filter(|id| self.all_displacements.iter().all(|(kb_id, _)| id != kb_id))
             .collect::<HashSet<_>>(); // Dedup!
 
@@ -171,27 +175,28 @@ impl CommandTrait for MultiKnockbackUtil {
                 writer_batch.log(FloorEvent::KnockdownEvent(KnockdownEvent { subject: id }));
         }
 
-        writer_batch.bind(|batch| floor.update_entities_batch(batch))
+        writer_batch.bind(|batch| self.parsed_floor.update_entities_batch(batch))
     }
 }
 
 #[derive(Debug)]
-pub struct DelayCommand {
+pub struct DelayCommand<'a> {
+    pub parsed_floor: Cow<'a, Floor>,
     pub subject_id: EntityId,
     pub queued_command: KnownInfallibleAction,
     pub turns: u32,
     pub event: Option<FloorEvent>,
 }
 
-impl CommandTrait for DelayCommand {
-    fn do_action(self, floor: &Floor) -> FloorUpdate {
-        let mut subject_clone: Entity = floor.entities[self.subject_id].clone();
+impl CommandTrait for DelayCommand<'_> {
+    fn do_action(self) -> FloorUpdate {
+        let mut subject_clone: Entity = self.parsed_floor.entities[self.subject_id].clone();
         subject_clone.state = EntityState::Committed {
-            next_round: floor.get_current_round() + self.turns,
+            next_round: self.parsed_floor.get_current_round() + self.turns,
             queued_command: self.queued_command.clone(),
         };
 
-        floor
+        self.parsed_floor
             .update_entity((self.subject_id, subject_clone))
             .log_option(self.event.clone())
     }
@@ -255,10 +260,11 @@ mod tests {
 
         let update = update.bind(|floor| {
             TakeKnockbackUtil {
+                parsed_floor: Cow::Owned(floor),
                 entity: id,
                 vector: RelativePosition::new(1, 0),
             }
-            .do_action(&floor)
+            .do_action()
         });
         assert_eq!(
             update.get_contents().entities[id].pos,
@@ -274,10 +280,11 @@ mod tests {
 
         let update = update.bind(|floor| {
             TakeKnockbackUtil {
+                parsed_floor: Cow::Owned(floor),
                 entity: id,
                 vector: RelativePosition::new(0, 1),
             }
-            .do_action(&floor)
+            .do_action()
         });
         assert_eq!(
             update.get_contents().entities[id].pos,
@@ -307,10 +314,11 @@ mod tests {
 
         let update = update.bind(|floor| {
             TakeKnockbackUtil {
+                parsed_floor: Cow::Owned(floor),
                 entity: id,
                 vector: RelativePosition::new(1, 0),
             }
-            .do_action(&floor)
+            .do_action()
         });
         // TODO: Remove event ordering strictness.
         assert_eq!(
@@ -349,12 +357,13 @@ mod tests {
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
+                parsed_floor: Cow::Owned(floor),
                 all_displacements: HashMap::from([
                     (id, RelativePosition::new(1, 0)),
                     (other, RelativePosition::new(1, 0)),
                 ]),
             }
-            .do_action(&floor)
+            .do_action()
         });
         // TODO: Remove event ordering strictness.
         assert_eq!(
@@ -394,9 +403,10 @@ mod tests {
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
+                parsed_floor: Cow::Owned(floor),
                 all_displacements: HashMap::from([(id, RelativePosition::new(1, 0))]),
             }
-            .do_action(&floor)
+            .do_action()
         });
         // TODO: Remove event ordering strictness.
         assert_eq!(
@@ -443,12 +453,13 @@ mod tests {
 
         let update = update.bind(|floor| {
             MultiKnockbackUtil {
+                parsed_floor: Cow::Owned(floor),
                 all_displacements: HashMap::from([
                     (id, RelativePosition::new(1, 0)),
                     (other, RelativePosition::new(1, 0)),
                 ]),
             }
-            .do_action(&floor)
+            .do_action()
         });
         // TODO: Remove event ordering strictness.
         assert_eq!(
