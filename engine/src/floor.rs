@@ -48,7 +48,7 @@ pub enum FloorEndState {
 
 pub type UnitUpdate = Writer<(), FloorEvent>;
 pub type FloorUpdate = Writer<Floor, FloorEvent>;
-pub type BorrowedFloorUpdate<'a> = Writer<&'a Floor, FloorEvent>;
+pub type CowFloorUpdate<'a> = Writer<Cow<'a, Floor>, FloorEvent>;
 
 // Proposal:
 // Systems enforce invariants and process data. (See existing FloorMapVision.)

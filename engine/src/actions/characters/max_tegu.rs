@@ -23,7 +23,7 @@ use crate::actions::UnaimedTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
-use crate::floor::BorrowedFloorUpdate;
+use crate::floor::CowFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
@@ -130,7 +130,7 @@ pub struct ForwardHeavyFollowup<'a> {
 
 impl CommandTrait for ForwardHeavyFollowup<'_> {
     fn do_action(self) -> FloorUpdate {
-        BorrowedFloorUpdate::new(&self.parsed_floor)
+        CowFloorUpdate::new(self.parsed_floor)
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {
@@ -262,7 +262,7 @@ pub struct TrackingFollowup<'a> {
 
 impl CommandTrait for TrackingFollowup<'_> {
     fn do_action(self) -> FloorUpdate {
-        BorrowedFloorUpdate::new(&self.parsed_floor)
+        CowFloorUpdate::new(self.parsed_floor)
             .bind(|floor| {
                 let mut subject_update = floor.entities[self.subject_id].clone();
                 subject_update.state = EntityState::Ok {

@@ -24,7 +24,7 @@ use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
-use crate::floor::BorrowedFloorUpdate;
+use crate::floor::CowFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
@@ -147,7 +147,7 @@ impl CommandTrait for StepCommand<'_> {
             next_round: self.parsed_floor.get_current_round() + 1,
         };
 
-        BorrowedFloorUpdate::new(&self.parsed_floor)
+        CowFloorUpdate::new(self.parsed_floor)
             .log(FloorEvent::Move(MoveEvent {
                 subject: self.subject_id,
                 tile: subject_clone.pos,
@@ -208,7 +208,7 @@ pub struct BumpCommand<'a> {
 
 impl CommandTrait for BumpCommand<'_> {
     fn do_action(self) -> FloorUpdate {
-        BorrowedFloorUpdate::new(&self.parsed_floor)
+        CowFloorUpdate::new(self.parsed_floor)
             .peek_and_log(|floor| {
                 FloorEvent::StartAttack(StartAttackEvent {
                     subject: self.subject_id,
@@ -226,7 +226,7 @@ impl CommandTrait for BumpCommand<'_> {
                     batch
                         .apply_and_insert_writer(self.object_index, |_| {
                             utils::start_juggle(
-                                floor,
+                                &floor,
                                 self.object_index,
                                 self.now,
                                 NonZero::<u32>::new(1).unwrap(),

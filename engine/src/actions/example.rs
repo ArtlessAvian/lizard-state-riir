@@ -20,7 +20,7 @@ use super::UnaimedTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
-use crate::floor::BorrowedFloorUpdate;
+use crate::floor::CowFloorUpdate;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
@@ -74,14 +74,13 @@ pub struct DoubleHitCommand<'a> {
 
 impl CommandTrait for DoubleHitCommand<'_> {
     fn do_action(self) -> FloorUpdate {
-        BorrowedFloorUpdate::new(&self.parsed_floor)
+        CowFloorUpdate::new(self.parsed_floor)
             .peek_and_log(|floor| {
                 FloorEvent::StartAttack(StartAttackEvent {
                     subject: self.subject_id,
                     tile: floor.entities[self.subject_id].pos + self.dir,
                 })
             })
-            .map(Cow::Borrowed)
             .bind_if_some(
                 |floor| {
                     floor
@@ -156,14 +155,13 @@ pub struct DoubleHitFollowup<'a> {
 
 impl CommandTrait for DoubleHitFollowup<'_> {
     fn do_action(self) -> FloorUpdate {
-        BorrowedFloorUpdate::new(&self.parsed_floor)
+        CowFloorUpdate::new(self.parsed_floor)
             .peek_and_log(|floor| {
                 FloorEvent::StartAttack(StartAttackEvent {
                     subject: self.subject_id,
                     tile: floor.entities[self.subject_id].pos + self.dir,
                 })
             })
-            .map(Cow::Borrowed)
             .bind_if_some(
                 |floor| {
                     floor
