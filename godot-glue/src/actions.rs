@@ -1,5 +1,6 @@
 pub(crate) mod public;
 
+use std::borrow::Cow;
 use std::rc::Rc;
 
 use engine::actions::ActionTrait;
@@ -33,7 +34,7 @@ impl Action {
         let subject_id = binding.id;
         let verify_action = self
             .action
-            .verify_and_box(&floor.bind().internal, subject_id)
+            .verify_and_box(&Cow::Owned(floor.bind().internal.clone()), subject_id)
             .ok()?;
         Some(Command::new(verify_action))
     }
@@ -65,7 +66,11 @@ impl TileAction {
         let subject_id = binding.id;
         let verify_action = self
             .action
-            .verify_and_box(&floor.bind().internal, subject_id, tile.into())
+            .verify_and_box(
+                &Cow::Owned(floor.bind().internal.clone()),
+                subject_id,
+                tile.into(),
+            )
             .ok()?;
         Some(Command::new(verify_action))
     }
@@ -97,7 +102,11 @@ impl DirectionAction {
         let subject_id = binding.id;
         let verify_action = self
             .action
-            .verify_and_box(&floor.bind().internal, subject_id, dir.into())
+            .verify_and_box(
+                &Cow::Owned(floor.bind().internal.clone()),
+                subject_id,
+                dir.into(),
+            )
             .ok()?;
         Some(Command::new(verify_action))
     }
@@ -124,7 +133,7 @@ impl InfallibleAction {
         let subject_id = binding.id;
         let verify_action = self
             .action
-            .verify_and_box(&floor.bind().internal, subject_id);
+            .verify_and_box(&Cow::Owned(floor.bind().internal.clone()), subject_id);
         Command::new(verify_action)
     }
 }
@@ -149,13 +158,13 @@ impl InfallibleAction {
 #[class(no_init)]
 pub struct Command {
     // Godot doesn't see this anyways.
-    pub command: Option<BoxedCommand>,
+    pub command: Option<BoxedCommand<'static>>,
 }
 
 #[godot_api]
 impl Command {
     #[must_use]
-    pub fn new(command: BoxedCommand) -> Gd<Self> {
+    pub fn new(command: BoxedCommand<'static>) -> Gd<Self> {
         Gd::from_object(Self {
             command: Some(command),
         })

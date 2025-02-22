@@ -26,6 +26,7 @@ pub mod known_serializable;
 
 pub mod serializable_wrapper;
 
+use std::borrow::Cow;
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -81,6 +82,7 @@ pub trait UnaimedTrait {
 ///
 /// # Example Usage
 /// ```rust
+/// use std::borrow::Cow;
 /// use engine::actions::*;
 /// use engine::floor::*;
 /// use engine::entity::*;
@@ -88,21 +90,21 @@ pub trait UnaimedTrait {
 /// where
 ///     Action: UnaimedActionTrait
 /// {
-///     match action.verify(floor, player_id, target) {
+///     match action.verify(&Cow::Borrowed(floor), player_id, target) {
 ///         Ok(command) => command.do_action(floor),
 ///         Err(err) => panic!(),
 ///     }
 /// }
 /// ```
 pub trait UnaimedActionTrait: UnaimedTrait {
-    type Command: CommandTrait + 'static;
+    type Command<'a>: CommandTrait + 'a;
 
-    fn verify(
+    fn verify<'floor>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'floor, Floor>,
         subject_id: EntityId,
         target: Self::Target,
-    ) -> Result<Self::Command, Self::Error>;
+    ) -> Result<Self::Command<'floor>, Self::Error>;
 }
 
 /// `UnaimedActionTrait` with type erased Command. Dyn compatible!
@@ -112,21 +114,21 @@ pub trait UnaimedActionTrait: UnaimedTrait {
 ///
 /// See `UnaimedActionTrait`!
 pub trait UnaimedMacroTrait: UnaimedTrait {
-    fn verify_and_box(
+    fn verify_and_box<'floor>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'floor, Floor>,
         subject_id: EntityId,
         target: Self::Target,
-    ) -> Result<BoxedCommand, Self::Error>;
+    ) -> Result<BoxedCommand<'floor>, Self::Error>;
 }
 
 impl<T: UnaimedActionTrait> UnaimedMacroTrait for T {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         target: Self::Target,
-    ) -> Result<BoxedCommand, Self::Error> {
+    ) -> Result<BoxedCommand<'a>, Self::Error> {
         match self.verify(floor, subject_id, target) {
             Ok(ok) => Ok(BoxedCommand::new_from_trait(ok)),
             Err(err) => Err(err),
@@ -140,22 +142,22 @@ impl<T: UnaimedActionTrait> UnaimedMacroTrait for T {
 #[archive_dyn(deserialize)]
 #[enum_delegate::register]
 pub trait ActionTrait {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
-    ) -> Result<BoxedCommand, ActionError>;
+    ) -> Result<BoxedCommand<'a>, ActionError>;
 }
 
 impl<T> ActionTrait for T
 where
     T: UnaimedMacroTrait<Target = (), Error = ActionError>,
 {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
-    ) -> Result<BoxedCommand, ActionError> {
+    ) -> Result<BoxedCommand<'a>, ActionError> {
         UnaimedMacroTrait::verify_and_box(self, floor, subject_id, ())
     }
 }
@@ -166,24 +168,24 @@ where
 #[archive_dyn(deserialize)]
 #[enum_delegate::register]
 pub trait TileActionTrait {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<BoxedCommand, ActionError>;
+    ) -> Result<BoxedCommand<'a>, ActionError>;
 }
 
 impl<T> TileActionTrait for T
 where
     T: UnaimedMacroTrait<Target = AbsolutePosition, Error = ActionError>,
 {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<BoxedCommand, ActionError> {
+    ) -> Result<BoxedCommand<'a>, ActionError> {
         UnaimedMacroTrait::verify_and_box(self, floor, subject_id, tile)
     }
 }
@@ -194,24 +196,24 @@ where
 #[archive_dyn(deserialize)]
 #[enum_delegate::register]
 pub trait DirectionActionTrait {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<BoxedCommand, ActionError>;
+    ) -> Result<BoxedCommand<'a>, ActionError>;
 }
 
 impl<T> DirectionActionTrait for T
 where
     T: UnaimedMacroTrait<Target = RelativePosition, Error = ActionError>,
 {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<BoxedCommand, ActionError> {
+    ) -> Result<BoxedCommand<'a>, ActionError> {
         UnaimedMacroTrait::verify_and_box(self, floor, subject_id, dir)
     }
 }
@@ -226,14 +228,14 @@ pub enum Never {}
 #[archive_dyn(deserialize)]
 #[enum_delegate::register]
 pub trait InfallibleActionTrait {
-    fn verify_and_box(&self, floor: &Floor, subject_id: EntityId) -> BoxedCommand;
+    fn verify_and_box<'a>(&self, floor: &Cow<'a, Floor>, subject_id: EntityId) -> BoxedCommand<'a>;
 }
 
 impl<T> InfallibleActionTrait for T
 where
     T: UnaimedMacroTrait<Target = (), Error = Never>,
 {
-    fn verify_and_box(&self, floor: &Floor, subject_id: EntityId) -> BoxedCommand {
+    fn verify_and_box<'a>(&self, floor: &Cow<'a, Floor>, subject_id: EntityId) -> BoxedCommand<'a> {
         match UnaimedMacroTrait::verify_and_box(self, floor, subject_id, ()) {
             Ok(x) => x,
             Err(_) => unreachable!("uninhabited never type"),
@@ -257,10 +259,10 @@ pub trait CommandTrait {
 /// This makes `CommandTrait` not dyn compatible!
 /// `FnOnce` is used to represent that.
 #[must_use]
-pub struct BoxedCommand(Box<dyn FnOnce(&Floor) -> FloorUpdate>);
+pub struct BoxedCommand<'floor>(Box<dyn FnOnce(&Floor) -> FloorUpdate + 'floor>);
 
-impl BoxedCommand {
-    pub fn new_from_trait(command: impl CommandTrait + 'static) -> Self {
+impl<'floor> BoxedCommand<'floor> {
+    pub fn new_from_trait(command: impl CommandTrait + 'floor) -> Self {
         Self(Box::new(move |floor| command.do_action(floor)))
     }
 
@@ -269,9 +271,15 @@ impl BoxedCommand {
     }
 }
 
-impl<T> From<T> for BoxedCommand
+impl BoxedCommand<'static> {
+    pub fn new_static_from_trait(command: impl CommandTrait + 'static) -> Self {
+        Self(Box::new(move |floor| command.do_action(floor)))
+    }
+}
+
+impl<'a, T> From<T> for BoxedCommand<'a>
 where
-    T: CommandTrait + 'static,
+    T: CommandTrait + 'a,
 {
     fn from(val: T) -> Self {
         Self::new_from_trait(val)

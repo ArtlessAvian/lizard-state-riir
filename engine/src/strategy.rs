@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -40,7 +42,7 @@ pub struct NullStrategy;
 impl StrategyTrait for NullStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
         WaitAction {}
-            .verify(original, subject_id, ())
+            .verify(&Cow::Borrowed(original), subject_id, ())
             .expect("Wait should never fail")
             .do_action(original)
     }
@@ -51,6 +53,8 @@ pub struct WanderStrategy;
 
 impl StrategyTrait for WanderStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+        let original = &Cow::Borrowed(original);
+
         if let Ok(x) = StepAction.verify(
             original,
             subject_id,
@@ -76,6 +80,8 @@ pub struct StandAndFightStrategy;
 
 impl StrategyTrait for StandAndFightStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+        let original = &Cow::Borrowed(original);
+
         // let in_range = original.entities.iter().find(|(id, entity)| {
         //     entity.pos.distance(original.entities[subject_id].pos) <= 2 && *id != subject_id
         // });
@@ -105,6 +111,8 @@ pub struct FollowStrategy;
 
 impl StrategyTrait for FollowStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+        let original = &Cow::Borrowed(original);
+
         // TODO: Add teams/friendliness to the game.
         let subject = &original.entities[subject_id];
 
@@ -184,6 +192,8 @@ pub struct RushdownStrategy;
 
 impl StrategyTrait for RushdownStrategy {
     fn take_turn(&self, original: &Floor, subject_id: EntityId) -> FloorUpdate {
+        let original = &Cow::Borrowed(original);
+
         let subject = &original.entities[subject_id];
 
         let in_range = original

@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::num::NonZero;
 
 use rkyv::Archive;
@@ -40,14 +41,14 @@ impl UnaimedTrait for WaitAction {
 }
 
 impl UnaimedActionTrait for WaitAction {
-    type Command = WaitCommand;
+    type Command<'a> = WaitCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         if !(floor.entities.contains_id(subject_id)) {
             return Err(ActionError::DataMismatch);
         }
@@ -83,14 +84,14 @@ impl UnaimedTrait for StepAction {
 }
 
 impl UnaimedActionTrait for StepAction {
-    type Command = StepCommand;
+    type Command<'a> = StepCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<StepCommand, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         if !(floor.entities.contains_id(subject_id)) {
             return Err(ActionError::DataMismatch);
         }
@@ -157,14 +158,14 @@ impl UnaimedTrait for BumpAction {
 }
 
 impl UnaimedActionTrait for BumpAction {
-    type Command = BumpCommand;
+    type Command<'a> = BumpCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<BumpCommand, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         if !(floor.entities.contains_id(subject_id)) {
             return Err(ActionError::DataMismatch);
         }
@@ -253,12 +254,12 @@ impl UnaimedTrait for StepMacroAction {
 }
 
 impl UnaimedMacroTrait for StepMacroAction {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<BoxedCommand, ActionError> {
+    ) -> Result<BoxedCommand<'a>, ActionError> {
         let bump = BumpAction;
         if let Ok(command) = bump.verify(floor, subject_id, dir) {
             return Ok(BoxedCommand::new_from_trait(command));
@@ -282,14 +283,14 @@ impl UnaimedTrait for GotoAction {
 }
 
 impl UnaimedActionTrait for GotoAction {
-    type Command = GotoCommand;
+    type Command<'a> = GotoCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        _floor: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         // Pathfind to target.
         Ok(GotoCommand { tile, subject_id })
     }
@@ -306,14 +307,14 @@ impl UnaimedTrait for GoingAction {
 }
 
 impl UnaimedActionTrait for GoingAction {
-    type Command = GotoCommand;
+    type Command<'a> = GotoCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        _floor: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, Self::Error> {
+    ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(GotoCommand {
             tile: self.tile,
             subject_id,
@@ -329,6 +330,8 @@ pub struct GotoCommand {
 
 impl CommandTrait for GotoCommand {
     fn do_action(self, floor: &Floor) -> FloorUpdate {
+        let floor = &Cow::Borrowed(floor);
+
         // TODO: Clean up terrible, terrible nesting.
         let subject_pos = floor.entities[self.subject_id].pos;
         let verify_action = floor
@@ -413,14 +416,14 @@ impl UnaimedTrait for TryToStandUpAction {
 }
 
 impl UnaimedActionTrait for TryToStandUpAction {
-    type Command = TryToStandUpCommand;
+    type Command<'a> = TryToStandUpCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         match floor.entities[subject_id].state {
             EntityState::Knockdown {
                 next_round: current_round,
@@ -474,14 +477,14 @@ impl UnaimedTrait for KnockdownAfterJuggleAction {
 }
 
 impl UnaimedActionTrait for KnockdownAfterJuggleAction {
-    type Command = KnockdownAfterJuggleCommand;
+    type Command<'a> = KnockdownAfterJuggleCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         match floor.entities[subject_id].state {
             EntityState::Hitstun { next_round, .. } => Ok(KnockdownAfterJuggleCommand {
                 subject_id,
@@ -514,6 +517,8 @@ impl CommandTrait for KnockdownAfterJuggleCommand {
 
 #[cfg(test)]
 mod test {
+    use std::borrow::Cow;
+
     use crate::actions::events::AttackHitEvent;
     use crate::actions::events::FloorEvent;
     use crate::actions::events::StartAttackEvent;
@@ -552,7 +557,11 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             BumpAction
-                .verify(&floor, player_id, RelativePosition::new(1, 0))
+                .verify(
+                    &Cow::Borrowed(&floor),
+                    player_id,
+                    RelativePosition::new(1, 0),
+                )
                 .unwrap()
                 .do_action(&floor)
         });
@@ -591,14 +600,18 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             GotoAction {}
-                .verify(&floor, player_id, AbsolutePosition::new(5, 3))
+                .verify(
+                    &Cow::Borrowed(&floor),
+                    player_id,
+                    AbsolutePosition::new(5, 3),
+                )
                 .unwrap()
                 .do_action(&floor)
         });
 
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
             EntityState::ConfirmCommand { to_confirm, .. } => to_confirm
-                .verify_and_box(&floor, player_id)
+                .verify_and_box(&Cow::Borrowed(&floor), player_id)
                 .do_action(&floor),
             _ => panic!(
                 "Expected ConfirmCommand state. Got value: {:?}",
@@ -643,14 +656,18 @@ mod test {
             .split_pair();
         let update = update.bind(|floor| {
             GotoAction {}
-                .verify(&floor, player_id, AbsolutePosition::new(5, 5))
+                .verify(
+                    &Cow::Borrowed(&floor),
+                    player_id,
+                    AbsolutePosition::new(5, 5),
+                )
                 .unwrap()
                 .do_action(&floor)
         });
 
         let confirm_command = |floor: Floor| match &floor.entities[player_id].state {
             EntityState::ConfirmCommand { to_confirm, .. } => to_confirm
-                .verify_and_box(&floor, player_id)
+                .verify_and_box(&Cow::Borrowed(&floor), player_id)
                 .do_action(&floor),
             _ => panic!(
                 "Expected ConfirmCommand state. Got value: {:?}",

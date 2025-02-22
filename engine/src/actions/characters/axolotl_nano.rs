@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::num::NonZero;
 
 use rkyv::Archive;
@@ -28,14 +29,14 @@ impl UnaimedTrait for EnterSmiteStanceAction {
 }
 
 impl UnaimedActionTrait for EnterSmiteStanceAction {
-    type Command = EnterSmiteStanceCommand;
+    type Command<'a> = EnterSmiteStanceCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        _floor: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         Ok(EnterSmiteStanceCommand { subject_id, tile })
     }
 }
@@ -74,14 +75,14 @@ impl UnaimedTrait for StanceSmiteAction {
 }
 
 impl UnaimedActionTrait for StanceSmiteAction {
-    type Command = StanceSmiteCommand;
+    type Command<'a> = StanceSmiteCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        _floor: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, Self::Error> {
+    ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(StanceSmiteCommand {
             subject_id,
             tile: self.tile,

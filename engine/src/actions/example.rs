@@ -35,14 +35,14 @@ impl UnaimedTrait for DoubleHitAction {
 }
 
 impl UnaimedActionTrait for DoubleHitAction {
-    type Command = DoubleHitCommand;
+    type Command<'a> = DoubleHitCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         if !(floor.entities.contains_id(subject_id)) {
             return Err(ActionError::DataMismatch);
         }
@@ -124,14 +124,14 @@ impl UnaimedTrait for DoubleHitFollowupAction {
 }
 
 impl UnaimedActionTrait for DoubleHitFollowupAction {
-    type Command = DoubleHitFollowup;
+    type Command<'a> = DoubleHitFollowup;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        _floor: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<DoubleHitFollowup, Self::Error> {
+    ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(DoubleHitFollowup {
             dir: self.dir,
             subject_id,
@@ -196,14 +196,14 @@ impl UnaimedTrait for EnterStanceAction {
 }
 
 impl UnaimedActionTrait for EnterStanceAction {
-    type Command = EnterStanceCommand;
+    type Command<'a> = EnterStanceCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        _: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, Self::Error> {
+    ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(EnterStanceCommand { subject_id })
     }
 }
@@ -240,14 +240,14 @@ impl UnaimedTrait for ExitStanceAction {
 }
 
 impl UnaimedActionTrait for ExitStanceAction {
-    type Command = ExitStanceCommand;
+    type Command<'a> = ExitStanceCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        _: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): Self::Target,
-    ) -> Result<ExitStanceCommand, Self::Error> {
+    ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(ExitStanceCommand { subject_id })
     }
 }
@@ -276,6 +276,8 @@ impl CommandTrait for ExitStanceCommand {
 
 #[cfg(test)]
 mod test {
+    use std::borrow::Cow;
+
     use crate::actions::events::AttackHitEvent;
     use crate::actions::events::FloorEvent;
     use crate::actions::events::StartAttackEvent;
@@ -316,7 +318,11 @@ mod test {
         let update = update
             .bind(|floor| {
                 DoubleHitAction
-                    .verify(&floor, player_id, RelativePosition::new(1, 0))
+                    .verify(
+                        &Cow::Borrowed(&floor),
+                        player_id,
+                        RelativePosition::new(1, 0),
+                    )
                     .unwrap()
                     .do_action(&floor)
             })

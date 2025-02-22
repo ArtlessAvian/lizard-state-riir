@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -37,14 +39,14 @@ impl UnaimedTrait for ForwardHeavyAction {
 }
 
 impl UnaimedActionTrait for ForwardHeavyAction {
-    type Command = ForwardHeavyCommand;
+    type Command<'a> = ForwardHeavyCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         if floor.entities[subject_id].energy <= 0 {
             return Err(ActionError::NotEnoughEnergy);
         }
@@ -100,14 +102,14 @@ impl UnaimedTrait for ForwardHeavyFollowupAction {
 }
 
 impl UnaimedActionTrait for ForwardHeavyFollowupAction {
-    type Command = ForwardHeavyFollowup;
+    type Command<'a> = ForwardHeavyFollowup;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        _floor: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, Self::Error> {
+    ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(ForwardHeavyFollowup {
             dir: self.dir,
             subject_id,
@@ -178,14 +180,14 @@ impl UnaimedTrait for TrackingAction {
 }
 
 impl UnaimedActionTrait for TrackingAction {
-    type Command = DelayCommand;
+    type Command<'a> = DelayCommand;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<Self::Command, ActionError> {
+    ) -> Result<Self::Command<'a>, ActionError> {
         if floor.entities[subject_id].energy <= 0 {
             return Err(ActionError::NotEnoughEnergy);
         }
@@ -228,14 +230,14 @@ impl UnaimedTrait for TrackingFollowupAction {
 }
 
 impl UnaimedActionTrait for TrackingFollowupAction {
-    type Command = TrackingFollowup;
+    type Command<'a> = TrackingFollowup;
 
-    fn verify(
+    fn verify<'a>(
         &self,
-        _floor: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<Self::Command, Self::Error> {
+    ) -> Result<Self::Command<'a>, Self::Error> {
         Ok(TrackingFollowup {
             tracking_id: self.tracking_id,
             subject_id,

@@ -1,5 +1,6 @@
 #![allow(private_interfaces)]
 
+use std::borrow::Cow;
 /// Presuming I either split up crates.
 /// Or if someone actually wants to mod. That'd be crazy.
 use std::rc::Rc;
@@ -35,21 +36,21 @@ struct TestAction {}
 
 #[archive_dyn(deserialize)]
 impl ActionTrait for TestAction {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        _floor: &Floor,
+        _floor: &Cow<'a, Floor>,
         subject_id: EntityId,
-    ) -> Result<BoxedCommand, ActionError> {
+    ) -> Result<BoxedCommand<'a>, ActionError> {
         Ok(BoxedCommand::new_from_trait(TestCommand { subject_id }))
     }
 }
 
 impl ActionTrait for Archived<TestAction> {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
-    ) -> Result<BoxedCommand, ActionError> {
+    ) -> Result<BoxedCommand<'a>, ActionError> {
         Deserialize::<TestAction, _>::deserialize(self, &mut Infallible)
             .unwrap()
             .verify_and_box(floor, subject_id)
@@ -97,7 +98,12 @@ fn expect_test_action_side_effects(type_erased: Rc<dyn ActionTrait>) {
             payload: "Hello!".to_owned(),
         })
         .split_pair();
-    let update = update.bind(|f| type_erased.verify_and_box(&f, id).unwrap().do_action(&f));
+    let update = update.bind(|f| {
+        type_erased
+            .verify_and_box(&Cow::Borrowed(&f), id)
+            .unwrap()
+            .do_action(&f)
+    });
     let dingus = update.into_both().1;
     assert_eq!(dingus, vec![FloorEvent::Exit(ExitEvent { subject: id }); 3])
 }

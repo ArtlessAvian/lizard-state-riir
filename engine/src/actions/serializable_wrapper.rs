@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -43,12 +44,12 @@ impl UnaimedTrait for SerializableAction<dyn SerializeActionTrait> {
 }
 
 impl UnaimedMacroTrait for SerializableAction<dyn SerializeActionTrait> {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<BoxedCommand, ActionError> {
+    ) -> Result<BoxedCommand<'a>, ActionError> {
         self.0.as_ref().verify_and_box(floor, subject_id)
     }
 }
@@ -59,12 +60,12 @@ impl UnaimedTrait for SerializableAction<dyn SerializeTileActionTrait> {
 }
 
 impl UnaimedMacroTrait for SerializableAction<dyn SerializeTileActionTrait> {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         tile: AbsolutePosition,
-    ) -> Result<BoxedCommand, ActionError> {
+    ) -> Result<BoxedCommand<'a>, ActionError> {
         self.0.as_ref().verify_and_box(floor, subject_id, tile)
     }
 }
@@ -75,12 +76,12 @@ impl UnaimedTrait for SerializableAction<dyn SerializeDirectionActionTrait> {
 }
 
 impl UnaimedMacroTrait for SerializableAction<dyn SerializeDirectionActionTrait> {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         dir: RelativePosition,
-    ) -> Result<BoxedCommand, ActionError> {
+    ) -> Result<BoxedCommand<'a>, ActionError> {
         self.0.as_ref().verify_and_box(floor, subject_id, dir)
     }
 }
@@ -91,12 +92,12 @@ impl UnaimedTrait for SerializableAction<dyn SerializeInfallibleActionTrait> {
 }
 
 impl UnaimedMacroTrait for SerializableAction<dyn SerializeInfallibleActionTrait> {
-    fn verify_and_box(
+    fn verify_and_box<'a>(
         &self,
-        floor: &Floor,
+        floor: &Cow<'a, Floor>,
         subject_id: EntityId,
         (): (),
-    ) -> Result<BoxedCommand, Never> {
+    ) -> Result<BoxedCommand<'a>, Never> {
         Ok(InfallibleActionTrait::verify_and_box(
             self.0.as_ref(),
             floor,

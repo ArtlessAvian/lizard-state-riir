@@ -2,6 +2,8 @@ pub mod map;
 pub(crate) mod mutators;
 pub(crate) mod occupiers;
 
+use std::borrow::Cow;
+
 use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
@@ -239,6 +241,8 @@ impl Floor {
     // Also maybe we wrap EntityId with something to signify its their turn.
     // This again raises the question, does it need to be your turn to run a Command?
     pub fn take_npc_turn(&self) -> Result<FloorUpdate, TurntakingError> {
+        let cow = &Cow::Borrowed(self);
+
         let next_id = self
             .get_current_entity()
             .ok_or(TurntakingError::NoTurntakers)?;
@@ -246,17 +250,17 @@ impl Floor {
         // Return early depending on state.
         match &self.entities[next_id].state {
             EntityState::Committed { queued_command, .. } => {
-                return Ok(queued_command.verify_and_box(self, next_id).do_action(self));
+                return Ok(queued_command.verify_and_box(cow, next_id).do_action(self));
             }
             EntityState::Knockdown { .. } => {
                 return Ok(TryToStandUpAction
-                    .verify(self, next_id, ())
+                    .verify(cow, next_id, ())
                     .expect("only fails if entity is not knockdown state")
                     .do_action(self))
             }
             EntityState::Hitstun { .. } => {
                 return Ok(KnockdownAfterJuggleAction
-                    .verify(self, next_id, ())
+                    .verify(cow, next_id, ())
                     .expect("only fails if entity is not hitstun state")
                     .do_action(self))
             }
