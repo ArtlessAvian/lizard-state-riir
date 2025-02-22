@@ -246,7 +246,7 @@ impl Floor {
         // Return early depending on state.
         match &self.entities[next_id].state {
             EntityState::Committed { queued_command, .. } => {
-                return Ok(queued_command.verify_and_box(self, next_id).do_action(self));
+                return Ok(queued_command.verify_and_box(self, next_id).do_action());
             }
             EntityState::Knockdown { .. } => {
                 return Ok(TryToStandUpAction

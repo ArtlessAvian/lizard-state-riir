@@ -215,7 +215,7 @@ impl ActiveFloor {
     pub fn do_action(&mut self, mut command: Gd<Command>) -> bool {
         let inner = command.bind_mut().command.take();
         if let Some(some) = inner {
-            let (next, log) = some.do_action(&self.internal).into_both();
+            let (next, log) = some.do_action().into_both();
             self.internal = next;
 
             let temp = log
