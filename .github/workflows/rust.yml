@@ -19,8 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: cargo build --verbose
-    - run: cargo test --verbose
+    - run: cargo +nightly test --verbose
 
   mutants:
     # From: https://mutants.rs/ci.html
@@ -30,7 +29,7 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-mutants, cargo-nextest
-      - run: cargo mutants --test-tool=nextest -vV --in-place
+      - run: cargo +nightly mutants --test-tool=nextest -vV --in-place
       - uses: actions/upload-artifact@v4
         if: always()
         with:

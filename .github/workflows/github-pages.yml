@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: taiki-e/install-action@cargo-llvm-cov
-      - run: cargo llvm-cov --html --all-features --workspace
+      - run: cargo +nightly llvm-cov --html --all-features --workspace
       - uses: actions/upload-artifact@v4
         with:
           name: rust-coverage
@@ -57,7 +57,7 @@ jobs:
       with:
         lfs: true
     - name: build linux library
-      run: cargo build
+      run: cargo +nightly build
 
     - uses: actions/upload-artifact@v4
       with:
