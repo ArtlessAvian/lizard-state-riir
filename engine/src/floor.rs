@@ -8,20 +8,20 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
-use crate::actions::events::FloorEvent;
-use crate::actions::public::KnockdownAfterJuggleAction;
-use crate::actions::public::TryToStandUpAction;
 use crate::actions::CommandTrait;
 use crate::actions::InfallibleActionTrait;
 use crate::actions::UnaimedActionTrait;
+use crate::actions::events::FloorEvent;
+use crate::actions::public::KnockdownAfterJuggleAction;
+use crate::actions::public::TryToStandUpAction;
 use crate::entity::BatchEntityUpdate;
 use crate::entity::BatchEntityUpdateContextless;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntitySet;
 use crate::entity::EntityState;
-use crate::floor::map::vision::FloorMapVision;
 use crate::floor::map::FloorMap;
+use crate::floor::map::vision::FloorMapVision;
 use crate::floor::mutators::DownedStateMutator;
 use crate::floor::occupiers::Occupiers;
 use crate::strategy::StrategyTrait;
@@ -256,13 +256,13 @@ impl Floor {
                 return Ok(TryToStandUpAction
                     .verify(cow, next_id, ())
                     .expect("only fails if entity is not knockdown state")
-                    .do_action())
+                    .do_action());
             }
             EntityState::Hitstun { .. } => {
                 return Ok(KnockdownAfterJuggleAction
                     .verify(cow, next_id, ())
                     .expect("only fails if entity is not hitstun state")
-                    .do_action())
+                    .do_action());
             }
             EntityState::Downed { .. } | EntityState::Exited { .. } => {
                 unreachable!("terminal state entities do not participate in turntaking")

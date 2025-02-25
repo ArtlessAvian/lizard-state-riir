@@ -4,6 +4,12 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
+use super::ActionError;
+use super::CommandTrait;
+use super::FloorEvent;
+use super::Never;
+use super::UnaimedActionTrait;
+use super::UnaimedTrait;
 use super::events::AttackHitEvent;
 use super::events::PrepareAttackEvent;
 use super::events::StartAttackEvent;
@@ -11,12 +17,6 @@ use super::known_serializable::KnownDirectionAction;
 use super::known_serializable::KnownInfallibleAction;
 use super::known_serializable::KnownUnaimedAction;
 use super::utils::DelayCommand;
-use super::ActionError;
-use super::CommandTrait;
-use super::FloorEvent;
-use super::Never;
-use super::UnaimedActionTrait;
-use super::UnaimedTrait;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
@@ -295,12 +295,12 @@ impl CommandTrait for ExitStanceCommand<'_> {
 mod test {
     use std::borrow::Cow;
 
+    use crate::actions::CommandTrait;
+    use crate::actions::UnaimedActionTrait;
     use crate::actions::events::AttackHitEvent;
     use crate::actions::events::FloorEvent;
     use crate::actions::events::StartAttackEvent;
     use crate::actions::example::DoubleHitAction;
-    use crate::actions::CommandTrait;
-    use crate::actions::UnaimedActionTrait;
     use crate::entity::Entity;
     use crate::floor::Floor;
     use crate::floor::FloorUpdate;

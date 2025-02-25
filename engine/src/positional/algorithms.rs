@@ -106,9 +106,9 @@ impl Segment {
 
 #[cfg(test)]
 mod test {
-    use crate::positional::algorithms::Segment;
     use crate::positional::InsideOctant;
     use crate::positional::RelativePosition;
+    use crate::positional::algorithms::Segment;
 
     #[test]
     fn test_cardinal() {

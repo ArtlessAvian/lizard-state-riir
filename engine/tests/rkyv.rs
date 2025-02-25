@@ -3,9 +3,9 @@ use engine::entity::EntityState;
 use engine::floor::Floor;
 use engine::positional::AbsolutePosition;
 use engine::strategy::NullStrategy;
-use rkyv::ser::serializers::AllocSerializer;
-use rkyv::ser::Serializer;
 use rkyv::Deserialize;
+use rkyv::ser::Serializer;
+use rkyv::ser::serializers::AllocSerializer;
 
 #[test]
 fn serialize_deserialize() {

@@ -4,21 +4,21 @@ use std::collections::HashSet;
 use std::num::NonZero;
 use std::ops::DerefMut;
 
+use super::CommandTrait;
 use super::events::FloorEvent;
 use super::events::JuggleHitEvent;
 use super::events::JuggleLimitEvent;
 use super::events::KnockbackEvent;
 use super::events::KnockdownEvent;
 use super::known_serializable::KnownInfallibleAction;
-use super::CommandTrait;
 use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
 use crate::floor::Floor;
 use crate::floor::FloorUpdate;
-use crate::positional::algorithms::Segment;
 use crate::positional::RelativePosition;
+use crate::positional::algorithms::Segment;
 use crate::writer::Writer;
 
 #[derive(Debug)]
@@ -247,9 +247,9 @@ pub fn start_juggle(
 mod tests {
     use super::*;
     use crate::entity::Entity;
+    use crate::floor::Floor;
     use crate::floor::map::FloorMap;
     use crate::floor::map::FloorTile;
-    use crate::floor::Floor;
     use crate::positional::AbsolutePosition;
     use crate::positional::RelativePosition;
 
@@ -374,18 +374,22 @@ mod tests {
             update.get_contents().entities[other].pos,
             AbsolutePosition::new(2, 0)
         );
-        assert!(update
-            .get_log()
-            .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
-                subject: id,
-                tile: AbsolutePosition::new(1, 0)
-            })));
-        assert!(update
-            .get_log()
-            .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
-                subject: other,
-                tile: AbsolutePosition::new(2, 0)
-            })));
+        assert!(
+            update
+                .get_log()
+                .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
+                    subject: id,
+                    tile: AbsolutePosition::new(1, 0)
+                }))
+        );
+        assert!(
+            update
+                .get_log()
+                .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
+                    subject: other,
+                    tile: AbsolutePosition::new(2, 0)
+                }))
+        );
     }
 
     #[test]
@@ -466,22 +470,26 @@ mod tests {
             update.get_contents().entities[id].pos,
             AbsolutePosition::new(1, 0)
         );
-        assert!(update
-            .get_log()
-            .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
-                subject: id,
-                tile: AbsolutePosition::new(1, 0)
-            })));
+        assert!(
+            update
+                .get_log()
+                .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
+                    subject: id,
+                    tile: AbsolutePosition::new(1, 0)
+                }))
+        );
         assert_eq!(
             update.get_contents().entities[other].pos,
             AbsolutePosition::new(1, 0)
         );
-        assert!(update
-            .get_log()
-            .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
-                subject: other,
-                tile: AbsolutePosition::new(1, 0)
-            })));
+        assert!(
+            update
+                .get_log()
+                .contains(&FloorEvent::KnockbackEvent(KnockbackEvent {
+                    subject: other,
+                    tile: AbsolutePosition::new(1, 0)
+                }))
+        );
         assert!(matches!(
             update.get_contents().entities[other].state,
             EntityState::Knockdown { next_round: 0 }

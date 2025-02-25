@@ -4,11 +4,11 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
+use crate::actions::CommandTrait;
+use crate::actions::UnaimedActionTrait;
 use crate::actions::public::BumpAction;
 use crate::actions::public::StepAction;
 use crate::actions::public::WaitAction;
-use crate::actions::CommandTrait;
-use crate::actions::UnaimedActionTrait;
 use crate::entity::EntityId;
 use crate::entity::EntityState;
 use crate::floor::Floor;

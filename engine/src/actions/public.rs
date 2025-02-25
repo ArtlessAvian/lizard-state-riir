@@ -5,13 +5,6 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
-use super::events::AttackHitEvent;
-use super::events::KnockdownEvent;
-use super::events::MoveEvent;
-use super::events::StartAttackEvent;
-use super::events::WakeupEvent;
-use super::utils;
-use super::utils::TakeKnockbackUtil;
 use super::ActionError;
 use super::BoxedCommand;
 use super::CommandTrait;
@@ -20,6 +13,13 @@ use super::Never;
 use super::UnaimedActionTrait;
 use super::UnaimedMacroTrait;
 use super::UnaimedTrait;
+use super::events::AttackHitEvent;
+use super::events::KnockdownEvent;
+use super::events::MoveEvent;
+use super::events::StartAttackEvent;
+use super::events::WakeupEvent;
+use super::utils;
+use super::utils::TakeKnockbackUtil;
 use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
@@ -546,14 +546,14 @@ impl CommandTrait for KnockdownAfterJuggleCommand<'_> {
 mod test {
     use std::borrow::Cow;
 
+    use crate::actions::CommandTrait;
+    use crate::actions::InfallibleActionTrait;
+    use crate::actions::UnaimedActionTrait;
     use crate::actions::events::AttackHitEvent;
     use crate::actions::events::FloorEvent;
     use crate::actions::events::StartAttackEvent;
     use crate::actions::public::BumpAction;
     use crate::actions::public::GotoAction;
-    use crate::actions::CommandTrait;
-    use crate::actions::InfallibleActionTrait;
-    use crate::actions::UnaimedActionTrait;
     use crate::entity::Entity;
     use crate::entity::EntityState;
     use crate::floor::Floor;

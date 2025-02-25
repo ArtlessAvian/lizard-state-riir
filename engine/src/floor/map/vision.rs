@@ -13,8 +13,8 @@ use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::floor::map::FloorMap;
 use crate::floor::map::FloorTile;
-use crate::positional::fov::StrictFOV;
 use crate::positional::AbsolutePosition;
+use crate::positional::fov::StrictFOV;
 use crate::writer::Writer;
 
 static STRICT_FOV: OnceLock<StrictFOV> = OnceLock::new();

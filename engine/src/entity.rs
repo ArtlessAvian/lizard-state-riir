@@ -1,5 +1,5 @@
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::hash::Hash;
 use std::ops::Index;
 use std::rc::Rc;
@@ -8,10 +8,10 @@ use rkyv::Archive;
 use rkyv::Deserialize;
 use rkyv::Serialize;
 
+use crate::actions::UnaimedAction;
 use crate::actions::events::FloorEvent;
 use crate::actions::known_serializable::KnownInfallibleAction;
 use crate::actions::known_serializable::KnownUnaimedAction;
-use crate::actions::UnaimedAction;
 use crate::positional::AbsolutePosition;
 use crate::strategy::Strategy;
 use crate::writer::Writer;
