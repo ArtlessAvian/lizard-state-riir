@@ -4,10 +4,11 @@ name: "Github Pages"
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   GODOT_VERSION: 4.3
+  CARGO_TERM_COLOR: always
 
 jobs:
   coverage:
@@ -15,6 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: taiki-e/install-action@cargo-llvm-cov
+      - run: rustup update --no-self-update nightly
       - run: cargo +nightly llvm-cov --html --all-features --workspace
       - uses: actions/upload-artifact@v4
         with:
@@ -24,50 +26,54 @@ jobs:
   build-wasm:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        lfs: true
-    - uses: actions/setup-python@v5
-      with:
-        python-version: 3.x
-    - uses: mymindstorm/setup-emsdk@v14
-      with:
-        # pinned by godot/gdextension.
-        version: 3.1.39
-        actions-cache-folder: emsdk-cache
-    - run: emcc -v
+      - run: rustup update --no-self-update nightly
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          # pinned by godot/gdextension.
+          version: 3.1.39
+          actions-cache-folder: emsdk-cache
+      - run: emcc -v
 
-    - name: build wasm library
-      run: |
-        rustup toolchain install nightly
-        rustup component add rust-src --toolchain nightly
-        rustup target add wasm32-unknown-emscripten --toolchain nightly
-        cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
+      - name: build wasm library
+        run: |
+          rustup toolchain install nightly
+          rustup component add rust-src --toolchain nightly
+          rustup target add wasm32-unknown-emscripten --toolchain nightly
+          cargo +nightly build -Zbuild-std --target wasm32-unknown-emscripten
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: glue-library-wasm
-        path: target/**/godot_glue.wasm
-        if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glue-library-wasm
+          path: target/**/godot_glue.wasm
+          if-no-files-found: error
 
   build-linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        lfs: true
-    - name: build linux library
-      run: cargo +nightly build
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: build linux library
+        run: |
+          rustup update --no-self-update nightly
+          rustup default nightly
+          cargo +nightly build
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: glue-library-linux
-        path: target/**/libgodot_glue.so
-        if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glue-library-linux
+          path: target/**/libgodot_glue.so
+          if-no-files-found: error
 
   godot-web-export:
     runs-on: ubuntu-latest
-    needs: [ build-wasm, build-linux ]
+    needs: [build-wasm, build-linux]
     container:
       image: barichello/godot-ci:4.3
     steps:
@@ -106,7 +112,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [ coverage, godot-web-export ]
+    needs: [coverage, godot-web-export]
     permissions:
       contents: write
     steps:
