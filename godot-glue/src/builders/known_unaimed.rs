@@ -3,9 +3,12 @@ use engine::actions::characters::max_tegu::ForwardHeavyAction;
 use engine::actions::characters::max_tegu::TrackingAction;
 use engine::actions::example::DoubleHitAction;
 use engine::actions::example::EnterStanceAction;
+use engine::actions::known_serializable::KnownUnaimedAction;
 use godot::prelude::*;
 
-use super::actionset::GodotWrappedAction;
+pub trait ToKnownUnaimed {
+    fn to_known_action(&self) -> KnownUnaimedAction;
+}
 
 macro_rules! expose_action_to_godot {
     ( $type:ident, $cons:expr ) => {
@@ -15,13 +18,10 @@ macro_rules! expose_action_to_godot {
             base: Base<Resource>,
         }
 
-        #[godot_api]
-        impl $type {
-            #[func]
-            fn wrap() -> Gd<GodotWrappedAction> {
-                Gd::from_object(GodotWrappedAction {
-                    action: $cons.into(),
-                })
+        #[godot_dyn]
+        impl ToKnownUnaimed for $type {
+            fn to_known_action(&self) -> KnownUnaimedAction {
+                $cons.into()
             }
         }
     };
