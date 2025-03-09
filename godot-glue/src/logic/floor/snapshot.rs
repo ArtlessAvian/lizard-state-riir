@@ -4,10 +4,10 @@ use engine::entity::Entity;
 use engine::entity::EntityState;
 use godot::prelude::*;
 
-use crate::actions::Action;
-use crate::actions::DirectionAction;
-use crate::actions::InfallibleAction;
-use crate::actions::TileAction;
+use crate::logic::actions::Action;
+use crate::logic::actions::DirectionAction;
+use crate::logic::actions::InfallibleAction;
+use crate::logic::actions::TileAction;
 
 /// Does not update when the Floor updates.
 /// Only contains getters. It is impossible to have setters.

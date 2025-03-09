@@ -1,6 +1,3 @@
-mod action;
-mod actionset;
-
 use std::rc::Rc;
 
 use engine::actions::known_serializable::KnownUnaimedAction;
@@ -12,9 +9,9 @@ use engine::strategy::Strategy;
 use engine::strategy::WanderStrategy;
 use godot::prelude::*;
 
-use self::actionset::ActionSet;
-use crate::floor::snapshot::EntitySnapshot;
-use crate::positional::AbsolutePosition;
+use crate::builders::actionset::ActionSet;
+use crate::logic::floor::snapshot::EntitySnapshot;
+use crate::values::positional::AbsolutePosition;
 
 #[derive(GodotClass, Debug)]
 #[class(init, base=Resource)]

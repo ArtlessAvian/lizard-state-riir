@@ -15,10 +15,10 @@ use engine::strategy::Strategy;
 use godot::prelude::*;
 use tracing::instrument;
 
-use crate::actions::Command;
-use crate::events::FloorEvent;
-use crate::floor::snapshot::EntitySnapshot;
-use crate::resources::EntityInitializer;
+use crate::builders::entity::EntityInitializer;
+use crate::logic::actions::Command;
+use crate::logic::floor::snapshot::EntitySnapshot;
+use crate::values::events::FloorEvent;
 
 #[derive(GodotConvert, Var, Export)]
 #[godot(via = GString)]

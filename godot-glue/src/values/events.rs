@@ -1,9 +1,9 @@
 use engine::actions::events::FloorEvent as FloorEventInternal;
 use godot::prelude::*;
 
-use crate::floor::EntityId;
-use crate::floor::EntityIdCache;
-use crate::positional::AbsolutePosition;
+use crate::logic::floor::EntityId;
+use crate::logic::floor::EntityIdCache;
+use crate::values::positional::AbsolutePosition;
 
 /// A statement about something that happened in the game.
 ///

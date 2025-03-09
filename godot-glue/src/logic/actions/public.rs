@@ -7,9 +7,9 @@ use engine::actions::public::StepMacroAction;
 use engine::actions::public::WaitAction;
 use godot::prelude::*;
 
-use crate::actions::Action;
-use crate::actions::DirectionAction;
-use crate::actions::TileAction;
+use crate::logic::actions::Action;
+use crate::logic::actions::DirectionAction;
+use crate::logic::actions::TileAction;
 
 /// Mirrors the actions in `engine::actions::public`.
 #[derive(GodotClass)]

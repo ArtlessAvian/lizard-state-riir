@@ -10,8 +10,8 @@ use engine::actions::InfallibleActionTrait;
 use engine::actions::TileActionTrait;
 use godot::prelude::*;
 
-use crate::floor::ActiveFloor;
-use crate::floor::EntityId;
+use crate::logic::floor::ActiveFloor;
+use crate::logic::floor::EntityId;
 
 /// An opaque object containing an Action. Has no logic.
 #[derive(GodotClass)]
@@ -60,7 +60,7 @@ impl TileAction {
         &self,
         floor: Gd<ActiveFloor>,
         subject: Gd<EntityId>,
-        tile: crate::positional::AbsolutePosition,
+        tile: crate::values::positional::AbsolutePosition,
     ) -> Option<Gd<Command>> {
         let binding = subject.bind();
         let subject_id = binding.id;
@@ -96,7 +96,7 @@ impl DirectionAction {
         &self,
         floor: Gd<ActiveFloor>,
         subject: Gd<EntityId>,
-        dir: crate::positional::RelativePosition,
+        dir: crate::values::positional::RelativePosition,
     ) -> Option<Gd<Command>> {
         let binding = subject.bind();
         let subject_id = binding.id;
@@ -143,8 +143,8 @@ impl InfallibleAction {
 /// Note the inversion between object and param compared to Engine (though that may change).
 /// ```rust
 /// use godot::prelude::*;
-/// use godot_glue::actions::Command;
-/// use godot_glue::floor::ActiveFloor;
+/// use godot_glue::logic::actions::Command;
+/// use godot_glue::logic::floor::ActiveFloor;
 /// use engine::actions::BoxedCommand;
 /// use engine::floor::Floor;
 /// fn engine_context(command: BoxedCommand) {

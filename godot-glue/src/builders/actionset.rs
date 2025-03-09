@@ -19,6 +19,7 @@ pub struct ActionSet {
 }
 
 impl ActionSet {
+    #[must_use]
     pub fn to_vec(&self) -> Vec<KnownUnaimedAction> {
         self.actions
             .iter_shared()
