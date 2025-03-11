@@ -23,10 +23,8 @@ pub struct EntityInitializer {
     health: i8,
     #[export]
     max_energy: i8,
-    /// Unforunate indirection.
-    /// Nested resources are fine, but some tool is trying to read it?
     #[export]
-    actions: GString,
+    actions: Option<Gd<ActionSet>>,
     #[export]
     strategy: StrategyName,
     #[export]
@@ -41,12 +39,9 @@ pub struct EntityInitializer {
 impl EntityInitializer {
     #[must_use]
     pub fn to_entity(&self) -> engine::entity::Entity {
-        let moveset: Vec<KnownUnaimedAction> = if self.actions.is_empty() {
-            Vec::new()
-        } else {
-            try_load::<ActionSet>(&self.actions)
-                .map(|x| x.bind().to_vec())
-                .unwrap_or_default()
+        let moveset: Vec<KnownUnaimedAction> = match &self.actions {
+            Some(x) => x.bind().to_vec(),
+            None => Vec::new(),
         };
 
         engine::entity::Entity {
