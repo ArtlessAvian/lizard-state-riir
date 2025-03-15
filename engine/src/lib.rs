@@ -62,5 +62,7 @@ pub(crate) mod pathfinding;
 /// Functional Magic.
 mod writer;
 
+pub mod mapgen;
+
 // TODO:
 // pub(crate) mod prelude;
