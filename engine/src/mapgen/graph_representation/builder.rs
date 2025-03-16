@@ -147,7 +147,7 @@ impl BranchBuilder {
         let valid_children = rooms.iter().enumerate().filter(|(i, room)| {
             parent_child.is_none_or(|some| some != *i)
                 && room.depth > parent_depth
-                && !matches!(room.flow_in, FlowIn::Two)
+                && !matches!(room.flow_in, FlowIn::Two(_, _))
         });
 
         let valid_indices = valid_children.map(|(i, _)| i);
@@ -172,11 +172,14 @@ impl BranchBuilder {
         };
 
         if let Some(some) = maybe_child {
-            rooms[some].flow_in = FlowIn::Two;
+            rooms[some].flow_in = match rooms[some].flow_in {
+                FlowIn::One(x) => FlowIn::Two(x, parent),
+                FlowIn::Two(_, _) | FlowIn::Source => unreachable!(),
+            };
             some
         } else {
             rooms.push(Room {
-                flow_in: FlowIn::One,
+                flow_in: FlowIn::One(parent),
                 flow_out: FlowOut::None,
                 age: 0,
                 depth: parent_depth + 1,
