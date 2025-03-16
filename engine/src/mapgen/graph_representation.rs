@@ -1,4 +1,4 @@
-use std::ops::RangeBounds;
+pub mod builder;
 
 /// The setting of the game, represented as a graph.
 /// An underground body of water, where a few streams collect.
@@ -9,86 +9,23 @@ use std::ops::RangeBounds;
 /// Graphs that are easy to tour are presumably "fun."
 ///
 /// We don't really care to generate every possible graph matching the requirements.
+#[derive(Debug)]
+#[must_use]
 pub struct CaveSystem {
     main: Branch,
     others: [Option<Branch>; 5],
 }
 
 impl CaveSystem {
-    pub fn generate(
-        main_flow: u8,
-        max_total_other_flow: u8,
-        rng: &mut impl FnMut() -> u32,
-    ) -> Self {
-        // We will call generate_with_all_flows.
-        let mut other_flows = [const { None }; 5];
-
-        let half = 1u8.max(main_flow / 2);
-        let double = main_flow.saturating_mul(2);
-
-        let mut remaining_flow = max_total_other_flow;
-        for opt_room in &mut other_flows {
-            let sample = random_in_range(&(half..=double), rng());
-            if remaining_flow < sample {
-                break;
-            }
-            remaining_flow -= sample;
-            *opt_room = Some(sample);
-        }
-        // If there's still remaining flow, oh well!
-
-        // Randomly permute the 5 branches. There's 120 permutations.
-        // 2^32 possible u32s do not divide evenly into 120. Does it really matter?
-        let mut permutation = (rng() % (5 * 4 * 3 * 2)) as usize;
-        for i in (0..5).rev() {
-            let before = permutation % (i + 1);
-            permutation /= i + 1; // floor is expected
-            other_flows.swap(i, before);
-            // We will never touch other[n] for n >= i after this.
-        }
-
-        CaveSystem::generate_with_all_flows(main_flow, other_flows, rng)
-    }
-
-    pub fn generate_with_all_flows(
-        main_flow: u8,
-        other_flows: [Option<u8>; 5],
-        rng: &mut impl FnMut() -> u32,
-    ) -> Self {
-        let main = Branch::generate(main_flow, rng);
-        let others = other_flows.map(|opt| opt.map(|some| Branch::generate(some, rng)));
-        CaveSystem { main, others }
-    }
-
-    // pub fn generate_with_premade_branches(
-    //     main_flow: u8,
-    //     other_flows: [Option<Either<u8, Branch>>],
-    //     rng: &mut impl FnMut() -> u32,
-    // ) -> Self {
-    // }
-
     #[must_use]
     pub fn total_flow(&self) -> u16 {
         u16::from(self.main.flow + self.others.iter().flatten().map(|x| x.flow).sum::<u8>())
     }
 }
 
-// slightly biased towards lower values with very low probability.
-fn random_in_range(range: &(impl RangeBounds<u8> + ExactSizeIterator), random: u32) -> u8 {
-    let outputs = u32::try_from(range.len()).expect("this should be at most 256");
-    let lt_len = u8::try_from(random % outputs).expect("a % b < b, b is a u8 or exactly 256");
-
-    match range.start_bound() {
-        // no overflow since lt_len has max value 255 - x
-        std::ops::Bound::Included(x) => *x + lt_len,
-        // no overflow since lt_len has max value 254 - x
-        std::ops::Bound::Excluded(x) => *x + 1 + lt_len,
-        std::ops::Bound::Unbounded => unreachable!("since range implements ExactSizeIterator"),
-    }
-}
-
 /// One of many rivers leading to the reservoir.
 #[derive(Debug)]
+#[must_use]
 pub struct Branch {
     rooms: Vec<Room>,
     flow: u8,
@@ -232,6 +169,7 @@ impl Branch {
 }
 
 #[derive(Debug)]
+#[must_use]
 struct Room {
     flow_in: FlowIn,
     flow_out: FlowOut,
@@ -255,21 +193,23 @@ enum FlowOut {
 
 #[cfg(test)]
 mod test {
-    use std::ops::RangeBounds;
-
     use super::Branch;
-    use super::CaveSystem;
+    use super::FlowIn;
     use super::FlowOut;
-    use super::random_in_range;
-    use crate::mapgen::graph_representation::FlowIn;
+    use super::builder::BranchBuilder;
+    use super::builder::CaveSystemBuilder;
 
     fn generate_line() -> Branch {
-        Branch::generate(10, &mut || u32::MIN)
+        BranchBuilder::new_minimal(10)
+            .add_edges(10, &mut || u32::MIN)
+            .build()
     }
 
     fn generate_max_connections() -> Branch {
         // also min nodes ig.
-        Branch::generate(10, &mut || u32::MAX)
+        BranchBuilder::new_minimal(10)
+            .add_edges(10, &mut || u32::MAX)
+            .build()
     }
 
     fn low_effort_rng() -> impl FnMut() -> u32 {
@@ -282,7 +222,9 @@ mod test {
     }
 
     fn generate_arbitrary() -> Branch {
-        Branch::generate(10, &mut low_effort_rng())
+        BranchBuilder::new_minimal(10)
+            .add_edges(10, &mut low_effort_rng())
+            .build()
     }
 
     #[test]
@@ -337,68 +279,8 @@ mod test {
     }
 
     #[test]
-    fn test_random_in_range() {
-        fn for_range(range: &(impl RangeBounds<u8> + ExactSizeIterator)) {
-            let mut counts = [0u16; 256];
-            // the end range doesn't really matter for testing.
-            for i in 0..=300u16 {
-                let sample = random_in_range(range, u32::from(i));
-                counts[sample as usize] += 1;
-            }
-
-            for i in 0..=255u8 {
-                assert_eq!(range.contains(&i), counts[i as usize] != 0, "{i}");
-            }
-
-            let nonzeros = counts.iter().filter(|c| **c != 0).copied();
-            let (min, max) = nonzeros.fold((u16::MAX, u16::MIN), |(min, max), el| {
-                (el.min(min), el.max(max))
-            });
-            // let (min, max) = nonzeros.reduce(|(min, max), |)
-            assert!(min == max || min + 1 == max);
-        }
-        for_range(&(5..20));
-        for_range(&(0..=255));
-        for_range(&(0..=0));
-        for_range(&(254..=255));
-    }
-
-    #[test]
-    fn cave_system_only_main() {
-        let system = CaveSystem::generate(10, 0, &mut || u32::MIN);
-        assert!(system.others.iter().all(Option::is_none));
-
-        // This implies DFS never saw a fork, so the graph is a line.
-        assert_eq!(
-            system.main.dfs_with_duplicates().len(),
-            system.main.rooms.len(),
-        );
-    }
-
-    #[test]
-    fn cave_system_with_all_flows() {
-        let system = CaveSystem::generate_with_all_flows(
-            10,
-            [None, Some(20), None, Some(30), None],
-            &mut || u32::MIN,
-        );
-        assert_eq!(system.main.flow, 10);
-
-        assert!(system.others[0].is_none());
-        assert!(system.others[2].is_none());
-        assert!(system.others[4].is_none());
-
-        assert_eq!(system.others[1].as_ref().unwrap().flow, 20);
-        assert_eq!(system.others[3].as_ref().unwrap().flow, 30);
-    }
-
-    #[test]
-    fn cave_system_generated_flows() {
-        let system = CaveSystem::generate(10, u8::MAX, &mut || u32::MIN);
-
-        for other in system.others {
-            let some = other.unwrap();
-            assert_eq!(some.flow, 5);
-        }
+    fn cave_system_smoke_test() {
+        let system = CaveSystemBuilder::generate(20, u8::MAX, &mut low_effort_rng());
+        assert_eq!(system.main.flow, 20);
     }
 }
