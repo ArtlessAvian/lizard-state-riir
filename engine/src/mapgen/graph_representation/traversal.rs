@@ -2,7 +2,7 @@ use super::Branch;
 use super::CaveSystem;
 use super::Room;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Hash)]
 #[must_use]
 pub enum CaveSystemNode<'a> {
     Reservoir {

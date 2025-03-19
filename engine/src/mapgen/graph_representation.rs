@@ -12,7 +12,7 @@ pub mod traversal;
 /// Graphs that are easy to tour are presumably "fun."
 ///
 /// We don't really care to generate every possible graph matching the requirements.
-#[derive(Debug)]
+#[derive(Debug, Hash)]
 #[must_use]
 pub struct CaveSystem {
     main: Branch,
@@ -59,12 +59,26 @@ impl CaveSystem {
         }
         out
     }
+
+    #[must_use]
+    /// Lists all edges twice. if (a, b) is present, (b, a) is present.
+    pub fn get_all_edges(&self) -> Vec<(CaveSystemNode, CaveSystemNode)> {
+        let mut out = Vec::new();
+        for from in self.get_all_nodes() {
+            for to in from.get_neighbors() {
+                if !out.contains(&(from, to)) {
+                    out.push((from, to));
+                }
+            }
+        }
+        out
+    }
 }
 
 /// One of many rivers leading to the reservoir.
 ///
 /// Technically directed using `FlowOut`, but rooms also know which rooms connect to them.
-#[derive(Debug)]
+#[derive(Debug, Hash)]
 #[must_use]
 pub struct Branch {
     rooms: Vec<Room>,
@@ -111,7 +125,7 @@ impl Branch {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Hash)]
 #[must_use]
 pub struct Room {
     flow_in: FlowIn,
@@ -120,14 +134,14 @@ pub struct Room {
     age: u8,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Hash)]
 enum FlowIn {
     Source,
     One(usize),
     Two(usize, usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Hash)]
 enum FlowOut {
     None,
     One(usize),
