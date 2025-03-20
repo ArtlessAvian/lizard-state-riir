@@ -59,6 +59,8 @@ pub mod positional;
 
 pub(crate) mod pathfinding;
 
+pub mod mapgen;
+
 /// Functional Magic.
 mod writer;
 
