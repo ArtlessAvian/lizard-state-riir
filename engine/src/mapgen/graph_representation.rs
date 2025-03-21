@@ -211,6 +211,14 @@ impl Branch {
         }
     }
 
+    pub fn get_candidate_parents(&self) -> impl Iterator<Item = NodeIndex<u8>> {
+        self.graph
+            .node_indices()
+            .filter(|a| *a != self.source.0)
+            .filter(|a| self.graph.edges_directed(*a, Outgoing).count() < 2)
+            .filter(|a| self.graph.edges_directed(*a, Incoming).count() < 2)
+    }
+
     #[must_use]
     pub fn get_river_nodes(&self) -> Vec<NodeIndex<u8>> {
         let mut out = Vec::new();
@@ -258,20 +266,7 @@ mod test {
         }
 
         // All nodes with two edges (one not flowing) has one that's flowing
-        for node in branch.graph.node_indices() {
-            if branch
-                .graph
-                .edges_directed(node, Outgoing)
-                .any(|e| !e.weight().has_flow)
-            {
-                assert!(
-                    branch
-                        .graph
-                        .edges_directed(node, Outgoing)
-                        .any(|e| e.weight().has_flow)
-                );
-            }
-        }
+        // Assertion broken by dead ends, with no flow in, and two children with no flow.
 
         // All non-source non-sink nodes have flow-in = flow-out + flow-absorbed
         for (index, room) in branch.graph.node_references() {
@@ -317,5 +312,29 @@ mod test {
         branch.extend_join_and_fork(NonZero::new(5).unwrap(), NonZero::new(5).unwrap());
         assert_valid(&branch);
         assert_eq!(branch.graph.edge_count(), 5 + 5 + 1);
+    }
+
+    #[test]
+    fn test_add_children() {
+        let mut branch = Branch::new();
+        branch.extend_source();
+
+        for lol in branch.get_candidate_parents().collect::<Box<_>>() {
+            branch.add_new_child(lol);
+        }
+
+        assert_valid(&branch);
+    }
+
+    #[test]
+    fn test_monstrosity() {
+        let mut branch = Branch::new();
+        for _ in 0..5 {
+            branch.extend_join_and_fork(NonZero::new(3).unwrap(), NonZero::new(3).unwrap());
+            for lol in branch.get_candidate_parents().collect::<Box<_>>() {
+                branch.add_new_child(lol);
+            }
+        }
+        assert_valid(&branch);
     }
 }
