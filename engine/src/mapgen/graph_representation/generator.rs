@@ -2,7 +2,6 @@ use std::num::NonZero;
 
 use rand::Rng;
 use rand::distr::Distribution;
-use rand::seq::IndexedRandom;
 use rand::seq::SliceRandom;
 use rand_distr::Binomial;
 use rand_distr::Uniform;
@@ -116,11 +115,10 @@ fn generate_polygon<RngImpl: Rng>(rng: &mut RngImpl, max_loop_len: u8) -> EdgeCo
 
 fn generate_stray_edges<RngImpl: Rng>(count: u8) -> EdgeCost<RngImpl> {
     let a = |branch: &mut Branch, rng: &mut RngImpl| {
-        let candidates = branch.get_candidate_parents().collect::<Box<_>>();
-        let maybe = IndexedRandom::choose(&*candidates, rng);
-        if let Some(parent) = maybe {
-            branch.add_new_child(*parent);
-        }
+        let candidates = branch.get_candidate_parents().collect::<Vec<_>>();
+        let index = rng.random_range(..candidates.len());
+        let chosen = candidates.into_iter().nth(index).expect("index is valid");
+        branch.add_new_child(chosen);
     };
 
     let dingus = (0..count)

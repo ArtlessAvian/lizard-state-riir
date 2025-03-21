@@ -3,6 +3,7 @@
 pub mod generator;
 
 use std::num::NonZero;
+use std::ops::Deref;
 
 use petgraph::Graph;
 use petgraph::prelude::*;
@@ -20,8 +21,87 @@ pub struct CaveSystem {
 
 impl CaveSystem {}
 
+pub enum DegreeLimitError {
+    Incoming,
+    Outgoing,
+    Total,
+}
+
 #[derive(Debug)]
 pub struct InDegreeZero(NodeIndex<u8>);
+impl From<InDegreeZero> for NodeIndex<u8> {
+    fn from(value: InDegreeZero) -> Self {
+        value.0
+    }
+}
+impl Deref for InDegreeZero {
+    type Target = NodeIndex<u8>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(Debug)]
+pub struct ValidParent(NodeIndex<u8>);
+impl ValidParent {
+    fn try_from_with_proof<A, B>(
+        index: NodeIndex<u8>,
+        graph: &Graph<A, B, Directed, u8>,
+    ) -> Result<Self, DegreeLimitError> {
+        if graph.edges(index).count() >= 3 {
+            Err(DegreeLimitError::Total)
+        } else if graph.edges_directed(index, Incoming).count() >= 2 {
+            Err(DegreeLimitError::Incoming)
+        } else {
+            Ok(Self(index))
+        }
+    }
+}
+impl From<ValidParent> for NodeIndex<u8> {
+    fn from(value: ValidParent) -> Self {
+        value.0
+    }
+}
+impl Deref for ValidParent {
+    type Target = NodeIndex<u8>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+// Hopefully me when I tell my parents about my game dev career.
+#[derive(Debug)]
+pub struct ValidChild(NodeIndex<u8>);
+impl ValidChild {
+    fn try_from_with_proof<A, B>(
+        index: NodeIndex<u8>,
+        graph: &Graph<A, B, Directed, u8>,
+    ) -> Result<Self, DegreeLimitError> {
+        if graph.edges(index).count() >= 3 {
+            Err(DegreeLimitError::Total)
+        } else if graph.edges_directed(index, Outgoing).count() >= 2 {
+            Err(DegreeLimitError::Outgoing)
+        } else {
+            Ok(Self(index))
+        }
+    }
+}
+impl From<InDegreeZero> for ValidChild {
+    fn from(value: InDegreeZero) -> Self {
+        Self(value.0)
+    }
+}
+impl From<ValidChild> for NodeIndex<u8> {
+    fn from(value: ValidChild) -> Self {
+        value.0
+    }
+}
+impl Deref for ValidChild {
+    type Target = NodeIndex<u8>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 /// One of many rivers leading to the reservoir.
 ///
@@ -159,64 +239,62 @@ impl Branch {
         self.source = InDegreeZero(spacer);
     }
 
-    pub fn add_new_child(&mut self, parent: NodeIndex<u8>) -> Option<NodeIndex<u8>> {
-        if self.graph.neighbors_directed(parent, Outgoing).count() >= 2 {
-            return None;
-        }
-
-        if self.sink == parent {
+    pub fn add_new_child(&mut self, parent: ValidParent) -> NodeIndex<u8> {
+        if self.sink == *parent {
             let new_sink = self.graph.add_node(Room {
                 has_flow: true,
                 flow_seen: 0,
                 flow_absorbed: 0,
             });
-            self.graph.add_edge(parent, new_sink, Hall::new(true));
+            self.graph
+                .add_edge(parent.into(), new_sink, Hall::new(true));
+
             self.sink = new_sink;
-            Some(new_sink)
+            new_sink
         } else {
             let new_child = self.graph.add_node(Room {
                 has_flow: false,
                 flow_seen: 0,
                 flow_absorbed: 0,
             });
-            self.graph.add_edge(parent, new_child, Hall::new(false));
-            Some(new_child)
+            self.graph
+                .add_edge(parent.into(), new_child, Hall::new(false));
+
+            new_child
         }
     }
 
-    pub fn add_new_parent(&mut self, child: NodeIndex<u8>) -> Option<NodeIndex<u8>> {
-        if self.graph.neighbors_directed(child, Incoming).count() >= 2 {
-            return None;
-        }
-
-        if child == self.source.0 {
+    pub fn add_new_parent(&mut self, child: ValidChild) -> NodeIndex<u8> {
+        if *child == self.source.0 {
             let new_source = self.graph.add_node(Room {
                 has_flow: true,
                 flow_seen: 0,
                 flow_absorbed: 0,
             });
-            self.graph.add_edge(new_source, child, Hall::new(true));
+            self.graph
+                .add_edge(new_source, child.into(), Hall::new(true));
 
             self.source.0 = new_source;
-            Some(new_source)
+            new_source
         } else {
             let new_parent = self.graph.add_node(Room {
                 has_flow: false,
                 flow_seen: 0,
                 flow_absorbed: 0,
             });
-            self.graph.add_edge(new_parent, child, Hall::new(true));
+            self.graph
+                .add_edge(new_parent, child.into(), Hall::new(true));
+            let _ = child;
 
-            Some(new_parent)
+            new_parent
         }
     }
 
-    pub fn get_candidate_parents(&self) -> impl Iterator<Item = NodeIndex<u8>> {
+    pub fn get_candidate_parents(&self) -> impl Iterator<Item = ValidParent> {
         self.graph
             .node_indices()
             .filter(|a| *a != self.source.0)
-            .filter(|a| self.graph.edges_directed(*a, Outgoing).count() < 2)
-            .filter(|a| self.graph.edges_directed(*a, Incoming).count() < 2)
+            .filter_map(|a| ValidParent::try_from_with_proof(a, &self.graph).ok())
     }
 
     #[must_use]
