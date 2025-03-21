@@ -7,6 +7,7 @@ use std::ops::Deref;
 
 use petgraph::Graph;
 use petgraph::acyclic::Acyclic;
+use petgraph::acyclic::AcyclicEdgeError;
 use petgraph::data::Build;
 use petgraph::prelude::*;
 
@@ -23,6 +24,7 @@ pub struct CaveSystem {
 
 impl CaveSystem {}
 
+#[derive(Debug)]
 pub enum DegreeLimitError {
     Incoming,
     Outgoing,
@@ -180,77 +182,35 @@ impl Branch {
     }
 
     pub fn extend_source(&mut self) {
-        let existing_child = self.source.0;
-        let new_parent = self.graph.add_node(Room {
-            has_flow: true,
-            flow_seen: 0,
-            flow_absorbed: 0,
-        });
-        self.graph
-            .try_add_edge(
-                new_parent,
-                existing_child,
-                Hall {
-                    has_flow: true,
-                    flow_seen: 0,
-                },
-            )
-            .expect("New edge from new node cannot be a cycle");
-        self.source = InDegreeZero(new_parent);
+        self.add_new_parent(ValidChild(self.source.0));
     }
 
+    // Don't pass in two ones, or itll be a multigraph.
     pub fn extend_join_and_fork(&mut self, wet_edges: NonZero<u8>, dry_edges: NonZero<u8>) {
         let shared_join = self.source.0;
-        let mut wet_destination = shared_join;
-        let mut dry_destination = shared_join;
-        for _ in 0..(u8::from(wet_edges) - 1u8) {
-            let new_parent = self.graph.add_node(Room {
-                has_flow: true,
-                flow_seen: 0,
-                flow_absorbed: 0,
-            });
-            self.graph
-                .try_add_edge(new_parent, wet_destination, Hall::new(true))
-                .expect("New edge from new node cannot be a cycle");
-            wet_destination = new_parent;
+        for _ in 0..(u8::from(wet_edges)) {
+            self.extend_source();
         }
+
+        let mut dry_destination = ValidChild::try_from_with_proof(shared_join, &self.graph)
+            .expect("The old source should now have 1 in and 1 out");
         for _ in 0..(u8::from(dry_edges) - 1) {
-            let new_parent = self.graph.add_node(Room {
-                has_flow: false,
-                flow_seen: 0,
-                flow_absorbed: 0,
-            });
-            self.graph
-                .try_add_edge(new_parent, dry_destination, Hall::new(true))
-                .expect("New edge from new node cannot be a cycle");
-            dry_destination = new_parent;
+            dry_destination = self.add_new_parent(dry_destination).into();
         }
 
-        let shared_fork = self.graph.add_node(Room {
-            has_flow: true,
-            flow_seen: 0,
-            flow_absorbed: 0,
-        });
-        self.graph
-            .try_add_edge(shared_fork, wet_destination, Hall::new(true))
-            .expect("New edge from new node cannot be a cycle");
-        self.graph
-            .try_add_edge(shared_fork, dry_destination, Hall::new(false))
-            .expect("New edge from node with in-degree 0 cannot be a cycle");
+        let shared_fork = self.source.0;
 
-        let spacer = self.graph.add_node(Room {
-            has_flow: true,
-            flow_seen: 0,
-            flow_absorbed: 0,
-        });
-        self.graph
-            .try_add_edge(spacer, shared_fork, Hall::new(true))
-            .expect("New edge from new node cannot be a cycle");
+        // Source pointing into the Fork.
+        self.extend_source();
 
-        self.source = InDegreeZero(spacer);
+        let shared_fork = ValidParent::try_from_with_proof(shared_fork, &self.graph)
+            .expect("The old source should have 1 in and 1 out");
+
+        self.add_edge(shared_fork, dry_destination, Hall::new(false))
+            .expect("We know shared_fork's parent (and only ancestor) has 0 in.");
     }
 
-    pub fn add_new_child(&mut self, parent: ValidParent) -> NodeIndex<u8> {
+    pub fn add_new_child(&mut self, parent: ValidParent) -> ValidParent {
         if self.sink == *parent {
             let new_sink = self.graph.add_node(Room {
                 has_flow: true,
@@ -262,7 +222,7 @@ impl Branch {
                 .expect("New edge to new node cannot be a cycle");
 
             self.sink = new_sink;
-            new_sink
+            ValidParent(new_sink)
         } else {
             let new_child = self.graph.add_node(Room {
                 has_flow: false,
@@ -273,11 +233,11 @@ impl Branch {
                 .try_add_edge(parent.into(), new_child, Hall::new(false))
                 .expect("New edge to new node cannot be a cycle");
 
-            new_child
+            ValidParent(new_child)
         }
     }
 
-    pub fn add_new_parent(&mut self, child: ValidChild) -> NodeIndex<u8> {
+    pub fn add_new_parent(&mut self, child: ValidChild) -> InDegreeZero {
         if *child == self.source.0 {
             let new_source = self.graph.add_node(Room {
                 has_flow: true,
@@ -289,7 +249,7 @@ impl Branch {
                 .expect("New edge from new node cannot be a cycle");
 
             self.source.0 = new_source;
-            new_source
+            InDegreeZero(new_source)
         } else {
             let new_parent = self.graph.add_node(Room {
                 has_flow: false,
@@ -300,8 +260,20 @@ impl Branch {
                 .try_add_edge(new_parent, child.into(), Hall::new(true))
                 .expect("New edge from new node cannot be a cycle");
 
-            new_parent
+            InDegreeZero(new_parent)
         }
+    }
+
+    // We can be sure the degree limits are held,
+    // but we cannot protect against the error case here.
+    // External logic must be used.
+    pub fn add_edge(
+        &mut self,
+        from: ValidParent,
+        to: ValidChild,
+        weight: Hall,
+    ) -> Result<EdgeIndex<u8>, AcyclicEdgeError<NodeIndex<u8>>> {
+        self.graph.try_add_edge(from.into(), to.into(), weight)
     }
 
     pub fn get_candidate_parents(&self) -> impl Iterator<Item = ValidParent> {
