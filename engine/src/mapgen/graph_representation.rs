@@ -6,6 +6,8 @@ use std::num::NonZero;
 use std::ops::Deref;
 
 use petgraph::Graph;
+use petgraph::acyclic::Acyclic;
+use petgraph::data::Build;
 use petgraph::prelude::*;
 
 /// The setting of the game, represented as a graph.
@@ -115,7 +117,7 @@ impl Deref for ValidChild {
 pub struct Branch {
     // A graph with at least one node.
     // Every node must have exactly ONE outgoing edge marked true.
-    pub graph: Graph<Room, Hall, Directed, u8>,
+    pub graph: Acyclic<Graph<Room, Hall, Directed, u8>>,
     source: InDegreeZero,
     sink: NodeIndex<u8>,
 }
@@ -163,7 +165,7 @@ impl Default for Branch {
 impl Branch {
     #[must_use]
     pub fn new() -> Self {
-        let mut graph = Graph::<_, _, Directed, u8>::default();
+        let mut graph: Acyclic<Graph<Room, Hall, Directed, u8>> = Acyclic::new();
         let sink = graph.add_node(Room {
             has_flow: true,
             flow_seen: 0,
@@ -184,14 +186,16 @@ impl Branch {
             flow_seen: 0,
             flow_absorbed: 0,
         });
-        self.graph.add_edge(
-            new_parent,
-            existing_child,
-            Hall {
-                has_flow: true,
-                flow_seen: 0,
-            },
-        );
+        self.graph
+            .try_add_edge(
+                new_parent,
+                existing_child,
+                Hall {
+                    has_flow: true,
+                    flow_seen: 0,
+                },
+            )
+            .expect("New edge from new node cannot be a cycle");
         self.source = InDegreeZero(new_parent);
     }
 
@@ -206,7 +210,8 @@ impl Branch {
                 flow_absorbed: 0,
             });
             self.graph
-                .add_edge(new_parent, wet_destination, Hall::new(true));
+                .try_add_edge(new_parent, wet_destination, Hall::new(true))
+                .expect("New edge from new node cannot be a cycle");
             wet_destination = new_parent;
         }
         for _ in 0..(u8::from(dry_edges) - 1) {
@@ -216,7 +221,8 @@ impl Branch {
                 flow_absorbed: 0,
             });
             self.graph
-                .add_edge(new_parent, dry_destination, Hall::new(true));
+                .try_add_edge(new_parent, dry_destination, Hall::new(true))
+                .expect("New edge from new node cannot be a cycle");
             dry_destination = new_parent;
         }
 
@@ -226,16 +232,21 @@ impl Branch {
             flow_absorbed: 0,
         });
         self.graph
-            .add_edge(shared_fork, wet_destination, Hall::new(true));
+            .try_add_edge(shared_fork, wet_destination, Hall::new(true))
+            .expect("New edge from new node cannot be a cycle");
         self.graph
-            .add_edge(shared_fork, dry_destination, Hall::new(false));
+            .try_add_edge(shared_fork, dry_destination, Hall::new(false))
+            .expect("New edge from node with in-degree 0 cannot be a cycle");
 
         let spacer = self.graph.add_node(Room {
             has_flow: true,
             flow_seen: 0,
             flow_absorbed: 0,
         });
-        self.graph.add_edge(spacer, shared_fork, Hall::new(true));
+        self.graph
+            .try_add_edge(spacer, shared_fork, Hall::new(true))
+            .expect("New edge from new node cannot be a cycle");
+
         self.source = InDegreeZero(spacer);
     }
 
@@ -247,7 +258,8 @@ impl Branch {
                 flow_absorbed: 0,
             });
             self.graph
-                .add_edge(parent.into(), new_sink, Hall::new(true));
+                .try_add_edge(parent.into(), new_sink, Hall::new(true))
+                .expect("New edge to new node cannot be a cycle");
 
             self.sink = new_sink;
             new_sink
@@ -258,7 +270,8 @@ impl Branch {
                 flow_absorbed: 0,
             });
             self.graph
-                .add_edge(parent.into(), new_child, Hall::new(false));
+                .try_add_edge(parent.into(), new_child, Hall::new(false))
+                .expect("New edge to new node cannot be a cycle");
 
             new_child
         }
@@ -272,7 +285,8 @@ impl Branch {
                 flow_absorbed: 0,
             });
             self.graph
-                .add_edge(new_source, child.into(), Hall::new(true));
+                .try_add_edge(new_source, child.into(), Hall::new(true))
+                .expect("New edge from new node cannot be a cycle");
 
             self.source.0 = new_source;
             new_source
@@ -283,8 +297,8 @@ impl Branch {
                 flow_absorbed: 0,
             });
             self.graph
-                .add_edge(new_parent, child.into(), Hall::new(true));
-            let _ = child;
+                .try_add_edge(new_parent, child.into(), Hall::new(true))
+                .expect("New edge from new node cannot be a cycle");
 
             new_parent
         }
