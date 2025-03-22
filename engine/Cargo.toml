@@ -8,6 +8,7 @@ rust-version = "1.85"
 
 [dependencies]
 enum_delegate = "0.2.0"
+gomez = "0.5.0"
 petgraph = "0.7.1"
 # ptr_meta pinned by rkyv.
 ptr_meta = "~0.1.3"
