@@ -40,6 +40,7 @@
     reason = "TODO: Propogate Result<T, E> instead of panicking"
 )]
 #![allow(clippy::used_underscore_binding, reason = "Macros")]
+#![allow(clippy::similar_names, reason = "x and y stuff")]
 
 /// Defining action related traits, and implementations of that trait.
 pub mod actions;
