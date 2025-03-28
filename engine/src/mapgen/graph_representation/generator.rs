@@ -45,8 +45,8 @@ impl<RngImpl: Rng> EdgeCost<RngImpl> {
 
 pub struct BranchGenerator {
     // These constraints are always met:
-    edges: u8,
-    max_loop_len: u8,
+    pub edges: u8,
+    pub max_loop_len: u8,
 }
 
 impl BranchGenerator {
