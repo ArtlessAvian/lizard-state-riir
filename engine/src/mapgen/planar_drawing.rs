@@ -29,51 +29,6 @@ use petgraph::visit::depth_first_search;
 struct GraphDrawing<T>(T);
 
 impl<T> GraphDrawing<T> {
-    // pub fn get_energy(&self, xs: DVector<f32>, ys: DVector<f32>) -> f32
-    // where
-    //     T: GraphBase<NodeId = NodeIndex<u8>> + GetAdjacencyMatrix + NodeCount,
-    // {
-    //     let ones_like = RowDVector::from_element(xs.len(), 1f32);
-    //     let dxs = {
-    //         let mut repeated_cols = xs * &ones_like;
-    //         let repeated_rows = repeated_cols.transpose();
-    //         repeated_cols -= repeated_rows;
-    //         repeated_cols
-    //     };
-    //     let dys = {
-    //         let mut repeated_cols = ys * &ones_like;
-    //         let repeated_rows = repeated_cols.transpose();
-    //         repeated_cols -= repeated_rows;
-    //         repeated_cols
-    //     };
-
-    //     let square_distances = dxs.map(|dx| dx.powi(2)) + dys.map(|dy| dy.powi(2));
-
-    //     let petgraph_adjacency = self.0.adjacency_matrix();
-    //     let adjacency_matrix = OMatrix::<f32, Dyn, Dyn>::from_fn(
-    //         square_distances.nrows(),
-    //         square_distances.ncols(),
-    //         |i, j| {
-    //             let a =
-    //                 self.0
-    //                     .is_adjacent(&petgraph_adjacency, NodeIndex::new(i), NodeIndex::new(j));
-    //             let b =
-    //                 self.0
-    //                     .is_adjacent(&petgraph_adjacency, NodeIndex::new(j), NodeIndex::new(i));
-    //             if a || b { 1f32 } else { 0f32 }
-    //         },
-    //     );
-
-    //     // E = \int F dx = \int kx dx = kx^2
-    //     let spring_forces = adjacency_matrix * &square_distances * 0.5f32;
-
-    //     // E = \int F dx = \int q1q2/x^2 dx = q1q2/x
-    //     let mut electric_forces = square_distances.map(f32::sqrt).map(f32::recip);
-    //     electric_forces.fill_diagonal(0f32);
-
-    //     spring_forces.sum() + electric_forces.sum()
-    // }
-
     pub fn get_sum_force_magnitude(
         &self,
         xs: DVector<f32>,
@@ -113,22 +68,24 @@ impl<T> GraphDrawing<T> {
             },
         );
 
-        // F/d = -k
-        // Force should pull towards each other. (If the spring is present.)
-        let spring_forces = adjacency_matrix * -1f32;
+        // F/d = -k(d - 1)/d = -k(1 - 1/d)
+        // (If the spring is present.)
+        // Force should pull towards each other when more than 1 unit apart.
+        // Force should pull towards each other when less than 1 unit apart.
+        let spring_forces = -1f32
+            * adjacency_matrix.component_mul(&square_distances.map(|d| 1f32 - 1f32 / f32::sqrt(d)));
 
         // F/d = q1q2/d^3
         // Force should push away from each other. (both q's are the same sign)
-        let mut electric_forces = square_distances.map(|f| f.powf(-1.5f32));
-        electric_forces.fill_diagonal(0f32);
-        // electric_forces *= 5f32;
+        let electric_forces = square_distances.map(|f| f.powf(-1.5f32));
 
-        let sum_force_xs = (&spring_forces + &electric_forces)
-            .component_mul(&dxs)
-            .column_sum();
-        let sum_force_ys = (spring_forces + electric_forces)
-            .component_mul(&dys)
-            .column_sum();
+        let mut sum_forces = spring_forces + electric_forces;
+        // Nothing applies a force on itself. These values are probably also NAN.
+        // The values in dx and dy are all finite, so no nan's or infinites should be returned.
+        sum_forces.fill_diagonal(0f32);
+
+        let sum_force_xs = sum_forces.component_mul(&dxs).column_sum();
+        let sum_force_ys = sum_forces.component_mul(&dys).column_sum();
 
         (sum_force_xs, sum_force_ys)
     }
@@ -140,8 +97,8 @@ impl<T> GraphDrawing<T> {
         let floats = (0..self.0.node_count())
             .map(|i| u8::try_from(i).expect("node count <= u8::MAX"))
             .map(f32::from);
-        let xs = floats.clone().skip(1).map(|i| i * f32::cos(f32::sin(i)));
-        let ys = floats.clone().skip(2).map(|i| i * f32::sin(f32::sin(i)));
+        let xs = floats.clone().skip(1);
+        let ys = floats.clone().skip(2).map(|i| i * i - i);
 
         GraphDrawingOptimizer(
             SolverDriver::builder(self)
@@ -276,7 +233,7 @@ where
     fn find_until_small_norm_or_many_iters(
         &mut self,
     ) -> Result<(Box<Positions>, f32), TrustRegionError> {
-        self.find(|state| state.norm() < 1e-2 || state.iter() > 500)
+        self.find(|state| state.norm() < 1e-6 || state.iter() > 500)
     }
 
     fn x(&self) -> Box<Positions> {
@@ -332,15 +289,16 @@ mod test {
         let res = driver.find_until_small_norm_or_many_iters();
         let (x, norm) = driver.error_is_valid(res).unwrap();
         println!("{}", drawing.to_polygon_string(&x));
-        assert!(norm.abs() < 1e-2, "{norm}");
+        assert!(norm.abs() < 1e-6, "{norm}");
 
         // Since there is only one variable, the x coord of the second node, we can expect to solve this quickly.
-        // The spring force (x) should equal the electric force (1/x^2).
-        //    x = 1/x^2
-        // => x^3 = 1
-        // => x = 1
+        // The spring force (x-1) should equal the electric force (1/x^2). (note that x > 0, tho its symmetric when x < 0)
+        //    x - 1 = 1/x^2
+        // => x^3 - x^2 - 1 = 0
+        // => x = 1.465
+        // There is not a nice closed for solution.
         assert_close!(x[0], (0f32, 0f32));
-        assert_close!(x[1], (1f32, 0f32));
+        assert_close!(x[1], (1.465f32, 0f32));
     }
 
     #[test]
@@ -354,15 +312,16 @@ mod test {
         let res = driver.find_until_small_norm_or_many_iters();
         let (x, norm) = driver.error_is_valid(res).unwrap();
         println!("{}", drawing.to_polygon_string(&x));
-        assert!(norm.abs() < 1e-2, "{norm}");
+        assert!(norm.abs() < 1e-6, "{norm}");
 
-        // The solution should be colinear.
+        // The solution should be colinear. Otherwise the two ends would repel each other in a direction not colinear with the spring.
         // We can assume the line is aligned with the x axis. The pinned coordinates make this so.
         // We assume the middle node is in the middle. (There is another solution where it isn't.)
         // The sum forces of the middle node is 0 when both ends are opposite at the same distance.
-        // The sum force of an end node is one spring and two electrical forces.
-        // We want d = 1/d^2 + 1/(2d)^2 => d^3 = 5/4.
-        let expected_distance = (5f32 / 4f32).powf(1f32 / 3f32);
+        // The sum force of an end node is one spring pulling and two electrical forces pushing.
+        //    (d - 1) = 1/d^2 + 1/(2d)^2
+        // (and then you throw it into wolfram alpha or whatever.)
+        let expected_distance = 1.532f32;
 
         assert_close!(x[1], (expected_distance, 0f32));
         assert_close!(x[2], (2f32 * expected_distance, 0f32));
@@ -381,7 +340,7 @@ mod test {
         let res = driver.find_until_small_norm_or_many_iters();
         let (x, norm) = driver.error_is_valid(res).unwrap();
         println!("{}", drawing.to_polygon_string(&x));
-        assert!(norm.abs() < 1e-2, "{norm}");
+        assert!(norm.abs() < 1e-6, "{norm}");
     }
 
     #[test]
@@ -398,6 +357,25 @@ mod test {
         let res = driver.find_until_small_norm_or_many_iters();
         let (x, norm) = driver.error_is_valid(res).unwrap();
         println!("{}", drawing.to_polygon_string(&x));
-        assert!(norm.abs() < 1e-2, "{norm}");
+        assert!(norm.abs() < 1e-6, "{norm}");
     }
+
+    // #[test]
+    // fn big_generated_graph() {
+    //     let mut rng = SmallRng::seed_from_u64(0xb0ba_b0ba_b0ba_b0ba);
+    //     let generator = BranchGenerator {
+    //         edges: 20,
+    //         max_loop_len: 8,
+    //     };
+    //     let branch = generator.generate(&mut rng);
+
+    //     let drawing = GraphDrawing(branch.graph.inner());
+    //     let mut driver = drawing.to_optimizer_driver();
+    //     let res = driver.find_until_small_norm_or_many_iters();
+    //     let (x, norm) = driver.error_is_valid(res).unwrap();
+    //     println!("{}", drawing.to_polygon_string(&x));
+    //     assert!(norm.abs() < 1e-6, "{norm}");
+
+    //     panic!()
+    // }
 }
