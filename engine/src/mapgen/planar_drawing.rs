@@ -52,6 +52,10 @@ impl<T> GraphDrawing<T> {
         };
 
         let square_distances = dxs.map(|dx| dx.powi(2)) + dys.map(|dy| dy.powi(2));
+        let distances = square_distances.map(f32::sqrt);
+        // Prefer multiplying by inv_distance than dividing by distances.
+        // Zero being the inverse of zero is acceptable, since we probably want to have a 0 force anyways.
+        let inv_distance = distances.map(|d| if d == 0f32 { 0f32 } else { d.recip() });
 
         let petgraph_adjacency = self.0.adjacency_matrix();
         let adjacency_matrix = OMatrix::<f32, Dyn, Dyn>::from_fn(
@@ -68,24 +72,29 @@ impl<T> GraphDrawing<T> {
             },
         );
 
-        // F/d = -k(d - 1)/d = -k(1 - 1/d)
+        // F = -k(d - 1)
         // (If the spring is present.)
-        // Force should pull towards each other when more than 1 unit apart.
-        // Force should pull towards each other when less than 1 unit apart.
-        let spring_forces = -1f32
-            * adjacency_matrix.component_mul(&square_distances.map(|d| 1f32 - 1f32 / f32::sqrt(d)));
+        // Force should pull towards (negative) each other when more than 1 unit apart.
+        // Force should push away from (positive) each other when less than 1 unit apart.
+        let spring_forces = -1f32 * adjacency_matrix.component_mul(&distances.map(|d| d - 1f32));
 
-        // F/d = q1q2/d^3
+        // F = q1q2/d^2
         // Force should push away from each other. (both q's are the same sign)
-        let electric_forces = square_distances.map(|f| f.powf(-1.5f32));
+        let electric_forces = inv_distance.component_mul(&inv_distance);
 
         let mut sum_forces = spring_forces + electric_forces;
-        // Nothing applies a force on itself. These values are probably also NAN.
-        // The values in dx and dy are all finite, so no nan's or infinites should be returned.
+
+        // Nothing applies a force on itself. These values are probably also NAN (if we didn't already avoid divisions by zero).
         sum_forces.fill_diagonal(0f32);
 
-        let sum_force_xs = sum_forces.component_mul(&dxs).column_sum();
-        let sum_force_ys = sum_forces.component_mul(&dys).column_sum();
+        let sum_force_xs = sum_forces
+            .component_mul(&dxs)
+            .component_mul(&inv_distance)
+            .column_sum();
+        let sum_force_ys = sum_forces
+            .component_mul(&dys)
+            .component_mul(&inv_distance)
+            .column_sum();
 
         (sum_force_xs, sum_force_ys)
     }
