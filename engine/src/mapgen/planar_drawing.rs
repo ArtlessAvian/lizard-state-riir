@@ -124,8 +124,9 @@ impl<T> GraphDrawing<T> {
             + IntoNeighborsDirected
             + Visitable,
     {
-        fn write_point(position: (f32, f32), out: &mut String) {
-            write!(out, "({}, {}),", position.0, position.1).unwrap();
+        let mut out = String::new();
+        for (id, position) in "abcdfghijklmnopqrstuvwxyz".chars().zip(positions) {
+            writeln!(out, "{} = ({}, {})", id, position.0, position.1).unwrap();
         }
 
         let source = self
@@ -134,17 +135,18 @@ impl<T> GraphDrawing<T> {
             .map(|edge| edge.source())
             .find(|source| self.0.neighbors_directed(*source, Incoming).count() == 0);
 
-        let mut out = String::new();
         depth_first_search(self.0, source, |event| match event {
-            petgraph::visit::DfsEvent::Finish(p, _) | petgraph::visit::DfsEvent::Discover(p, _) => {
-                write_point(positions[p.index()], &mut out);
+            petgraph::visit::DfsEvent::Finish(p, _) => {
+                let pi = "abcdfghijklmnopqrstuvwxyz".chars().nth(p.index()).unwrap();
+                write!(out, "{pi},").unwrap();
             }
-            petgraph::visit::DfsEvent::TreeEdge(_, _) => {}
-            petgraph::visit::DfsEvent::BackEdge(p, q)
+            petgraph::visit::DfsEvent::Discover(_, _) => {}
+            petgraph::visit::DfsEvent::TreeEdge(p, q)
+            | petgraph::visit::DfsEvent::BackEdge(p, q)
             | petgraph::visit::DfsEvent::CrossForwardEdge(p, q) => {
-                write_point(positions[p.index()], &mut out);
-                write_point(positions[q.index()], &mut out);
-                write_point(positions[p.index()], &mut out);
+                let pi = "abcdfghijklmnopqrstuvwxyz".chars().nth(p.index()).unwrap();
+                let qi = "abcdfghijklmnopqrstuvwxyz".chars().nth(q.index()).unwrap();
+                write!(out, "{pi},{qi},").unwrap();
             }
         });
         out
