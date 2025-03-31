@@ -52,7 +52,10 @@ impl ValidParent {
         index: NodeIndex<u8>,
         graph: &Graph<A, B, Directed, u8>,
     ) -> Result<Self, DegreeLimitError> {
-        if graph.edges(index).count() >= 3 {
+        if graph.edges_directed(index, Incoming).count()
+            + graph.edges_directed(index, Outgoing).count()
+            >= 3
+        {
             Err(DegreeLimitError::Total)
         } else if graph.edges_directed(index, Incoming).count() >= 2 {
             Err(DegreeLimitError::Incoming)
@@ -81,7 +84,10 @@ impl ValidChild {
         index: NodeIndex<u8>,
         graph: &Graph<A, B, Directed, u8>,
     ) -> Result<Self, DegreeLimitError> {
-        if graph.edges(index).count() >= 3 {
+        if graph.edges_directed(index, Incoming).count()
+            + graph.edges_directed(index, Outgoing).count()
+            >= 3
+        {
             Err(DegreeLimitError::Total)
         } else if graph.edges_directed(index, Outgoing).count() >= 2 {
             Err(DegreeLimitError::Outgoing)
