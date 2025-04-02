@@ -1,10 +1,12 @@
-[gd_scene load_steps=17 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=19 format=3 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" uid="uid://bv5a0xwsfocya" path="res://Crawler/FloorView/FloorView.gd" id="1_7s6h2"]
 [ext_resource type="Script" uid="uid://6tldef06kjb0" path="res://Crawler/FloorView/FloorCamera.gd" id="2_0g4sw"]
 [ext_resource type="Shader" uid="uid://crbuf7sf332p7" path="res://Crawler/FloorView/grid.gdshader" id="3_ebqio"]
 [ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="4_73ryr"]
 [ext_resource type="PackedScene" uid="uid://26cefkj35wuf" path="res://Crawler/FloorView/Entity/Entity.tscn" id="5_xabx7"]
+[ext_resource type="Script" uid="uid://cog7h73jv8gkt" path="res://Crawler/FloorView/MarchingSquares.gd" id="6_5uatm"]
+[ext_resource type="MeshLibrary" uid="uid://bn3k4w1m2ccgk" path="res://Crawler/FloorView/MarchingSquaresMeshLibrary.tres" id="6_vu3ja"]
 [ext_resource type="Script" uid="uid://csn60gavl7ry3" path="res://Crawler/FloorView/FrustumCam.gd" id="7_qrqk4"]
 [ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
 [ext_resource type="Script" uid="uid://d003ll8nwr5e1" path="res://Crawler/FloorView/MapHistory.gd" id="7_us44u"]
@@ -39,7 +41,7 @@ item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 
 item/0/navigation_layers = 1
 item/1/name = ""
 item/1/mesh = SubResource("BoxMesh_mceu6")
-item/1/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+item/1/mesh_transform = Transform3D(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.25, 0)
 item/1/mesh_cast_shadow = 1
 item/1/shapes = []
 item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -86,6 +88,10 @@ rotation_edit_mode = 2
 metadata/_edit_lock_ = true
 metadata/_edit_group_ = true
 
+[node name="Entity" parent="WorldSkew" instance=ExtResource("5_xabx7")]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
+
 [node name="Map" type="GridMap" parent="WorldSkew"]
 transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
 mesh_library = SubResource("MeshLibrary_1b75v")
@@ -94,13 +100,23 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(0, 0, 0, 65535, 0, 0, 65535, 65535, 0, 0, 65535, 0, 1, 65535, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 65535, 1, 0, 65534, 1, 0, 65533, 1, 0, 65533, 0, 0, 65533, 65535, 0, 65533, 65534, 0, 65534, 65534, 0, 65535, 65534, 0, 0, 65534, 0, 1, 65534, 0, 2, 65534, 0, 2, 65535, 0, 2, 0, 0, 2, 1, 0, 65534, 65535, 0, 65534, 0, 0, 3, 65535, 0, 3, 0, 0, 3, 1, 0, 3, 65533, 1, 2, 65533, 1, 1, 65533, 1, 0, 65533, 1, 65535, 65533, 1, 65534, 65533, 1, 65533, 65533, 1, 3, 65534, 0, 5, 65533, 1, 5, 65534, 1, 5, 65535, 1, 5, 0, 1, 5, 1, 1, 6, 65535, 1, 7, 65535, 1, 7, 0, 1, 7, 1, 1, 11, 65535, 1, 10, 65535, 1, 9, 65535, 1, 10, 65534, 1, 9, 0, 1, 10, 1, 1, 11, 1, 1, 13, 65535, 1, 13, 0, 1, 14, 1, 1, 15, 65535, 1, 15, 0, 1, 15, 1, 1, 15, 2, 1, 15, 3, 1, 14, 3, 1, 13, 3, 1, 11, 3, 1, 10, 3, 1, 9, 3, 1, 8, 3, 1, 7, 3, 1, 6, 3, 1, 5, 3, 1, 15, 65532, 1, 14, 65532, 1, 13, 65532, 1, 12, 65532, 1, 11, 65532, 1, 10, 65532, 1, 9, 65532, 1, 8, 65532, 1, 7, 65532, 1)
+"cells": PackedInt32Array(0, 0, 0, 65535, 0, 0, 65535, 65535, 0, 0, 65535, 0, 1, 65535, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 65535, 1, 0, 65534, 1, 0, 65533, 1, 0, 65533, 0, 0, 65533, 65535, 0, 65533, 65534, 0, 65534, 65534, 0, 65535, 65534, 0, 0, 65534, 0, 1, 65534, 0, 2, 65534, 0, 2, 65535, 0, 2, 0, 0, 2, 1, 0, 65534, 65535, 0, 65534, 0, 0, 3, 65535, 0, 3, 0, 0, 3, 1, 0, 3, 65533, 1, 2, 65533, 1, 1, 65533, 1, 0, 65533, 1, 65535, 65533, 1, 65534, 65533, 1, 3, 65534, 0, 5, 65533, 1, 5, 65534, 1, 5, 65535, 1, 5, 0, 1, 5, 1, 1, 6, 65535, 1, 7, 65535, 1, 7, 0, 1, 7, 1, 1, 11, 65535, 1, 10, 65535, 1, 9, 65535, 1, 10, 65534, 1, 9, 0, 1, 10, 1, 1, 11, 1, 1, 13, 65535, 1, 13, 0, 1, 14, 1, 1, 15, 65535, 1, 15, 0, 1, 15, 1, 1, 15, 2, 1, 15, 3, 1, 14, 3, 1, 13, 3, 1, 11, 3, 1, 10, 3, 1, 9, 3, 1, 8, 3, 1, 7, 3, 1, 6, 3, 1, 5, 3, 1, 15, 65532, 1, 14, 65532, 1, 13, 65532, 1, 12, 65532, 1, 11, 65532, 1, 10, 65532, 1, 9, 65532, 1, 8, 65532, 1, 7, 65532, 1, 65533, 65533, 1048577)
 }
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="Entity" parent="WorldSkew/Map" instance=ExtResource("5_xabx7")]
-unique_name_in_owner = true
+[node name="MarchingSquares" type="GridMap" parent="WorldSkew" node_paths=PackedStringArray("sibling")]
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
+mesh_library = ExtResource("6_vu3ja")
+cell_size = Vector3(1, 9999, 1)
+cell_center_y = false
+data = {
+"cells": PackedInt32Array(3, 65533, 1, 2, 65533, 3, 3, 65532, 4, 2, 65532, 12, 1, 65533, 3, 1, 65532, 12, 0, 65533, 3, 0, 65532, 12, 65535, 65533, 3, 65535, 65532, 12, 65534, 65533, 3, 65534, 65532, 12, 65533, 65533, 3, 65533, 65532, 12, 5, 65533, 5, 4, 65533, 10, 5, 65532, 4, 4, 65532, 8, 5, 65534, 13, 4, 65534, 10, 5, 65535, 7, 4, 65535, 10, 5, 0, 5, 4, 0, 10, 5, 1, 1, 4, 1, 2, 6, 65535, 11, 6, 65534, 12, 7, 65535, 5, 7, 65534, 4, 7, 0, 5, 6, 0, 10, 7, 1, 1, 6, 1, 2, 11, 65535, 1, 10, 65535, 3, 11, 65534, 4, 10, 65534, 13, 9, 65535, 7, 9, 65534, 14, 8, 65535, 10, 8, 65534, 8, 10, 65533, 4, 9, 65533, 8, 9, 0, 9, 8, 0, 2, 10, 1, 3, 9, 1, 2, 10, 0, 12, 11, 1, 1, 11, 0, 4, 13, 65535, 5, 12, 65535, 10, 13, 65534, 4, 12, 65534, 8, 13, 0, 9, 12, 0, 2, 14, 1, 11, 13, 1, 2, 14, 0, 14, 15, 65535, 5, 14, 65535, 10, 15, 65534, 4, 14, 65534, 8, 15, 0, 5, 15, 1, 5, 15, 2, 5, 14, 2, 14, 15, 3, 1, 14, 3, 3, 13, 3, 3, 13, 2, 12, 12, 3, 2, 12, 2, 8, 11, 3, 1, 10, 3, 3, 11, 2, 4, 10, 2, 12, 9, 3, 3, 9, 2, 12, 8, 3, 3, 8, 2, 12, 7, 3, 3, 7, 2, 12, 6, 3, 3, 6, 2, 12, 5, 3, 3, 5, 2, 12, 4, 3, 2, 4, 2, 8, 15, 65532, 1, 14, 65532, 3, 15, 65531, 4, 14, 65531, 12, 13, 65532, 3, 13, 65531, 12, 12, 65532, 3, 12, 65531, 12, 11, 65532, 3, 11, 65531, 12, 10, 65532, 3, 10, 65531, 12, 9, 65532, 3, 9, 65531, 12, 8, 65532, 3, 8, 65531, 12, 7, 65532, 3, 7, 65531, 12, 6, 65532, 2, 6, 65531, 8, 65532, 65533, 2, 65532, 65532, 8)
+}
+script = ExtResource("6_5uatm")
+sibling = NodePath("../Map")
+metadata/_edit_lock_ = true
+metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="MapHistory" type="GridMap" parent="WorldSkew"]
 editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
@@ -117,6 +133,19 @@ data = {
 "cells": PackedInt32Array(0, 0, 0, 65535, 0, 0, 65535, 65535, 0, 0, 65535, 0, 1, 65535, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 65535, 1, 0, 65534, 1, 0, 65533, 1, 0, 65533, 0, 0, 65533, 65535, 0, 65533, 65534, 0, 65534, 65534, 0, 65535, 65534, 0, 0, 65534, 0, 1, 65534, 0, 2, 65534, 0, 2, 65535, 0, 2, 0, 0, 2, 1, 0, 65534, 65535, 0, 65534, 0, 0, 3, 65534, 0, 3, 65535, 0, 3, 0, 0, 3, 1, 0, 4, 65535, 1, 5, 65535, 1, 6, 65535, 1, 4, 65534, 1, 5, 65534, 1, 6, 65534, 1, 6, 65533, 1, 5, 65533, 1, 4, 65533, 1, 3, 65533, 1, 2, 65533, 1, 1, 65533, 1, 0, 65533, 1, 65535, 65533, 1, 65534, 65533, 1, 65533, 65533, 1)
 }
 script = ExtResource("7_us44u")
+metadata/_edit_lock_ = true
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="MarchingSquaresHistory" type="GridMap" parent="WorldSkew" node_paths=PackedStringArray("sibling")]
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, -1333.33, -1490.71)
+mesh_library = ExtResource("6_vu3ja")
+cell_size = Vector3(1, 9999, 1)
+cell_center_y = false
+data = {
+"cells": PackedInt32Array(4, 65535, 3, 3, 65535, 2, 4, 65534, 15, 3, 65534, 10, 5, 65535, 3, 5, 65534, 15, 6, 65535, 1, 6, 65534, 5, 4, 65533, 15, 3, 65533, 11, 5, 65533, 15, 6, 65533, 5, 6, 65532, 4, 5, 65532, 12, 4, 65532, 12, 3, 65532, 12, 2, 65533, 3, 2, 65532, 12, 1, 65533, 3, 1, 65532, 12, 0, 65533, 3, 0, 65532, 12, 65535, 65533, 3, 65535, 65532, 12, 65534, 65533, 3, 65534, 65532, 12, 65533, 65533, 3, 65533, 65532, 12, 65532, 65533, 2, 65532, 65532, 8)
+}
+script = ExtResource("6_5uatm")
+sibling = NodePath("../MapHistory")
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
