@@ -4,6 +4,10 @@ extends GridMap
 @export var sibling: GridMap
 @export_tool_button("Reready") var reready = _ready
 
+const MESHES = [-1, 0, 0, 1, 0, 1, 2, 3, 0, 2, 1, 3, 1, 3, 3, 4]
+const Y_ROT = [0, 0, 3, 0, 2, 2, 2, 0, 1, 0, 3, 3, 1, 2, 1, 0]
+const Y_ROT_TO_ORIENTATION = [0, 10, 16, 22]
+
 
 func _ready() -> void:
 	self.clear()
@@ -16,15 +20,21 @@ func _ready() -> void:
 		check_me[cell - Vector3i(1, 0, 1)] = null
 
 	for cell in check_me.keys():
-		var which = 0
+		var pattern = 0
+		var ones = 0
 		for bit in range(4):
 			var dx = bit % 2
 			var dz = bit / 2  # Expected Integer Division
 			var offset = cell + Vector3i(dx, 0, dz)
 			if sibling.get_cell_item(offset) == 1:
-				which |= 1 << bit
-		self.set_cell_item(cell, which)
+				pattern |= 1 << bit
+				ones += 1
+		if pattern != 0:
+			self.set_cell_item(cell, MESHES[pattern], Y_ROT_TO_ORIENTATION[Y_ROT[pattern]])
 		#self.set_cell_item(cell, 5)
+
+	#for i in range(16):
+	#self.set_cell_item(Vector3(2 * i, 0, 30), MESHES[i], Y_ROT_TO_ORIENTATION[Y_ROT[i]])
 
 
 # TODO: Only update when dirty!!!
