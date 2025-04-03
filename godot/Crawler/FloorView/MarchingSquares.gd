@@ -35,8 +35,3 @@ func _ready() -> void:
 
 	#for i in range(16):
 	#self.set_cell_item(Vector3(2 * i, 0, 30), MESHES[i], Y_ROT_TO_ORIENTATION[Y_ROT[i]])
-
-
-# TODO: Only update when dirty!!!
-func _process(delta: float) -> void:
-	_ready()

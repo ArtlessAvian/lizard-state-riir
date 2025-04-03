@@ -145,9 +145,13 @@ func clear_queue(delta, floor: ActiveFloor):
 				for pos in vision:
 					map.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if vision[pos] else 1)
 
+			$WorldSkew/MarchingSquares._ready()
+
 			var history = $WorldSkew/MapHistory as GridMap
 			for pos in event.vision:
 				history.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if event.vision[pos] else 1)
+
+			$WorldSkew/MarchingSquaresHistory._ready()
 
 			event_index += 1
 
