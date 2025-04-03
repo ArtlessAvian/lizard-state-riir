@@ -2,14 +2,23 @@ shader_type spatial;
 render_mode unshaded;
 
 void vertex() {
-	// Called for every vertex the material is visible on.
+	// scoot towards the camera a little
+	VERTEX += (inverse(MODELVIEW_MATRIX) * vec4(0.0, 0.0, 1e-4, 0.0)).xyz;
 }
 
 void fragment() {
-	if (int(FRAGCOORD.x) % 6 == 0) {
-		if (int(FRAGCOORD.y) % 4 == 0) {
+	highp vec4 zero = vec4(vec3(0), 1);
+	highp vec4 clip_space_zero = PROJECTION_MATRIX * VIEW_MATRIX * zero;
+	highp vec4 offset = FRAGCOORD - zero;
+	
+	if (int(offset.x) % 3 == 0) {
+		if (int(offset.y) % 2 == 0) {
 			discard;
 		}
 	}
+	if (NORMAL.y <= 0.0) {
+		discard;
+	}
+	
 	ALBEDO = vec3(0.073);
 }

@@ -1,24 +1,16 @@
-[gd_scene load_steps=20 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=39 format=4 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" uid="uid://bv5a0xwsfocya" path="res://Crawler/FloorView/FloorView.gd" id="1_7s6h2"]
 [ext_resource type="Script" uid="uid://6tldef06kjb0" path="res://Crawler/FloorView/FloorCamera.gd" id="2_0g4sw"]
 [ext_resource type="Shader" uid="uid://crbuf7sf332p7" path="res://Crawler/FloorView/grid.gdshader" id="3_ebqio"]
 [ext_resource type="FontFile" uid="uid://buoxia56m66ya" path="res://Dogica/dogicapixel.otf" id="4_73ryr"]
+[ext_resource type="Script" uid="uid://c61s0joernvkm" path="res://Crawler/FloorView/Map.gd" id="5_vu3ja"]
 [ext_resource type="PackedScene" uid="uid://26cefkj35wuf" path="res://Crawler/FloorView/Entity/Entity.tscn" id="5_xabx7"]
 [ext_resource type="Script" uid="uid://cog7h73jv8gkt" path="res://Crawler/FloorView/MarchingSquares.gd" id="6_5uatm"]
 [ext_resource type="MeshLibrary" uid="uid://yf8urshngchn" path="res://Crawler/FloorView/MarchingSquaresMeshSymmetric.tres" id="6_o054p"]
 [ext_resource type="Script" uid="uid://csn60gavl7ry3" path="res://Crawler/FloorView/FrustumCam.gd" id="7_qrqk4"]
 [ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
-[ext_resource type="Script" uid="uid://d003ll8nwr5e1" path="res://Crawler/FloorView/MapHistory.gd" id="7_us44u"]
 [ext_resource type="Shader" uid="uid://i2ap0dc7q6or" path="res://Crawler/FloorView/dither.gdshader" id="9_mwgub"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ebx3n"]
-render_priority = 0
-shader = ExtResource("9_mwgub")
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_k7u2w"]
-material = SubResource("ShaderMaterial_ebx3n")
-size = Vector2(300, 300)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0i8tf"]
 render_priority = 0
@@ -28,12 +20,7 @@ shader = ExtResource("3_ebqio")
 material = SubResource("ShaderMaterial_0i8tf")
 size = Vector2(1, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o054p"]
-transparency = 1
-albedo_color = Color(1, 1, 1, 0)
-
 [sub_resource type="BoxMesh" id="BoxMesh_mceu6"]
-material = SubResource("StandardMaterial3D_o054p")
 size = Vector3(1, 0.5, 1)
 
 [sub_resource type="MeshLibrary" id="MeshLibrary_1b75v"]
@@ -51,6 +38,200 @@ item/1/mesh_cast_shadow = 1
 item/1/shapes = []
 item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 item/1/navigation_layers = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vu3ja"]
+render_priority = 0
+shader = ExtResource("9_mwgub")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_o054p"]
+render_priority = -1
+next_pass = SubResource("ShaderMaterial_vu3ja")
+shader = ExtResource("3_ebqio")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_e7q8o"]
+material = SubResource("ShaderMaterial_o054p")
+size = Vector2(1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2oeqx"]
+render_priority = -1
+next_pass = SubResource("ShaderMaterial_vu3ja")
+albedo_color = Color(0.545098, 0.270588, 0.0745098, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_a8jbe"]
+material = SubResource("StandardMaterial3D_2oeqx")
+size = Vector3(1, 0.5, 1)
+
+[sub_resource type="MeshLibrary" id="MeshLibrary_eqn3m"]
+item/0/name = ""
+item/0/mesh = SubResource("PlaneMesh_e7q8o")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/mesh_cast_shadow = 1
+item/0/shapes = []
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1
+item/1/name = ""
+item/1/mesh = SubResource("BoxMesh_a8jbe")
+item/1/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+item/1/mesh_cast_shadow = 1
+item/1/shapes = []
+item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/1/navigation_layers = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_adivs"]
+render_priority = -1
+next_pass = SubResource("ShaderMaterial_vu3ja")
+shader = ExtResource("3_ebqio")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_lx7mx"]
+material = SubResource("ShaderMaterial_adivs")
+size = Vector2(1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gp127"]
+render_priority = -1
+next_pass = SubResource("ShaderMaterial_vu3ja")
+albedo_color = Color(0.545098, 0.270588, 0.0745098, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pe3hq"]
+material = SubResource("StandardMaterial3D_gp127")
+size = Vector3(1, 0.5, 1)
+
+[sub_resource type="MeshLibrary" id="MeshLibrary_ac1j4"]
+item/0/name = ""
+item/0/mesh = SubResource("PlaneMesh_lx7mx")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/mesh_cast_shadow = 1
+item/0/shapes = []
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1
+item/1/name = ""
+item/1/mesh = SubResource("BoxMesh_pe3hq")
+item/1/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+item/1/mesh_cast_shadow = 1
+item/1/shapes = []
+item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/1/navigation_layers = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_alk5c"]
+render_priority = -1
+next_pass = SubResource("ShaderMaterial_vu3ja")
+albedo_color = Color(0.545098, 0.270588, 0.0745098, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_eu0hy"]
+_surfaces = [{
+"aabb": AABB(0, 0, -1, 0.5, 0.5, 1),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAIA/AAAAAAAAgD+rqio+AACAPwAAgD8AAAA/AACAPwAAgD8AAAA/AACAPwAAAD8AAAAAAAAAPwAAAACrqqo+AAAAAAAAAD8AAAA/AACAPwAAAAAAAIA/AAAAAKuqKj4AAIA/q6oqPgAAgD+rqqo+AACAP6uqKj4AAAAAq6oqPgAAAAAAAAAAAAAAAKuqqj4AAIA/q6qqPgAAgD8AAAA/AACAP6uqqj4AAAAAq6qqPgAAAACrqio+"),
+"format": 34359738391,
+"material": SubResource("StandardMaterial3D_alk5c"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC/AAAAAAAAAD8AAIC/AAAAAAAAAAAAAIC/AAAAPwAAAAAAAIC/AAAAAAAAAD8AAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAAAAAAD8AAAAAAAAAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8AAAAAAAAAAAAAAD8AAIC/AAAAPwAAAAAAAIC/AAAAAAAAAD8AAIC/AAAAAAAAAD8AAAAAAAAAAAAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAPwAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAPwAAAAAAAIC/AAAAPwAAAAAAAAAAAAAAAAAAAD8AAAAAAAD/f/////8AAP9//////wAA/3///////////wAA/7//////AAD/v/////8AAP+//38AAP//////fwAA//////9/AAD//////3//f////7//f/9/////v/9//3////+//7//v///////v/+///////+//7//////AAD/f/////8AAP9//////wAA/3///////38AAP//////fwAA//////9/AAD//////7//v///////v/+///////+//7//////")
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sbtna"]
+render_priority = -1
+next_pass = SubResource("ShaderMaterial_vu3ja")
+albedo_color = Color(0.545098, 0.270588, 0.0745098, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_uwj0x"]
+_surfaces = [{
+"aabb": AABB(0, 0, -1, 1, 0.5, 1),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAIA/AAAAAAAAgD8AAAA+AACAPwAAAD8AAAAAAAAAPwAAAAAAAMA+AAAAPwAAAD8AAIA/AAAAPwAAgD8AAIA/AAAAAAAAAD4AAIA/AAAAPgAAgD8AAIA+AACAPwAAAD4AAAAAAAAAPgAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAPwAAAD8AAAA/AAAAAAAAwD4AAIA/AADAPgAAgD8AAAA/AACAPwAAgD8AAAA/AACAPwAAAD8AAAA/AAAAPwAAAD8AAAA/AACAPwAAAAAAAIA/AACAPwAAwD4AAAAAAADAPgAAAAAAAIA+AAAAAAAAgD4AAIA/AACAPgAAgD8AAMA+AACAPwAAgD4AAAAAAACAPgAAAAAAAAA+"),
+"format": 34359738391,
+"material": SubResource("StandardMaterial3D_sbtna"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC/AAAAAAAAAD8AAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAD8AAIC/AAAAAAAAAD8AAIC/AAAAAAAAAAAAAIC/AAAAAAAAAD8AAAAAAAAAAAAAAD8AAIC/AACAPwAAAD8AAIC/AAAAAAAAAD8AAIC/AAAAAAAAAD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8AAAAAAACAPwAAAD8AAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/AACAPwAAAAAAAIC/AACAPwAAAD8AAIC/AACAPwAAAD8AAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAAAAAAIC/AACAPwAAAAAAAAAAAACAPwAAAD8AAAAAAACAPwAAAD8AAAAAAACAPwAAAD8AAIC/AACAPwAAAAAAAIC/AACAPwAAAD8AAIC/AACAPwAAAD8AAAAAAAAAAAAAAD8AAAAAAAD/f/////8AAP9//////wAA/3///////38AAP//////fwAA//////9/AAD//////////wAA/7//////AAD/v/////8AAP+//3//////////f/////////9/////////AAD/f/////8AAP9//////wAA/3///////3//f////7//f/9/////v/9//3////+//38AAP//////fwAA//////9/AAD//////////wAA/7//////AAD/v/////8AAP+//3//f////7//f/9/////v/9//3////+/////f/////////9//////////3//////////f/////////9//////////3///////3//////////f/////////9/////////")
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qpwgw"]
+render_priority = -1
+next_pass = SubResource("ShaderMaterial_vu3ja")
+albedo_color = Color(0.545098, 0.270588, 0.0745098, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_0xiii"]
+_surfaces = [{
+"aabb": AABB(0, 0, -1, 1, 1, 1),
+"attribute_data": PackedByteArray("AACAPwAAQD8AAEA/AACAPwAAAD8AAAA/AACAP6uqKj4AAAAAq6oqPgAAAACrqqo9AAAAPwAAAD8AAAA/AABAPwAAgD4AAIA/AACAPwAAgD4AAAAAAACAPgAAAACrqio+AAAAAAAAQD8AAIA+AAAAPwAAAD8AAAA/AAAAPwAAAD8AAIA+AACAPwAAAAAAAEA/AAAAAKuqKj4AAIA/q6oqPgAAgD8AAIA+AABAPwAAgD8AAAA/AABAPwAAAD8AAAA/AAAAAKuqqj0AAIA/q6qqPQAAgD+rqio+AAAAPwAAAD8AAEA/AAAAPwAAgD8AAEA/AACAPwAAQD8AAIA/AACAPwAAQD8AAIA/AACAP6uqqj4AAAAAq6qqPgAAAAAAAIA+AAAAAAAAgD4AAIA/AACAPgAAgD+rqqo+AACAP6uqqj0AAAAAq6qqPQAAAAAAAAAAAAAAAAAAAAAAAIA/AAAAAAAAgD+rqqo9AACAPwAAAD8AAAAAAAAAPwAAAABVVdU+AACAPgAAgD8AAAAAAACAPwAAAAAAAEA/AACAP1VV1T4AAAAAVVXVPgAAAACrqqo+AAAAAKuqqj4AAIA/q6qqPgAAgD9VVdU+AAAAAFVV1T4AAIA/VVXVPgAAgD8AAAA/"),
+"format": 34359738391,
+"material": SubResource("StandardMaterial3D_qpwgw"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 60,
+"vertex_data": PackedByteArray("AAAAAAAAAD8AAIC/AAAAPwAAAAAAAIC/AACAPwAAgD8AAIC/AACAPwAAgD8AAIC/AACAPwAAgD8AAAAAAAAAPwAAgD8AAAAAAACAPwAAgD8AAAAAAACAPwAAAD8AAAAAAAAAPwAAAAAAAAAAAACAPwAAAD8AAIC/AACAPwAAAD8AAAAAAACAPwAAgD8AAAAAAAAAAAAAAD8AAAAAAAAAPwAAgD8AAAAAAACAPwAAgD8AAAAAAACAPwAAgD8AAAAAAAAAPwAAAAAAAAAAAAAAAAAAAD8AAAAAAACAPwAAgD8AAAAAAACAPwAAgD8AAIC/AACAPwAAAD8AAIC/AAAAPwAAAAAAAIC/AACAPwAAAD8AAIC/AACAPwAAgD8AAIC/AAAAPwAAgD8AAAAAAAAAPwAAgD8AAIC/AACAPwAAgD8AAIC/AACAPwAAgD8AAIC/AAAAPwAAgD8AAIC/AAAAAAAAAD8AAIC/AAAAAAAAAD8AAIC/AAAAAAAAAAAAAIC/AAAAPwAAAAAAAIC/AAAAPwAAAAAAAIC/AAAAPwAAAAAAAAAAAACAPwAAAD8AAAAAAACAPwAAAD8AAAAAAACAPwAAAD8AAIC/AAAAPwAAAAAAAIC/AAAAPwAAgD8AAIC/AAAAPwAAgD8AAAAAAAAAAAAAAD8AAAAAAAAAAAAAAD8AAAAAAAAAAAAAAD8AAIC/AAAAPwAAgD8AAIC/AAAAAAAAAD8AAIC/AAAAAAAAAD8AAAAAAAAAAAAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8AAAAAAAAAAAAAAAAAAIC/AAAAAAAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAPwAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC/AAAAAAAAAD8AAIC//////wAA/7//////AAD/v/////8AAP+//3//////////f/////////9//////////3//f////7//f/9/////v/9//3////+/////f/////////9//////////3///////3//f////7//f/9/////v/9//3////+//3//f////7//f/9/////v/9//3////+/////f/////////9//////////3///////////wAA/7//////AAD/v/////8AAP+//3//////////f/////////9//////////////wAA/7//////AAD/v/////8AAP+//////wAA/7//////AAD/v/////8AAP+//7//P///////v/8///////+//z///////7//P///////v/8///////+//z///////z//v///////P/+///////8//7///////z//v///////P/+///////8//7//////AAD/f/////8AAP9//////wAA/3///////3//f////7//f/9/////v/9//3////+//38AAP//////fwAA//////9/AAD//////38AAP//////fwAA//////9/AAD/////AAD/f/////8AAP9//////wAA/3//////")
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_08ad1"]
+render_priority = -1
+next_pass = SubResource("ShaderMaterial_vu3ja")
+albedo_color = Color(0.545098, 0.270588, 0.0745098, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_fe5pb"]
+_surfaces = [{
+"aabb": AABB(0, 0, -1, 1, 1, 1),
+"attribute_data": PackedByteArray("AAAAAM3MzD4AAIA/zczMPgAAgD8AAAA/AACAPwAAAD8AAIA/AACAPwAAAD8AAIA/AACAP83MzD4AAAAAzczMPgAAAACamZk+AAAAPwAAgD8AAAAAAACAPwAAAAAAAAA/AAAAAAAAAAAAAIA/AAAAAAAAgD/NzMw9AACAPwAAAD8AAAAAAAAAPwAAAADNzMw+AACAP83MzD0AAAAAzczMPQAAAAAAAAAAAAAAAJqZmT4AAIA/mpmZPgAAgD/NzMw+AAAAAM3MTD4AAIA/zcxMPgAAgD+amZk+AACAP5qZmT4AAAAAmpmZPgAAAADNzEw+AABAPwAAAD8AAIA/AAAAPwAAAD8AAIA/AAAAAM3MzD0AAIA/zczMPQAAgD/NzEw+AAAAPwAAgD8AAAA/AABAPwAAQD8AAAA/AAAAPwAAgD8AAAAAAAAAPwAAgD4AAAA/AACAP83MTD4AAAAAzcxMPgAAAADNzMw9AACAPgAAAD8AAAA/AABAPwAAAD8AAIA/"),
+"format": 34359738391,
+"material": SubResource("StandardMaterial3D_08ad1"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 48,
+"vertex_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC/AAAAAAAAgD8AAIC/AAAAAAAAgD8AAIC/AAAAAAAAAAAAAIC/AACAPwAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIC/AAAAPwAAgD8AAIC/AAAAAAAAgD8AAIC/AAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAAAAPwAAgD8AAIC/AAAAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAIC/AAAAAAAAAAAAAIC/AACAPwAAAD8AAAAAAACAPwAAAD8AAIC/AACAPwAAAAAAAIC/AACAPwAAAAAAAIC/AACAPwAAAAAAAAAAAACAPwAAAD8AAAAAAAAAPwAAgD8AAIC/AAAAAAAAgD8AAIC/AACAPwAAAAAAAIC/AAAAPwAAgD8AAAAAAAAAPwAAgD8AAIC/AACAPwAAAD8AAIC/AACAPwAAAAAAAIC/AACAPwAAAD8AAIC/AAAAPwAAgD8AAIC/AACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAPwAAgD8AAAAAAACAPwAAAD8AAIC/AACAPwAAAD8AAAAAAAAAPwAAgD8AAAAAAAAAPwAAgD8AAAAAAACAPwAAAD8AAAAAAACAPwAAAAAAAAAAAAD/f/////8AAP9//////wAA/3///////////wAA/7//////AAD/v/////8AAP+//38AAP//////fwAA//////9/AAD//////3//f////7//f/9/////v/9//3////+//3//////////f/////////9/////////AAD/f/////8AAP9//////wAA/3///////3//////////f/////////9//////////38AAP//////fwAA//////9/AAD/////////f/////////9//////////3//////////f/////////9//////////3///////////wAA/7//////AAD/v/////8AAP+//7//v///////v/+///////+//7///////////wAA/7//////AAD/v/////8AAP+//3//f////7//f/9/////v/9//3////+//7//v///////v/+///////+//7///////3//f////7//f/9/////v/9//3////+/")
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ty3s"]
+render_priority = -1
+next_pass = SubResource("ShaderMaterial_vu3ja")
+albedo_color = Color(0.545098, 0.270588, 0.0745098, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_xtt0d"]
+_surfaces = [{
+"aabb": AABB(0, 0, -1, 1, 1, 1),
+"attribute_data": PackedByteArray("AAAAAAAAwD4AAIA/AADAPgAAgD8AAAA/AACAPwAAAD8AAIA/AACAPwAAAD8AAIA/AACAPwAAwD4AAAAAAADAPgAAAAAAAIA+AAAAPwAAgD8AAAAAAACAPwAAAAAAAAA/AAAAAAAAAAAAAIA/AAAAAAAAgD8AAAA+AACAPwAAAD8AAAAAAAAAPwAAAAAAAMA+AAAAAAAAgD4AAIA/AACAPgAAgD8AAMA+AACAPwAAgD4AAAAAAACAPgAAAAAAAAA+AAAAPwAAgD8AAAA/AAAAPwAAgD8AAAA/AAAAAAAAAD4AAIA/AAAAPgAAgD8AAIA+AAAAAAAAAD8AAAA/AAAAPwAAAD8AAIA/AACAPwAAAD4AAAAAAAAAPgAAAAAAAAAA"),
+"format": 34359738391,
+"material": SubResource("StandardMaterial3D_1ty3s"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC/AAAAAAAAgD8AAIC/AAAAAAAAgD8AAIC/AAAAAAAAAAAAAIC/AACAPwAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAIC/AACAPwAAgD8AAIC/AAAAAAAAgD8AAIC/AAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAIC/AAAAAAAAAAAAAIC/AACAPwAAAAAAAIC/AACAPwAAAAAAAAAAAACAPwAAgD8AAAAAAACAPwAAAAAAAIC/AACAPwAAgD8AAIC/AAAAAAAAgD8AAIC/AACAPwAAgD8AAAAAAACAPwAAgD8AAIC/AACAPwAAAAAAAIC/AAAAAAAAgD8AAAAAAACAPwAAgD8AAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAIC/AACAPwAAgD8AAAAAAAAAAAAAgD8AAAAAAAD/f/////8AAP9//////wAA/3///////////wAA/7//////AAD/v/////8AAP+//38AAP//////fwAA//////9/AAD//////3//f////7//f/9/////v/9//3////+//3//////////f/////////9/////////AAD/f/////8AAP9//////wAA/3///////38AAP//////fwAA//////9/AAD/////////f/////////9//////////3///////////wAA/7//////AAD/v/////8AAP+/////f/////////9//////////3///////3//f////7//f/9/////v/9//3////+//3//////////f/////////9/////////")
+}]
+
+[sub_resource type="MeshLibrary" id="MeshLibrary_jyb4e"]
+item/0/name = "MeshInstance3D"
+item/0/mesh = SubResource("ArrayMesh_eu0hy")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+item/0/mesh_cast_shadow = 1
+item/0/shapes = []
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1
+item/1/name = "MeshInstance3D2"
+item/1/mesh = SubResource("ArrayMesh_uwj0x")
+item/1/mesh_transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+item/1/mesh_cast_shadow = 1
+item/1/shapes = []
+item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/1/navigation_layers = 1
+item/2/name = "MeshInstance3D3"
+item/2/mesh = SubResource("ArrayMesh_0xiii")
+item/2/mesh_transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+item/2/mesh_cast_shadow = 1
+item/2/shapes = []
+item/2/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/2/navigation_layers = 1
+item/3/name = "MeshInstance3D4"
+item/3/mesh = SubResource("ArrayMesh_fe5pb")
+item/3/mesh_transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+item/3/mesh_cast_shadow = 1
+item/3/shapes = []
+item/3/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/3/navigation_layers = 1
+item/4/name = "MeshInstance3D5"
+item/4/mesh = SubResource("ArrayMesh_xtt0d")
+item/4/mesh_transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+item/4/mesh_cast_shadow = 1
+item/4/shapes = []
+item/4/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/4/navigation_layers = 1
 
 [sub_resource type="LabelSettings" id="LabelSettings_2yoih"]
 line_spacing = 4.0
@@ -81,12 +262,6 @@ screen_pixels_per_pixel = 2
 metadata/_edit_lock_ = true
 metadata/_edit_group_ = true
 
-[node name="Dithering" type="MeshInstance3D" parent="Camera3D"]
-transform = Transform3D(1, 0, 0, 0, 0.745356, -0.666667, 0, 0.666667, 0.745356, 0, -7.45356, -26.6667)
-rotation_edit_mode = 2
-mesh = SubResource("PlaneMesh_k7u2w")
-skeleton = NodePath("../../WorldSkew/MapHistory")
-
 [node name="WorldSkew" type="Node3D" parent="."]
 editor_description = "Funky transformation that appears to rotate, but actually keeps \"up\" as Y+, so billboard sprites don't clip into vertical walls behind them. Set directly by ../Camera3D."
 rotation_edit_mode = 2
@@ -97,7 +272,10 @@ metadata/_edit_group_ = true
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
 
-[node name="Map" type="GridMap" parent="WorldSkew"]
+[node name="Map" type="Node3D" parent="WorldSkew"]
+script = ExtResource("5_vu3ja")
+
+[node name="Floors" type="GridMap" parent="WorldSkew/Map"]
 transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
 mesh_library = SubResource("MeshLibrary_1b75v")
 cell_size = Vector3(1, 9999, 1)
@@ -105,13 +283,27 @@ cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(0, 0, 0, 65535, 0, 0, 65535, 65535, 0, 0, 65535, 0, 1, 65535, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 65535, 1, 0, 65534, 1, 0, 65533, 1, 0, 65533, 0, 0, 65533, 65535, 0, 65533, 65534, 0, 65534, 65534, 0, 65535, 65534, 0, 0, 65534, 0, 1, 65534, 0, 2, 65534, 0, 2, 65535, 0, 2, 0, 0, 2, 1, 0, 65534, 65535, 0, 65534, 0, 0, 3, 65535, 0, 3, 0, 0, 3, 1, 0, 3, 65533, 1, 2, 65533, 1, 1, 65533, 1, 0, 65533, 1, 65535, 65533, 1, 65534, 65533, 1, 3, 65534, 0, 5, 65533, 1, 5, 65534, 1, 5, 65535, 1, 5, 0, 1, 5, 1, 1, 6, 65535, 1, 7, 65535, 1, 7, 0, 1, 7, 1, 1, 11, 65535, 1, 10, 65535, 1, 9, 65535, 1, 10, 65534, 1, 9, 0, 1, 10, 1, 1, 11, 1, 1, 13, 65535, 1, 13, 0, 1, 14, 1, 1, 15, 65535, 1, 15, 0, 1, 15, 1, 1, 15, 2, 1, 15, 3, 1, 14, 3, 1, 13, 3, 1, 11, 3, 1, 10, 3, 1, 9, 3, 1, 8, 3, 1, 7, 3, 1, 6, 3, 1, 5, 3, 1, 15, 65532, 1, 14, 65532, 1, 13, 65532, 1, 12, 65532, 1, 11, 65532, 1, 10, 65532, 1, 9, 65532, 1, 8, 65532, 1, 7, 65532, 1, 65533, 65533, 1048577)
+"cells": PackedInt32Array(0, 0, 0, 65535, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 65535, 1, 0, 65534, 1, 0, 65533, 1, 0, 65533, 0, 0, 2, 0, 0, 2, 1, 0, 65534, 0, 0, 3, 65535, 0, 3, 0, 0, 3, 1, 0, 65533, 65535, 0, 65534, 65535, 0, 65535, 65535, 0, 2, 65535, 0, 3, 65534, 0, 1, 65535, 0, 2, 65534, 0, 1, 65534, 0, 0, 65534, 0, 65535, 65534, 0, 65534, 65534, 0, 65533, 65534, 0, 0, 65535, 0)
 }
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="MarchingSquares" type="GridMap" parent="WorldSkew" node_paths=PackedStringArray("sibling")]
+[node name="Walls" type="GridMap" parent="WorldSkew/Map"]
 transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
+mesh_library = SubResource("MeshLibrary_1b75v")
+cell_size = Vector3(1, 9999, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(3, 65533, 1, 2, 65533, 1, 1, 65533, 1, 0, 65533, 1, 65535, 65533, 1, 65534, 65533, 1, 5, 65533, 1, 5, 65534, 1, 5, 65535, 1, 5, 0, 1, 5, 1, 1, 6, 65535, 1, 7, 65535, 1, 7, 0, 1, 7, 1, 1, 11, 65535, 1, 10, 65535, 1, 9, 65535, 1, 10, 65534, 1, 9, 0, 1, 10, 1, 1, 11, 1, 1, 13, 65535, 1, 13, 0, 1, 14, 1, 1, 15, 65535, 1, 15, 0, 1, 15, 1, 1, 15, 2, 1, 15, 3, 1, 14, 3, 1, 13, 3, 1, 11, 3, 1, 10, 3, 1, 9, 3, 1, 8, 3, 1, 7, 3, 1, 6, 3, 1, 5, 3, 1, 15, 65532, 1, 14, 65532, 1, 13, 65532, 1, 12, 65532, 1, 11, 65532, 1, 10, 65532, 1, 9, 65532, 1, 8, 65532, 1, 7, 65532, 1, 65533, 65533, 1)
+}
+metadata/_edit_lock_ = true
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="WallsMarchingSquares" type="GridMap" parent="WorldSkew/Map" node_paths=PackedStringArray("walls")]
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
+visible = false
 mesh_library = ExtResource("6_o054p")
 cell_size = Vector3(1, 9999, 1)
 cell_center_y = false
@@ -119,38 +311,44 @@ data = {
 "cells": PackedInt32Array(3, 65533, 0, 2, 65533, 1, 3, 65532, 1048576, 2, 65532, 655361, 1, 65533, 1, 1, 65532, 655361, 0, 65533, 1, 0, 65532, 655361, 65535, 65533, 1, 65535, 65532, 655361, 65534, 65533, 1, 65534, 65532, 655361, 65533, 65533, 1, 65533, 65532, 655361, 5, 65533, 1048577, 4, 65533, 1441793, 5, 65532, 1048576, 4, 65532, 655360, 5, 65534, 1048579, 4, 65534, 1441793, 5, 65535, 3, 4, 65535, 1441793, 5, 0, 1048577, 4, 0, 1441793, 5, 1, 0, 4, 1, 1441792, 6, 65535, 1441795, 6, 65534, 655361, 7, 65535, 1048577, 7, 65534, 1048576, 7, 0, 1048577, 6, 0, 1441793, 7, 1, 0, 6, 1, 1441792, 11, 65535, 0, 10, 65535, 1, 11, 65534, 1048576, 10, 65534, 1048579, 9, 65535, 3, 9, 65534, 655363, 8, 65535, 1441793, 8, 65534, 655360, 10, 65533, 1048576, 9, 65533, 655360, 9, 0, 2, 8, 0, 1441792, 10, 1, 1, 9, 1, 1441792, 10, 0, 655361, 11, 1, 0, 11, 0, 1048576, 13, 65535, 1048577, 12, 65535, 1441793, 13, 65534, 1048576, 12, 65534, 655360, 13, 0, 2, 12, 0, 1441792, 14, 1, 1441795, 13, 1, 1441792, 14, 0, 655363, 15, 65535, 1048577, 14, 65535, 1441793, 15, 65534, 1048576, 14, 65534, 655360, 15, 0, 1048577, 15, 1, 1048577, 15, 2, 1048577, 14, 2, 655363, 15, 3, 0, 14, 3, 1, 13, 3, 1, 13, 2, 655361, 12, 3, 1441792, 12, 2, 655360, 11, 3, 0, 10, 3, 1, 11, 2, 1048576, 10, 2, 655361, 9, 3, 1, 9, 2, 655361, 8, 3, 1, 8, 2, 655361, 7, 3, 1, 7, 2, 655361, 6, 3, 1, 6, 2, 655361, 5, 3, 1, 5, 2, 655361, 4, 3, 1441792, 4, 2, 655360, 15, 65532, 0, 14, 65532, 1, 15, 65531, 1048576, 14, 65531, 655361, 13, 65532, 1, 13, 65531, 655361, 12, 65532, 1, 12, 65531, 655361, 11, 65532, 1, 11, 65531, 655361, 10, 65532, 1, 10, 65531, 655361, 9, 65532, 1, 9, 65531, 655361, 8, 65532, 1, 8, 65531, 655361, 7, 65532, 1, 7, 65531, 655361, 6, 65532, 1441792, 6, 65531, 655360, 65532, 65533, 1441792, 65532, 65532, 655360)
 }
 script = ExtResource("6_5uatm")
-sibling = NodePath("../Map")
+walls = NodePath("../Walls")
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="MapHistory" type="GridMap" parent="WorldSkew"]
-editor_description = "Renders literally behind the main game. If you can't see it, it doesn't make sense to overlap the main game.
-Match rotation with ../Map.
+[node name="MapHistory" type="Node3D" parent="WorldSkew" node_paths=PackedStringArray("history_of")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.001, -0.001)
+script = ExtResource("5_vu3ja")
+is_history = true
+history_of = NodePath("../Map")
 
-TODO: Figure out how to draw in same position pass?"
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1333.33, -1490.71)
-mesh_library = SubResource("MeshLibrary_1b75v")
+[node name="Floors" type="GridMap" parent="WorldSkew/MapHistory"]
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
+mesh_library = SubResource("MeshLibrary_eqn3m")
 cell_size = Vector3(1, 9999, 1)
 cell_center_x = false
 cell_center_y = false
 cell_center_z = false
-data = {
-"cells": PackedInt32Array(0, 0, 0, 65535, 0, 0, 65535, 65535, 0, 0, 65535, 0, 1, 65535, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 65535, 1, 0, 65534, 1, 0, 65533, 1, 0, 65533, 0, 0, 65533, 65535, 0, 65533, 65534, 0, 65534, 65534, 0, 65535, 65534, 0, 0, 65534, 0, 1, 65534, 0, 2, 65534, 0, 2, 65535, 0, 2, 0, 0, 2, 1, 0, 65534, 65535, 0, 65534, 0, 0, 3, 65534, 0, 3, 65535, 0, 3, 0, 0, 3, 1, 0, 4, 65535, 1, 5, 65535, 1, 6, 65535, 1, 4, 65534, 1, 5, 65534, 1, 6, 65534, 1, 6, 65533, 1, 5, 65533, 1, 4, 65533, 1, 3, 65533, 1, 2, 65533, 1, 1, 65533, 1, 0, 65533, 1, 65535, 65533, 1, 65534, 65533, 1, 65533, 65533, 1)
-}
-script = ExtResource("7_us44u")
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="MarchingSquaresHistory" type="GridMap" parent="WorldSkew" node_paths=PackedStringArray("sibling")]
-transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, -1333.33, -1490.71)
-mesh_library = ExtResource("6_o054p")
+[node name="Walls" type="GridMap" parent="WorldSkew/MapHistory"]
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
+mesh_library = SubResource("MeshLibrary_ac1j4")
+cell_size = Vector3(1, 9999, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+metadata/_edit_lock_ = true
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="WallsMarchingSquares" type="GridMap" parent="WorldSkew/MapHistory" node_paths=PackedStringArray("walls")]
+transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
+visible = false
+mesh_library = SubResource("MeshLibrary_jyb4e")
 cell_size = Vector3(1, 9999, 1)
 cell_center_y = false
-data = {
-"cells": PackedInt32Array(4, 65535, 1, 3, 65535, 1441792, 4, 65534, 4, 3, 65534, 1441793, 5, 65535, 1, 5, 65534, 4, 6, 65535, 0, 6, 65534, 1048577, 4, 65533, 4, 3, 65533, 1441795, 5, 65533, 4, 6, 65533, 1048577, 6, 65532, 1048576, 5, 65532, 655361, 4, 65532, 655361, 3, 65532, 655361, 2, 65533, 1, 2, 65532, 655361, 1, 65533, 1, 1, 65532, 655361, 0, 65533, 1, 0, 65532, 655361, 65535, 65533, 1, 65535, 65532, 655361, 65534, 65533, 1, 65534, 65532, 655361, 65533, 65533, 1, 65533, 65532, 655361, 65532, 65533, 1441792, 65532, 65532, 655360)
-}
 script = ExtResource("6_5uatm")
-sibling = NodePath("../MapHistory")
+walls = NodePath("../Walls")
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 

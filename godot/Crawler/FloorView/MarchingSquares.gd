@@ -1,7 +1,7 @@
 @tool
 extends GridMap
 
-@export var sibling: GridMap
+@export var walls: GridMap
 @export_tool_button("Reready") var reready = _ready
 
 const MESHES = [-1, 0, 0, 1, 0, 1, 2, 3, 0, 2, 1, 3, 1, 3, 3, 4]
@@ -13,7 +13,7 @@ func _ready() -> void:
 	self.clear()
 
 	var check_me: Dictionary = Dictionary()
-	for cell in sibling.get_used_cells_by_item(1):
+	for cell in walls.get_used_cells_by_item(1):
 		check_me[cell] = null
 		check_me[cell - Vector3i(1, 0, 0)] = null
 		check_me[cell - Vector3i(0, 0, 1)] = null
@@ -21,14 +21,12 @@ func _ready() -> void:
 
 	for cell in check_me.keys():
 		var pattern = 0
-		var ones = 0
 		for bit in range(4):
 			var dx = bit % 2
 			var dz = bit / 2  # Expected Integer Division
 			var offset = cell + Vector3i(dx, 0, dz)
-			if sibling.get_cell_item(offset) == 1:
+			if walls.get_cell_item(offset) == 1:
 				pattern |= 1 << bit
-				ones += 1
 		if pattern != 0:
 			self.set_cell_item(cell, MESHES[pattern], Y_ROT_TO_ORIENTATION[Y_ROT[pattern]])
 		#self.set_cell_item(cell, 5)

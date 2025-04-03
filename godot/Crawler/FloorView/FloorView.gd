@@ -17,8 +17,8 @@ var stop_processing: bool = false
 func _ready():
 	desynced_from_floor = true
 
-	($WorldSkew/Map as GridMap).clear()
-	($WorldSkew/MapHistory as GridMap).clear()
+	($WorldSkew/Map as Map).clear()
+	($WorldSkew/MapHistory as Map).clear()
 
 
 func _process_floor(delta, floor: ActiveFloor):
@@ -139,19 +139,13 @@ func clear_queue(delta, floor: ActiveFloor):
 		elif event is SeeMapEvent:
 			test_visions[event.subject] = event.vision
 
-			var map = $WorldSkew/Map as GridMap
+			var history = $WorldSkew/MapHistory as Map
+			history.add_vision(event.vision)
+
+			var map = $WorldSkew/Map as Map
 			map.clear()
 			for vision in test_visions.values():
-				for pos in vision:
-					map.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if vision[pos] else 1)
-
-			$WorldSkew/MarchingSquares._ready()
-
-			var history = $WorldSkew/MapHistory as GridMap
-			for pos in event.vision:
-				history.set_cell_item(Vector3i(pos.x, 0, pos.y), 0 if event.vision[pos] else 1)
-
-			$WorldSkew/MarchingSquaresHistory._ready()
+				map.add_vision(vision)
 
 			event_index += 1
 
