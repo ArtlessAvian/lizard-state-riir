@@ -9,7 +9,7 @@ const DITHER_SHADER = preload("res://Crawler/FloorView/dither.gdshader")
 
 
 func _ready() -> void:
-	if is_history:
+	if is_history and not Engine.is_editor_hint():
 		var yeah = ShaderMaterial.new()
 		yeah.shader = DITHER_SHADER
 

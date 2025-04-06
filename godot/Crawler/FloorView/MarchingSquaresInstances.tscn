@@ -6,42 +6,51 @@
 script = ExtResource("1_a5vam")
 metadata/_edit_lock_ = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, 0, 0, -0.5)
-metadata/_edit_lock_ = true
+[node name="CSGPrisms" type="Node3D" parent="."]
 
-[node name="CSGPolygon3D" type="CSGPolygon3D" parent="MeshInstance3D"]
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="CSGPrisms"]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 2)
 polygon = PackedVector2Array(0, 0, 0, 0.5, 0.5, 0)
 metadata/_edit_lock_ = true
 
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, 1, 0, -0.5)
-metadata/_edit_lock_ = true
-
-[node name="CSGPolygon3D" type="CSGPolygon3D" parent="MeshInstance3D2"]
+[node name="CSGPolygon3D2" type="CSGPolygon3D" parent="CSGPrisms"]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 2, 0, 2)
 polygon = PackedVector2Array(0, 0, 0, 0.5, 1, 0.5, 1, 0)
 metadata/_edit_lock_ = true
 
-[node name="MeshInstance3D3" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, 2, 0, -0.5)
-metadata/_edit_lock_ = true
-
-[node name="CSGPolygon3D" type="CSGPolygon3D" parent="MeshInstance3D3"]
+[node name="CSGPolygon3D3" type="CSGPolygon3D" parent="CSGPrisms"]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 4, 0, 2)
 polygon = PackedVector2Array(0, 0.5, 0.5, 1, 1, 1, 1, 0.5, 0.5, 0, 0, 0)
 metadata/_edit_lock_ = true
 
-[node name="MeshInstance3D4" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, 3, 0, -0.5)
-metadata/_edit_lock_ = true
-
-[node name="CSGPolygon3D" type="CSGPolygon3D" parent="MeshInstance3D4"]
+[node name="CSGPolygon3D4" type="CSGPolygon3D" parent="CSGPrisms"]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 6, 0, 2)
 polygon = PackedVector2Array(0, 1, 0.5, 1, 1, 0.5, 1, 0, 0, 0)
 metadata/_edit_lock_ = true
 
-[node name="MeshInstance3D5" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, 4, 0, -0.5)
-metadata/_edit_lock_ = true
-
-[node name="CSGPolygon3D" type="CSGPolygon3D" parent="MeshInstance3D5"]
+[node name="CSGPolygon3D5" type="CSGPolygon3D" parent="CSGPrisms"]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 8, 0, 2)
 polygon = PackedVector2Array(0, 1, 1, 1, 1, 0, 0, 0)
 metadata/_edit_lock_ = true
+
+[node name="Meshes" type="Node3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Meshes"]
+transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+skeleton = NodePath("../..")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Meshes"]
+transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+skeleton = NodePath("../..")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="Meshes"]
+transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+skeleton = NodePath("../..")
+
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="Meshes"]
+transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+skeleton = NodePath("../..")
+
+[node name="MeshInstance3D5" type="MeshInstance3D" parent="Meshes"]
+transform = Transform3D(1, 0, 0, 0, 0, -0.5, 0, 1, 0, -0.5, 0, -0.5)
+skeleton = NodePath("../..")
