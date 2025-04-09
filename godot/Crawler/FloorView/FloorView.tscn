@@ -108,7 +108,6 @@ metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="WallsMarchingSquares" type="GridMap" parent="WorldSkew/Map" node_paths=PackedStringArray("walls")]
-transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
 mesh_library = ExtResource("6_o054p")
 cell_size = Vector3(1, 9999, 1)
 cell_center_y = false
@@ -122,6 +121,7 @@ metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="MapHistory" type="Node3D" parent="WorldSkew" node_paths=PackedStringArray("history_of")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.001, -0.001)
+visible = false
 script = ExtResource("5_vu3ja")
 is_history = true
 history_of = NodePath("../Map")
@@ -146,13 +146,12 @@ metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="WallsMarchingSquares" type="GridMap" parent="WorldSkew/MapHistory" node_paths=PackedStringArray("walls")]
-transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
 cell_size = Vector3(1, 9999, 1)
 cell_center_y = false
 script = ExtResource("6_5uatm")
 walls = NodePath("../Walls")
-metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
+metadata/_edit_lock_ = true
 
 [node name="CPUParticles3D" parent="WorldSkew" instance=ExtResource("7_sflsj")]
 
