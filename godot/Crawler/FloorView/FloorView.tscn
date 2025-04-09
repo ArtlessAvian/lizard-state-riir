@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://c61s0joernvkm" path="res://Crawler/FloorView/Map.gd" id="5_vu3ja"]
 [ext_resource type="PackedScene" uid="uid://26cefkj35wuf" path="res://Crawler/FloorView/Entity/Entity.tscn" id="5_xabx7"]
 [ext_resource type="Script" uid="uid://cog7h73jv8gkt" path="res://Crawler/FloorView/MarchingSquares.gd" id="6_5uatm"]
-[ext_resource type="MeshLibrary" uid="uid://487jder4wbja" path="res://Crawler/FloorView/MarchingSquaresMeshSymmetric.meshlib" id="6_o054p"]
+[ext_resource type="MeshLibrary" uid="uid://b7i4nf8evgbhd" path="res://ToolScripts/CsgToMeshLibrary/Output/MarchingSquares.meshlib" id="6_vu3ja"]
 [ext_resource type="Script" uid="uid://csn60gavl7ry3" path="res://Crawler/FloorView/FrustumCam.gd" id="7_qrqk4"]
 [ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
 
@@ -108,7 +108,7 @@ metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="WallsMarchingSquares" type="GridMap" parent="WorldSkew/Map" node_paths=PackedStringArray("walls")]
-mesh_library = ExtResource("6_o054p")
+mesh_library = ExtResource("6_vu3ja")
 cell_size = Vector3(1, 9999, 1)
 cell_center_y = false
 data = {

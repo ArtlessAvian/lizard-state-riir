@@ -1,39 +1,35 @@
 @tool
-extends Node
+extends GridMap
 
-@export_tool_button("Bake All") var bake_button = bake_all
+@export_tool_button("Reready") var reready_button = _ready
+@export_tool_button("Bake Me") var bake_button = bake_me
 
 
 func _ready() -> void:
-	for i in range(5):
-		var csg = $CSGs.get_child(i)
+	for i in range(get_child_count()):
+		var csg = get_child(i)
 		csg.transform = Transform3D.IDENTITY
-		csg.position = Vector3(i * 2, 0, 2)
+		csg.position = Vector3(i * 2, 0, 0)
 
-	$GridMap.clear()
-	for i in range(5):
-		$GridMap.set_cell_item(Vector3i(2 * i, 0, 0), i)
+		self.set_cell_item(Vector3i(2 * i, 0, 2), i)
 
 
-func bake_all():
-	var library: MeshLibrary
-	if ResourceLoader.exists("res://Crawler/FloorView/MarchingSquaresMeshSymmetric.meshlib"):
-		library = load("res://Crawler/FloorView/MarchingSquaresMeshSymmetric.meshlib")
-	else:
+func bake_me():
+	var library: MeshLibrary = self.mesh_library
+	if library == null:
 		library = MeshLibrary.new()
-		library.take_over_path("res://Crawler/FloorView/MarchingSquaresMeshSymmetric.meshlib")
 
-	for i in range(5):
-		var csg = $CSGs.get_child(i)
+	var resource_path = "res://ToolScripts/CSGToMeshLibrary/Output/{0}.meshlib".format([self.name])
+	library.take_over_path(resource_path)
+
+	for i in range(get_child_count()):
+		var csg: CSGShape3D = get_child(i)
 		library.create_item(i)
 		library.set_item_mesh(i, bake_csg_to_mesh(csg, i))
 
 	# Compressing since the output will be binary no matter what.
-	print(
-		error_string(
-			ResourceSaver.save(library, library.resource_path, ResourceSaver.FLAG_COMPRESS)
-		)
-	)
+	var status = ResourceSaver.save(library, library.resource_path, ResourceSaver.FLAG_COMPRESS)
+	print(error_string(status))
 	print(library.resource_path)
 
 
@@ -48,7 +44,6 @@ func bake_csg_to_mesh(csg: CSGShape3D, hardcoded_case: int) -> ArrayMesh:
 		if corner != vert:
 			var weighted = vert.lerp(corner, 0.5)
 			mdt.set_vertex(vertex_i, weighted)
-			prints("moving", vert, "to", corner)
 
 	# oh no! an extra allocation on this one time script! anyways.
 	var out = ArrayMesh.new()
