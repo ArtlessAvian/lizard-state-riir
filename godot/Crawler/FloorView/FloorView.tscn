@@ -10,7 +10,7 @@
 [ext_resource type="MeshLibrary" uid="uid://b7i4nf8evgbhd" path="res://ToolScripts/CSGToMeshLibrary/Output/MarchingSquares.meshlib" id="6_vu3ja"]
 [ext_resource type="Script" uid="uid://csn60gavl7ry3" path="res://Crawler/FloorView/FrustumCam.gd" id="7_qrqk4"]
 [ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
-[ext_resource type="MeshLibrary" uid="uid://dx8qle83xt8jn" path="res://ToolScripts/CSGToMeshLibrary/Output/FloorMarchingSquares.meshlib" id="8_vu3ja"]
+[ext_resource type="MeshLibrary" uid="uid://dx8qle83xt8jn" path="res://ToolScripts/CsgToMeshLibrary/Output/FloorMarchingSquares.meshlib" id="8_vu3ja"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0i8tf"]
 render_priority = 0
@@ -135,7 +135,7 @@ metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
 [node name="MapHistory" type="Node3D" parent="WorldSkew" node_paths=PackedStringArray("history_of")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.001, -0.001)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.003, 0)
 script = ExtResource("5_vu3ja")
 is_history = true
 history_of = NodePath("../Map")

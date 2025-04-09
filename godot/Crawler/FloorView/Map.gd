@@ -10,27 +10,24 @@ const DITHER_SHADER = preload("res://Crawler/FloorView/dither.gdshader")
 
 func _ready() -> void:
 	if is_history and not Engine.is_editor_hint():
-		var yeah = ShaderMaterial.new()
-		yeah.shader = DITHER_SHADER
-
 		var mesh_library: MeshLibrary = history_of.get_node("Floors").mesh_library.duplicate()
-		apply_shader(mesh_library, yeah)
+		apply_shader(mesh_library)
 		$Floors.mesh_library = mesh_library
 
 		mesh_library = history_of.get_node("Walls").mesh_library.duplicate(false)
-		apply_shader(mesh_library, yeah)
+		apply_shader(mesh_library)
 		$Walls.mesh_library = mesh_library
 
 		mesh_library = history_of.get_node("WallsMarching").mesh_library.duplicate(false)
-		apply_shader(mesh_library, yeah)
+		apply_shader(mesh_library)
 		$WallsMarching.mesh_library = mesh_library
 
 		mesh_library = history_of.get_node("FloorsMarching").mesh_library.duplicate(false)
-		apply_shader(mesh_library, yeah)
+		apply_shader(mesh_library)
 		$FloorsMarching.mesh_library = mesh_library
 
 
-func apply_shader(mesh_library: MeshLibrary, yeah: ShaderMaterial):
+func apply_shader(mesh_library: MeshLibrary):
 	for id in mesh_library.get_item_list():
 		var mesh: Mesh = mesh_library.get_item_mesh(id).duplicate()
 		mesh_library.set_item_mesh(id, mesh)
@@ -43,15 +40,13 @@ func apply_shader(mesh_library: MeshLibrary, yeah: ShaderMaterial):
 			else:
 				material = material.duplicate()
 
-			mesh.surface_set_material(0, material)
-			material.render_priority += -1
-			while material.next_pass != null:
-				var next = material.next_pass.duplicate()
-				material.next_pass = next
-				material = next
-				material.render_priority += -1
+			var prepend_shader: ShaderMaterial = ShaderMaterial.new()
+			prepend_shader.shader = DITHER_SHADER
+			prepend_shader.render_priority = prepend_shader.RENDER_PRIORITY_MAX
+			prepend_shader.set_shader_parameter("scoot_direction_worldspace", -self.position * 0.5)
+			prepend_shader.next_pass = material
 
-			material.next_pass = yeah
+			mesh.surface_set_material(surface, prepend_shader)
 
 
 func clear():

@@ -1,9 +1,12 @@
 shader_type spatial;
-render_mode unshaded;
+render_mode unshaded, world_vertex_coords;
+
+uniform vec3 scoot_direction_worldspace;
 
 void vertex() {
 	// scoot towards the camera a little
-	VERTEX += (inverse(MODELVIEW_MATRIX) * vec4(0.0, 0.0, 1e-4, 0.0)).xyz;
+	//VERTEX += (inverse(MODELVIEW_MATRIX) * vec4(0.0, 0.0, 1e-4, 0.0)).xyz;
+	VERTEX += scoot_direction_worldspace;
 }
 
 void fragment() {
