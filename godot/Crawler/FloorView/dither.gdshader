@@ -1,21 +1,21 @@
 shader_type spatial;
-render_mode unshaded, world_vertex_coords;
+render_mode unshaded;
 
-uniform vec3 scoot_direction_worldspace;
+uniform float scoot_amount;
 
 void vertex() {
-	// scoot towards the camera a little
-	//VERTEX += (inverse(MODELVIEW_MATRIX) * vec4(0.0, 0.0, 1e-4, 0.0)).xyz;
-	VERTEX += scoot_direction_worldspace;
+	VERTEX += (inverse(MODELVIEW_MATRIX) * vec4(0.0, 0.0, scoot_amount, 0.0)).xyz;
 }
 
 void fragment() {
-	highp vec4 zero = vec4(vec3(0), 1);
-	highp vec4 clip_space_zero = PROJECTION_MATRIX * VIEW_MATRIX * zero;
-	highp vec4 offset = FRAGCOORD - zero;
+	highp vec4 worldspace_zero = vec4(vec3(0), 1);
+	highp vec4 clip_space_zero = PROJECTION_MATRIX * VIEW_MATRIX * worldspace_zero;
+	highp vec2 offset = FRAGCOORD.xy - clip_space_zero.xy * VIEWPORT_SIZE.xy * 0.5;
 	
-	if (int(offset.x) % 3 == 0) {
-		if (int(offset.y) % 2 == 0) {
+	offset = floor(offset);
+	
+	if (int(offset.x) % 6 == 0) {
+		if (int(offset.y) % 4 == 0) {
 			discard;
 		}
 	}

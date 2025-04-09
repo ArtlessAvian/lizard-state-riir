@@ -43,7 +43,7 @@ func apply_shader(mesh_library: MeshLibrary):
 			var prepend_shader: ShaderMaterial = ShaderMaterial.new()
 			prepend_shader.shader = DITHER_SHADER
 			prepend_shader.render_priority = prepend_shader.RENDER_PRIORITY_MAX
-			prepend_shader.set_shader_parameter("scoot_direction_worldspace", -self.position * 0.5)
+			prepend_shader.set_shader_parameter("scoot_amount", self.position.length() * 0.5)
 			prepend_shader.next_pass = material
 
 			mesh.surface_set_material(surface, prepend_shader)
