@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" uid="uid://dkaaekyue1ono" path="res://ToolScripts/CsgToMeshLibrary/ManyCsgToMeshLibrary.gd" id="1_mioo5"]
 [ext_resource type="Script" uid="uid://ch2djw4pry8yg" path="res://ToolScripts/CsgToMeshLibrary/CsgToMeshLibrary.gd" id="1_mnlfk"]
-[ext_resource type="MeshLibrary" uid="uid://b7i4nf8evgbhd" path="res://ToolScripts/CsgToMeshLibrary/Output/MarchingSquares.meshlib" id="2_mioo5"]
+[ext_resource type="MeshLibrary" uid="uid://b7i4nf8evgbhd" path="res://ToolScripts/CSGToMeshLibrary/Output/MarchingSquares.meshlib" id="2_oqrgy"]
 [ext_resource type="Script" uid="uid://b2m2n6kd486fo" path="res://ToolScripts/CsgToMeshLibrary/PostProcessing/BevelMarchingSquares.gd" id="4_ago46"]
-[ext_resource type="MeshLibrary" uid="uid://dx8qle83xt8jn" path="res://ToolScripts/CSGToMeshLibrary/Output/FloorMarchingSquares.meshlib" id="5_khkey"]
+[ext_resource type="MeshLibrary" uid="uid://dx8qle83xt8jn" path="res://ToolScripts/CSGToMeshLibrary/Output/FloorMarchingSquares.meshlib" id="5_708lg"]
 [ext_resource type="Script" uid="uid://dygt8a4opx8uj" path="res://ToolScripts/CsgToMeshLibrary/PostProcessing/GrowSlightly.gd" id="6_708lg"]
 [ext_resource type="Shader" uid="uid://crbuf7sf332p7" path="res://Crawler/FloorView/grid.gdshader" id="6_oqrgy"]
 
@@ -17,13 +17,13 @@ script = ExtResource("1_mioo5")
 
 [node name="MarchingSquares" type="GridMap" parent="."]
 unique_name_in_owner = true
-mesh_library = ExtResource("2_mioo5")
+mesh_library = ExtResource("2_oqrgy")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(0, 0, 0, 2, 0, 1, 4, 0, 2, 6, 0, 3, 8, 0, 4, 0, 2, 0, 2, 2, 1, 4, 2, 2, 6, 2, 3, 8, 2, 4)
+"cells": PackedInt32Array(0, 2, 0, 2, 2, 1, 4, 2, 2, 6, 2, 3, 8, 2, 4)
 }
 script = ExtResource("1_mnlfk")
 postprocessor = ExtResource("4_ago46")
@@ -78,13 +78,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 [node name="FloorMarchingSquares" type="GridMap" parent="."]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
-mesh_library = ExtResource("5_khkey")
+mesh_library = ExtResource("5_708lg")
 cell_size = Vector3(1, 1, 1)
 cell_center_x = false
 cell_center_y = false
 cell_center_z = false
 data = {
-"cells": PackedInt32Array(0, 0, 0, 2, 0, 1, 4, 0, 2, 6, 0, 3, 8, 0, 4, 0, 2, 0, 2, 2, 1, 4, 2, 2, 6, 2, 3, 8, 2, 4)
+"cells": PackedInt32Array(0, 2, 0, 2, 2, 1, 4, 2, 2, 6, 2, 3, 8, 2, 4)
 }
 script = ExtResource("1_mnlfk")
 postprocessor = ExtResource("6_708lg")

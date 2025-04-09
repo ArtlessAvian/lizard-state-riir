@@ -16,9 +16,6 @@ void fragment() {
 			discard;
 		}
 	}
-	if (NORMAL.y <= 0.0) {
-		discard;
-	}
 	
 	ALBEDO = vec3(0.073);
 }

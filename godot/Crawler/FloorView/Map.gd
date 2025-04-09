@@ -35,22 +35,23 @@ func apply_shader(mesh_library: MeshLibrary, yeah: ShaderMaterial):
 		var mesh: Mesh = mesh_library.get_item_mesh(id).duplicate()
 		mesh_library.set_item_mesh(id, mesh)
 
-		var material: Material = mesh.surface_get_material(0)
-		if material == null:
-			material = StandardMaterial3D.new()
-			material.albedo_color = Color.SADDLE_BROWN
-		else:
-			material = material.duplicate()
+		for surface in range(mesh.get_surface_count()):
+			var material: Material = mesh.surface_get_material(surface)
+			if material == null:
+				material = StandardMaterial3D.new()
+				#material.albedo_color = Color.SADDLE_BROWN
+			else:
+				material = material.duplicate()
 
-		mesh.surface_set_material(0, material)
-		material.render_priority += -1
-		while material.next_pass != null:
-			var next = material.next_pass.duplicate()
-			material.next_pass = next
-			material = next
+			mesh.surface_set_material(0, material)
 			material.render_priority += -1
+			while material.next_pass != null:
+				var next = material.next_pass.duplicate()
+				material.next_pass = next
+				material = next
+				material.render_priority += -1
 
-		material.next_pass = yeah
+			material.next_pass = yeah
 
 
 func clear():

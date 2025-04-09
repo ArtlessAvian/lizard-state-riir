@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://c61s0joernvkm" path="res://Crawler/FloorView/Map.gd" id="5_vu3ja"]
 [ext_resource type="PackedScene" uid="uid://26cefkj35wuf" path="res://Crawler/FloorView/Entity/Entity.tscn" id="5_xabx7"]
 [ext_resource type="Script" uid="uid://cog7h73jv8gkt" path="res://Crawler/FloorView/MarchingSquares.gd" id="6_5uatm"]
-[ext_resource type="MeshLibrary" uid="uid://b7i4nf8evgbhd" path="res://ToolScripts/CsgToMeshLibrary/Output/MarchingSquares.meshlib" id="6_vu3ja"]
+[ext_resource type="MeshLibrary" uid="uid://b7i4nf8evgbhd" path="res://ToolScripts/CSGToMeshLibrary/Output/MarchingSquares.meshlib" id="6_vu3ja"]
 [ext_resource type="Script" uid="uid://csn60gavl7ry3" path="res://Crawler/FloorView/FrustumCam.gd" id="7_qrqk4"]
 [ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
 [ext_resource type="MeshLibrary" uid="uid://dx8qle83xt8jn" path="res://ToolScripts/CSGToMeshLibrary/Output/FloorMarchingSquares.meshlib" id="8_vu3ja"]

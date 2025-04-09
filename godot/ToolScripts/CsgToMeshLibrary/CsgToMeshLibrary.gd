@@ -8,6 +8,7 @@ extends GridMap
 
 
 func _ready() -> void:
+	self.clear()
 	for i in range(get_child_count()):
 		var csg = get_child(i)
 		csg.transform = Transform3D.IDENTITY
@@ -46,8 +47,40 @@ func bake_csg_to_mesh(csg: CSGShape3D, hardcoded_case: int) -> ArrayMesh:
 		if postprocessor != null:
 			var instance = postprocessor.new()
 			instance.postprocess(hardcoded_case, surface_i, mdt)
-
+		fix_normals(mdt)
 		mdt.commit_to_surface(out)
 
 	out.regen_normal_maps()
 	return out
+
+
+func fix_normals(mdt: MeshDataTool):
+	# Zero out stuff before summing.
+	for i in range(mdt.get_vertex_count()):
+		mdt.set_vertex_normal(i, Vector3.ZERO)
+
+	# Source: Godot official docs
+	# https://docs.godotengine.org/en/stable/tutorials/3d/procedural_geometry/meshdatatool.html
+
+	# Calculate vertex normals, face-by-face.
+	for i in range(mdt.get_face_count()):
+		# Get the index in the vertex array.
+		var a = mdt.get_face_vertex(i, 0)
+		var b = mdt.get_face_vertex(i, 1)
+		var c = mdt.get_face_vertex(i, 2)
+		# Get vertex position using vertex index.
+		var ap = mdt.get_vertex(a)
+		var bp = mdt.get_vertex(b)
+		var cp = mdt.get_vertex(c)
+		# Calculate face normal.
+		var n = (bp - cp).cross(ap - bp).normalized()
+		# Add face normal to current vertex normal.
+		# This will not result in perfect normals, but it will be close.
+		mdt.set_vertex_normal(a, n + mdt.get_vertex_normal(a))
+		mdt.set_vertex_normal(b, n + mdt.get_vertex_normal(b))
+		mdt.set_vertex_normal(c, n + mdt.get_vertex_normal(c))
+
+	# Run through vertices one last time to normalize normals
+	for i in range(mdt.get_vertex_count()):
+		var v = mdt.get_vertex_normal(i).normalized()
+		mdt.set_vertex_normal(i, v)
