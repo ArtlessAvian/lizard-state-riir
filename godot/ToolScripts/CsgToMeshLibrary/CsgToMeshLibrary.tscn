@@ -1,8 +1,16 @@
-[gd_scene load_steps=4 format=3 uid="uid://b7bowc5qavoa4"]
+[gd_scene load_steps=9 format=3 uid="uid://b7bowc5qavoa4"]
 
 [ext_resource type="Script" uid="uid://dkaaekyue1ono" path="res://ToolScripts/CsgToMeshLibrary/ManyCsgToMeshLibrary.gd" id="1_mioo5"]
 [ext_resource type="Script" uid="uid://ch2djw4pry8yg" path="res://ToolScripts/CsgToMeshLibrary/CsgToMeshLibrary.gd" id="1_mnlfk"]
-[ext_resource type="MeshLibrary" uid="uid://b7i4nf8evgbhd" path="res://ToolScripts/CSGToMeshLibrary/Output/MarchingSquares.meshlib" id="2_mioo5"]
+[ext_resource type="MeshLibrary" uid="uid://b7i4nf8evgbhd" path="res://ToolScripts/CsgToMeshLibrary/Output/MarchingSquares.meshlib" id="2_mioo5"]
+[ext_resource type="Script" uid="uid://b2m2n6kd486fo" path="res://ToolScripts/CsgToMeshLibrary/PostProcessing/BevelMarchingSquares.gd" id="4_ago46"]
+[ext_resource type="MeshLibrary" uid="uid://dx8qle83xt8jn" path="res://ToolScripts/CSGToMeshLibrary/Output/FloorMarchingSquares.meshlib" id="5_khkey"]
+[ext_resource type="Script" uid="uid://dygt8a4opx8uj" path="res://ToolScripts/CsgToMeshLibrary/PostProcessing/GrowSlightly.gd" id="6_708lg"]
+[ext_resource type="Shader" uid="uid://crbuf7sf332p7" path="res://Crawler/FloorView/grid.gdshader" id="6_oqrgy"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_haxnw"]
+render_priority = 0
+shader = ExtResource("6_oqrgy")
 
 [node name="MarchingSquaresInstances" type="Node"]
 script = ExtResource("1_mioo5")
@@ -18,6 +26,7 @@ data = {
 "cells": PackedInt32Array(0, 0, 0, 2, 0, 1, 4, 0, 2, 6, 0, 3, 8, 0, 4, 0, 2, 0, 2, 2, 1, 4, 2, 2, 6, 2, 3, 8, 2, 4)
 }
 script = ExtResource("1_mnlfk")
+postprocessor = ExtResource("4_ago46")
 metadata/_edit_lock_ = true
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="MarchingSquares"]
@@ -65,3 +74,78 @@ metadata/_edit_lock_ = true
 
 [node name="CSGBox3D" type="CSGBox3D" parent="MarchingSquares/CSGCombiner3D5"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="FloorMarchingSquares" type="GridMap" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+mesh_library = ExtResource("5_khkey")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(0, 0, 0, 2, 0, 1, 4, 0, 2, 6, 0, 3, 8, 0, 4, 0, 2, 0, 2, 2, 1, 4, 2, 2, 6, 2, 3, 8, 2, 4)
+}
+script = ExtResource("1_mnlfk")
+postprocessor = ExtResource("6_708lg")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="FloorMarchingSquares"]
+metadata/_edit_lock_ = true
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="FloorMarchingSquares/CSGCombiner3D"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
+rotation_edit_mode = 2
+flip_faces = true
+polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0, -0.5)
+depth = 0.1
+material = SubResource("ShaderMaterial_haxnw")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D2" type="CSGCombiner3D" parent="FloorMarchingSquares"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+metadata/_edit_lock_ = true
+
+[node name="CSGPolygon3D2" type="CSGPolygon3D" parent="FloorMarchingSquares/CSGCombiner3D2"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
+rotation_edit_mode = 2
+flip_faces = true
+polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0.5, 0, 0.5, -0.5)
+depth = 0.1
+material = SubResource("ShaderMaterial_haxnw")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D3" type="CSGCombiner3D" parent="FloorMarchingSquares"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+metadata/_edit_lock_ = true
+
+[node name="CSGPolygon3D3" type="CSGPolygon3D" parent="FloorMarchingSquares/CSGCombiner3D3"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
+rotation_edit_mode = 2
+flip_faces = true
+polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0, 0.5, 0.5, 0.5, 0.5, 0, 0, -0.5)
+depth = 0.1
+material = SubResource("ShaderMaterial_haxnw")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D4" type="CSGCombiner3D" parent="FloorMarchingSquares"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 0)
+metadata/_edit_lock_ = true
+
+[node name="CSGPolygon3D4" type="CSGPolygon3D" parent="FloorMarchingSquares/CSGCombiner3D4"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
+rotation_edit_mode = 2
+flip_faces = true
+polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5)
+depth = 0.1
+material = SubResource("ShaderMaterial_haxnw")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D5" type="CSGCombiner3D" parent="FloorMarchingSquares"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
+metadata/_edit_lock_ = true
+
+[node name="CSGBox3D" type="CSGBox3D" parent="FloorMarchingSquares/CSGCombiner3D5"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+size = Vector3(1, 0.1, 1)
+material = SubResource("ShaderMaterial_haxnw")

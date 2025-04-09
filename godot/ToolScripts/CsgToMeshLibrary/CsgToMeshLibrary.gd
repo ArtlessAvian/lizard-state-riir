@@ -4,6 +4,8 @@ extends GridMap
 @export_tool_button("Reready") var reready_button = _ready
 @export_tool_button("Bake Me") var bake_button = bake_me
 
+@export var postprocessor: GDScript = null
+
 
 func _ready() -> void:
 	for i in range(get_child_count()):
@@ -34,64 +36,18 @@ func bake_me():
 
 
 func bake_csg_to_mesh(csg: CSGShape3D, hardcoded_case: int) -> ArrayMesh:
-	var array_mesh: ArrayMesh = csg.bake_static_mesh().duplicate()
-
-	var mdt = MeshDataTool.new()
-	mdt.create_from_surface(array_mesh, 0)
-	for vertex_i in range(mdt.get_vertex_count()):
-		var vert = mdt.get_vertex(vertex_i)
-		var corner = get_connected_corner(vert, hardcoded_case)
-		if corner != vert:
-			var weighted = vert.lerp(corner, 0.5)
-			mdt.set_vertex(vertex_i, weighted)
-
-	# oh no! an extra allocation on this one time script! anyways.
 	var out = ArrayMesh.new()
-	mdt.commit_to_surface(out)
 
-	for surface in range(1, array_mesh.get_surface_count()):
-		var noop = MeshDataTool.new()
-		noop.create_from_surface(array_mesh, surface)
-		noop.commit_to_surface(out)
+	var array_mesh: ArrayMesh = csg.bake_static_mesh().duplicate()
+	for surface_i in range(array_mesh.get_surface_count()):
+		var mdt = MeshDataTool.new()
+		mdt.create_from_surface(array_mesh, surface_i)
+
+		if postprocessor != null:
+			var instance = postprocessor.new()
+			instance.postprocess(hardcoded_case, surface_i, mdt)
+
+		mdt.commit_to_surface(out)
 
 	out.regen_normal_maps()
 	return out
-
-
-func get_connected_corner(vert: Vector3, hardcoded_case: int) -> Vector3:
-	# only touch the top face
-	if not (vert.y >= 0.9):
-		return vert
-	# don't touch the corners.
-	if vert.x <= -0.5 or vert.x >= 0.5:
-		if vert.z <= -0.5 or vert.z >= 0.5:
-			return vert
-
-	# yeah whatever, don't need to be clever.
-	if hardcoded_case == 0:
-		# inner corner
-		return Vector3(-0.5, vert.y, -0.5)
-	elif hardcoded_case == 1:
-		# flat wall
-		return Vector3(vert.x, vert.y, -0.5)
-	elif hardcoded_case == 2:
-		# diagonal thin wall
-		if vert.x + vert.z > 0:
-			return Vector3(0.5, vert.y, 0.5)
-		return Vector3(-0.5, vert.y, -0.5)
-	elif hardcoded_case == 3:
-		# outer corner
-		if vert.x < 0 and vert.z < 0:
-			return Vector3(-0.5, vert.y, -0.5)
-		elif vert.x > vert.z:
-			return Vector3(0.5, vert.y, -0.5)
-		else:
-			return Vector3(-0.5, vert.y, 0.5)
-	elif hardcoded_case == 4:
-		# technically this is unreachable.
-		# anyways, be the identity function.
-		return vert
-	else:
-		push_warning("unexpected case?")
-		# be the identity function.
-		return vert

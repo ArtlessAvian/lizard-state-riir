@@ -6,4 +6,4 @@ extends Node
 
 func bake_all():
 	for child in get_children():
-		child.bake()
+		child.bake_me()

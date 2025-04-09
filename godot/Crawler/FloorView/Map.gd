@@ -21,9 +21,13 @@ func _ready() -> void:
 		apply_shader(mesh_library, yeah)
 		$Walls.mesh_library = mesh_library
 
-		mesh_library = history_of.get_node("WallsMarchingSquares").mesh_library.duplicate(false)
+		mesh_library = history_of.get_node("WallsMarching").mesh_library.duplicate(false)
 		apply_shader(mesh_library, yeah)
-		$WallsMarchingSquares.mesh_library = mesh_library
+		$WallsMarching.mesh_library = mesh_library
+
+		mesh_library = history_of.get_node("FloorsMarching").mesh_library.duplicate(false)
+		apply_shader(mesh_library, yeah)
+		$FloorsMarching.mesh_library = mesh_library
 
 
 func apply_shader(mesh_library: MeshLibrary, yeah: ShaderMaterial):
@@ -52,14 +56,17 @@ func apply_shader(mesh_library: MeshLibrary, yeah: ShaderMaterial):
 func clear():
 	$Floors.clear()
 	$Walls.clear()
-	$WallsMarchingSquares.clear()
+	$WallsMarching.clear()
+	$FloorsMarching.clear()
 
 
 func add_vision(vision: Dictionary):
 	for pos in vision:
 		if vision[pos]:
 			$Floors.set_cell_item(Vector3i(pos.x, 0, pos.y), 0)
+			$FloorsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
 		else:
 			$Walls.set_cell_item(Vector3i(pos.x, 0, pos.y), 1)
+			$WallsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
 
-	$WallsMarchingSquares._ready()
+	#$WallsMarching._ready()
