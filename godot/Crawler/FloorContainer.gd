@@ -106,6 +106,7 @@ func _process(delta):
 	$DEBUG.text += "worst engine times (us): " + str(debug_frame_times) + "\n"
 	$DEBUG.text += "turn count: " + str(active_floor.get_time()) + "\n"
 	$DEBUG.text += "input stack: " + "\n".join(debug_state_stack) + "\n"
+	$DEBUG.text += "ci version: " + BuildInfo.ci_version + "\n"
 
 
 func _unhandled_input(event):

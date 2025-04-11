@@ -22,7 +22,7 @@ func bake_me():
 	if library == null:
 		library = MeshLibrary.new()
 
-	var resource_path = "res://ToolScripts/CSGToMeshLibrary/Output/{0}.meshlib".format([self.name])
+	var resource_path = "res://ToolScripts/CsgToMeshLibrary/Output/{0}.meshlib".format([self.name])
 	library.take_over_path(resource_path)
 
 	for i in range(get_child_count()):
