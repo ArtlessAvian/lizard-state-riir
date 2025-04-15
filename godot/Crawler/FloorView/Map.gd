@@ -61,6 +61,14 @@ func add_vision(vision: Dictionary):
 		if vision[pos]:
 			$Floors.set_cell_item(Vector3i(pos.x, 0, pos.y), 0)
 			$FloorsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
+
+			if is_history:
+				for dx in range(-1, 2):
+					for dy in range(-1, 2):
+						if abs(dx) != abs(dy):
+							$Floors.set_cell_item(Vector3i(pos.x + dx, 0, pos.y + dy), 0)
+							$FloorsMarching.mark_dirty(Vector3i(pos.x + dx, 0, pos.y + dy))
+
 		else:
 			$Walls.set_cell_item(Vector3i(pos.x, 0, pos.y), 1)
 			$WallsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
