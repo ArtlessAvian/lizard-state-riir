@@ -104,7 +104,6 @@ transform = Transform3D(1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
 rotation_edit_mode = 2
 flip_faces = true
 polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0, -0.5)
-depth = 0.1
 material = SubResource("ShaderMaterial_haxnw")
 metadata/_edit_lock_ = true
 
@@ -117,7 +116,6 @@ transform = Transform3D(1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
 rotation_edit_mode = 2
 flip_faces = true
 polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0.5, 0, 0.5, -0.5)
-depth = 0.1
 material = SubResource("ShaderMaterial_haxnw")
 metadata/_edit_lock_ = true
 
@@ -130,7 +128,6 @@ transform = Transform3D(1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
 rotation_edit_mode = 2
 flip_faces = true
 polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0, 0.5, 0.5, 0.5, 0.5, 0, 0, -0.5)
-depth = 0.1
 material = SubResource("ShaderMaterial_haxnw")
 metadata/_edit_lock_ = true
 
@@ -143,7 +140,6 @@ transform = Transform3D(1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0)
 rotation_edit_mode = 2
 flip_faces = true
 polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5)
-depth = 0.1
 material = SubResource("ShaderMaterial_haxnw")
 metadata/_edit_lock_ = true
 
@@ -152,6 +148,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
 metadata/_edit_lock_ = true
 
 [node name="CSGBox3D" type="CSGBox3D" parent="FloorMarchingSquares/CSGCombiner3D5"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
-size = Vector3(1, 0.1, 1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 material = SubResource("ShaderMaterial_haxnw")

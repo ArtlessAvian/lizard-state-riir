@@ -10,3 +10,14 @@ func postprocess(hardcoded_case: int, surface: int, mdt: MeshDataTool):
 		vert.x += sign(vert.x) * 0.01
 		vert.z += sign(vert.z) * 0.01
 		mdt.set_vertex(vertex_i, vert)
+
+	for face_i in range(mdt.get_face_count()):
+		if mdt.get_face_normal(face_i) == Vector3.UP:
+			# Do not discard this face.
+			continue
+
+		# Discard this face.
+		for tri_vert in range(3):
+			var vert_i = mdt.get_face_edge(face_i, tri_vert)
+			# arbitrary vertex, as long as its consistent.
+			mdt.set_vertex(vert_i, Vector3.DOWN)
