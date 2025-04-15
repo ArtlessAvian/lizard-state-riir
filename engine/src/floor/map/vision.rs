@@ -14,6 +14,7 @@ use crate::entity::EntityId;
 use crate::floor::map::FloorMap;
 use crate::floor::map::FloorTile;
 use crate::positional::AbsolutePosition;
+use crate::positional::RelativePosition;
 use crate::positional::fov::StrictFOV;
 use crate::writer::Writer;
 
@@ -101,9 +102,33 @@ impl FloorMapVision {
             self.map_history.insert(*pos, *tile);
         }
 
+        let implied_tiles = vision
+            .iter()
+            .filter_map(|(k, v)| match v {
+                FloorTile::Floor => Some(k),
+                _ => None,
+            })
+            .flat_map(|k| {
+                // TODO: Replace with "further."
+                [
+                    *k + RelativePosition::new(-1, -1),
+                    *k + RelativePosition::new(-1, 0),
+                    *k + RelativePosition::new(-1, 1),
+                    *k + RelativePosition::new(0, -1),
+                    *k + RelativePosition::new(0, 1),
+                    *k + RelativePosition::new(1, -1),
+                    *k + RelativePosition::new(1, 0),
+                    *k + RelativePosition::new(1, 1),
+                ]
+            })
+            .filter(|k| !vision.contains_key(k))
+            .map(|key| (key, *map.get_tile(key)))
+            .collect();
+
         Writer::new(self).log(FloorEvent::SeeMap(SeeMapEvent {
             subject: subject.0,
             vision,
+            implied_tiles,
         }))
     }
 

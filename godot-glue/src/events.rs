@@ -179,6 +179,8 @@ pub struct SeeMapEvent {
     subject: Gd<EntityId>,
     #[var(get)]
     vision: Dictionary,
+    #[var(get)]
+    implied_tiles: Dictionary,
 }
 
 impl SeeMapEvent {
@@ -187,6 +189,16 @@ impl SeeMapEvent {
             subject: id_cache.get_or_insert(event.subject),
             vision: event
                 .vision
+                .iter()
+                .map(|(pos, tile)| {
+                    (
+                        AbsolutePosition::from(*pos),
+                        *tile == engine::floor::map::FloorTile::Floor,
+                    )
+                })
+                .collect(),
+            implied_tiles: event
+                .implied_tiles
                 .iter()
                 .map(|(pos, tile)| {
                     (

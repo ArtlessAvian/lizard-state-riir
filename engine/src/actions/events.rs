@@ -64,6 +64,9 @@ pub struct JuggleLimitEvent {
 pub struct SeeMapEvent {
     pub subject: EntityId,
     pub vision: HashMap<AbsolutePosition, FloorTile>,
+    // Extra information, as a treat.
+    // (helps marching squares look less surprising.)
+    pub implied_tiles: HashMap<AbsolutePosition, FloorTile>,
 }
 
 impl std::fmt::Debug for SeeMapEvent {

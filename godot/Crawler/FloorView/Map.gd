@@ -58,19 +58,15 @@ func clear():
 
 func add_vision(vision: Dictionary):
 	for pos in vision:
-		if vision[pos]:
-			$Floors.set_cell_item(Vector3i(pos.x, 0, pos.y), 0)
-			$FloorsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
-
-			if is_history:
-				for dx in range(-1, 2):
-					for dy in range(-1, 2):
-						if abs(dx) != abs(dy):
-							$Floors.set_cell_item(Vector3i(pos.x + dx, 0, pos.y + dy), 0)
-							$FloorsMarching.mark_dirty(Vector3i(pos.x + dx, 0, pos.y + dy))
-
-		else:
+		$Floors.set_cell_item(Vector3i(pos.x, 0, pos.y), 0)
+		$FloorsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
+		if not vision[pos]:
 			$Walls.set_cell_item(Vector3i(pos.x, 0, pos.y), 1)
 			$WallsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
 
-	#$WallsMarching._ready()
+
+func add_implied(implied: Dictionary):
+	for pos in implied:
+		if not implied[pos]:
+			$Walls.set_cell_item(Vector3i(pos.x, 0, pos.y), 1)
+			$WallsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))

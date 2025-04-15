@@ -137,15 +137,17 @@ func clear_queue(delta, floor: ActiveFloor):
 			event_index += 1
 
 		elif event is SeeMapEvent:
-			test_visions[event.subject] = event.vision
+			test_visions[event.subject] = event
 
 			var history = $WorldSkew/MapHistory as Map
 			history.add_vision(event.vision)
+			history.add_vision(event.implied_tiles)
 
 			var map = $WorldSkew/Map as Map
 			map.clear()
 			for vision in test_visions.values():
-				map.add_vision(vision)
+				map.add_vision(vision.vision)
+				map.add_implied(vision.implied_tiles)
 
 			event_index += 1
 
