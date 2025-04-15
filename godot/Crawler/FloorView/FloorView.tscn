@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://1ug7wykfxdyt"]
+[gd_scene load_steps=25 format=3 uid="uid://1ug7wykfxdyt"]
 
 [ext_resource type="Script" uid="uid://bv5a0xwsfocya" path="res://Crawler/FloorView/FloorView.gd" id="1_7s6h2"]
 [ext_resource type="Script" uid="uid://6tldef06kjb0" path="res://Crawler/FloorView/FloorCamera.gd" id="2_0g4sw"]
@@ -7,10 +7,12 @@
 [ext_resource type="Script" uid="uid://c61s0joernvkm" path="res://Crawler/FloorView/Map.gd" id="5_vu3ja"]
 [ext_resource type="PackedScene" uid="uid://26cefkj35wuf" path="res://Crawler/FloorView/Entity/Entity.tscn" id="5_xabx7"]
 [ext_resource type="Script" uid="uid://cog7h73jv8gkt" path="res://Crawler/FloorView/MarchingSquares.gd" id="6_5uatm"]
-[ext_resource type="MeshLibrary" uid="uid://qtni7dl66a4e" path="res://ToolScripts/CsgToMeshLibrary/Output/WallsExtendTopfaces.meshlib" id="6_vu3ja"]
+[ext_resource type="MeshLibrary" uid="uid://cvjit1v1kq2xk" path="res://ToolScripts/CsgToMeshLibrary/Output/SideWalls.meshlib" id="6_vu3ja"]
 [ext_resource type="Script" uid="uid://csn60gavl7ry3" path="res://Crawler/FloorView/FrustumCam.gd" id="7_qrqk4"]
 [ext_resource type="PackedScene" uid="uid://c2idx1e5w7tvj" path="res://Particles.tscn" id="7_sflsj"]
 [ext_resource type="MeshLibrary" uid="uid://dx8qle83xt8jn" path="res://ToolScripts/CsgToMeshLibrary/Output/FloorMarchingSquares.meshlib" id="8_vu3ja"]
+[ext_resource type="Material" uid="uid://cr0fpgv3xap2g" path="res://Crawler/FloorView/WallMaterial.tres" id="9_o054p"]
+[ext_resource type="Texture2D" uid="uid://cfosjqy8pisov" path="res://Crawler/FloorView/oob_noise.tres" id="10_e7q8o"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0i8tf"]
 render_priority = 0
@@ -20,12 +22,32 @@ shader = ExtResource("3_ebqio")
 material = SubResource("ShaderMaterial_0i8tf")
 size = Vector2(1, 1)
 
+[sub_resource type="PlaceholderMesh" id="PlaceholderMesh_vu3ja"]
+
+[sub_resource type="MeshLibrary" id="MeshLibrary_vu3ja"]
+item/0/name = ""
+item/0/mesh = SubResource("PlaneMesh_6bpbg")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/mesh_cast_shadow = 1
+item/0/shapes = []
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1
+item/1/name = ""
+item/1/mesh = SubResource("PlaceholderMesh_vu3ja")
+item/1/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+item/1/mesh_cast_shadow = 1
+item/1/shapes = []
+item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/1/navigation_layers = 1
+
+[sub_resource type="PlaceholderMesh" id="PlaceholderMesh_o054p"]
+
 [sub_resource type="BoxMesh" id="BoxMesh_mceu6"]
 size = Vector3(1, 0.5, 1)
 
 [sub_resource type="MeshLibrary" id="MeshLibrary_1b75v"]
 item/0/name = ""
-item/0/mesh = SubResource("PlaneMesh_6bpbg")
+item/0/mesh = SubResource("PlaceholderMesh_o054p")
 item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 item/0/mesh_cast_shadow = 1
 item/0/shapes = []
@@ -38,6 +60,15 @@ item/1/mesh_cast_shadow = 1
 item/1/shapes = []
 item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 item/1/navigation_layers = 1
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_o054p"]
+material = ExtResource("9_o054p")
+size = Vector2(200, 200)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2oeqx"]
+albedo_texture = ExtResource("10_e7q8o")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_a8jbe"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_2yoih"]
 line_spacing = 4.0
@@ -52,6 +83,7 @@ metadata/_edit_lock_ = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 5, 0)
+sky_mode = 1
 
 [node name="Camera3D" type="Camera3D" parent="."]
 process_priority = 100
@@ -84,7 +116,7 @@ script = ExtResource("5_vu3ja")
 [node name="Floors" type="GridMap" parent="WorldSkew/Map"]
 transform = Transform3D(1, 0, 0, 0, 1, -5.96046e-08, 0, 0, 1, 0, 0, 0)
 visible = false
-mesh_library = SubResource("MeshLibrary_1b75v")
+mesh_library = SubResource("MeshLibrary_vu3ja")
 cell_size = Vector3(1, 9999, 1)
 cell_center_x = false
 cell_center_y = false
@@ -113,9 +145,6 @@ metadata/_editor_floor_ = Vector3(0, 0, 0)
 mesh_library = ExtResource("6_vu3ja")
 cell_size = Vector3(1, 9999, 1)
 cell_center_y = false
-data = {
-"cells": PackedInt32Array(3, 65533, 0, 2, 65533, 1, 3, 65532, 1048576, 2, 65532, 655361, 1, 65533, 1, 1, 65532, 655361, 0, 65533, 1, 0, 65532, 655361, 65535, 65533, 1, 65535, 65532, 655361, 65534, 65533, 1, 65534, 65532, 655361, 65533, 65533, 1, 65533, 65532, 655361, 5, 65533, 1048577, 4, 65533, 1441793, 5, 65532, 1048576, 4, 65532, 655360, 5, 65534, 1048579, 4, 65534, 1441793, 5, 65535, 3, 4, 65535, 1441793, 5, 0, 1048577, 4, 0, 1441793, 5, 1, 0, 4, 1, 1441792, 6, 65535, 1441795, 6, 65534, 655361, 7, 65535, 1048577, 7, 65534, 1048576, 7, 0, 1048577, 6, 0, 1441793, 7, 1, 0, 6, 1, 1441792, 11, 65535, 0, 10, 65535, 1, 11, 65534, 1048576, 10, 65534, 1048579, 9, 65535, 3, 9, 65534, 655363, 8, 65535, 1441793, 8, 65534, 655360, 10, 65533, 1048576, 9, 65533, 655360, 9, 0, 2, 8, 0, 1441792, 10, 1, 1, 9, 1, 1441792, 10, 0, 655361, 11, 1, 0, 11, 0, 1048576, 13, 65535, 1048577, 12, 65535, 1441793, 13, 65534, 1048576, 12, 65534, 655360, 13, 0, 2, 12, 0, 1441792, 14, 1, 1441795, 13, 1, 1441792, 14, 0, 655363, 15, 65535, 1048577, 14, 65535, 1441793, 15, 65534, 1048576, 14, 65534, 655360, 15, 0, 1048577, 15, 1, 1048577, 15, 2, 1048577, 14, 2, 655363, 15, 3, 0, 14, 3, 1, 13, 3, 1, 13, 2, 655361, 12, 3, 1441792, 12, 2, 655360, 11, 3, 0, 10, 3, 1, 11, 2, 1048576, 10, 2, 655361, 9, 3, 1, 9, 2, 655361, 8, 3, 1, 8, 2, 655361, 7, 3, 1, 7, 2, 655361, 6, 3, 1, 6, 2, 655361, 5, 3, 1, 5, 2, 655361, 4, 3, 1441792, 4, 2, 655360, 15, 65532, 0, 14, 65532, 1, 15, 65531, 1048576, 14, 65531, 655361, 13, 65532, 1, 13, 65531, 655361, 12, 65532, 1, 12, 65531, 655361, 11, 65532, 1, 11, 65531, 655361, 10, 65532, 1, 10, 65531, 655361, 9, 65532, 1, 9, 65531, 655361, 8, 65532, 1, 8, 65531, 655361, 7, 65532, 1, 7, 65531, 655361, 6, 65532, 1441792, 6, 65531, 655360, 65532, 65533, 1441792, 65532, 65532, 655360)
-}
 script = ExtResource("6_5uatm")
 source = NodePath("../Walls")
 nullable_superset_source = NodePath("../../MapHistory/Walls")
@@ -123,7 +152,7 @@ tile = 1
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
-[node name="FloorsMarching" type="GridMap" parent="WorldSkew/Map" node_paths=PackedStringArray("source")]
+[node name="FloorsMarching" type="GridMap" parent="WorldSkew/Map" node_paths=PackedStringArray("source", "nullable_superset_source")]
 mesh_library = ExtResource("8_vu3ja")
 cell_size = Vector3(1, 9999, 1)
 cell_center_y = false
@@ -132,8 +161,22 @@ data = {
 }
 script = ExtResource("6_5uatm")
 source = NodePath("../Floors")
+nullable_superset_source = NodePath("../../MapHistory/Floors")
+other = -1
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WorldSkew/Map"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+mesh = SubResource("PlaneMesh_o054p")
+skeleton = NodePath("../FloorsMarching")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="WorldSkew/Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.82437, 0, 0)
+visible = false
+material_override = SubResource("StandardMaterial3D_2oeqx")
+mesh = SubResource("PlaneMesh_a8jbe")
+skeleton = NodePath("../../..")
 
 [node name="MapHistory" type="Node3D" parent="WorldSkew" node_paths=PackedStringArray("history_of")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.133, -0.149)
@@ -175,6 +218,7 @@ cell_size = Vector3(1, 9999, 1)
 cell_center_y = false
 script = ExtResource("6_5uatm")
 source = NodePath("../Floors")
+other = -1
 metadata/_edit_lock_ = true
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 

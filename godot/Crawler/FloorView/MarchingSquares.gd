@@ -4,6 +4,7 @@ extends GridMap
 @export var source: GridMap
 @export var nullable_superset_source: GridMap
 @export var tile: int
+@export var other: int
 @export_tool_button("Reready") var reready = _ready
 
 const MESHES = [-1, 0, 0, 1, 0, 1, 2, 3, 0, 2, 1, 3, 1, 3, 3, 4]
@@ -43,12 +44,19 @@ func reset_my_cell(cell: Vector3i):
 		var dx = bit % 2
 		var dz = bit / 2  # Expected Integer Division
 		var offset = cell + Vector3i(dx, 0, dz)
+
 		if source.get_cell_item(offset) == tile:
 			pattern |= 1 << bit
-		elif (
-			nullable_superset_source != null
-			and nullable_superset_source.get_cell_item(offset) == tile
-		):
-			pattern |= 1 << bit
+		elif source.get_cell_item(offset) == other:
+			pass
+		elif nullable_superset_source != null:
+			if nullable_superset_source.get_cell_item(offset) == tile:
+				pattern |= 1 << bit
+			elif nullable_superset_source.get_cell_item(offset) == other:
+				pass
+			else:
+				return
+		else:
+			return
 	if pattern != 0:
 		self.set_cell_item(cell, MESHES[pattern], Y_ROT_TO_ORIENTATION[Y_ROT[pattern]])

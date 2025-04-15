@@ -58,15 +58,16 @@ func clear():
 
 func add_vision(vision: Dictionary):
 	for pos in vision:
-		$Floors.set_cell_item(Vector3i(pos.x, 0, pos.y), 0)
-		$FloorsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
-		if not vision[pos]:
-			$Walls.set_cell_item(Vector3i(pos.x, 0, pos.y), 1)
-			$WallsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
+		if vision[pos]:
+			$Floors.set_cell_item(Vector3i(pos.x, 0, pos.y), 0)
+			$FloorsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
+
+		$Walls.set_cell_item(Vector3i(pos.x, 0, pos.y), int(not vision[pos]))
+		$WallsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
 
 
 func add_implied(implied: Dictionary):
-	for pos in implied:
-		if not implied[pos]:
-			$Walls.set_cell_item(Vector3i(pos.x, 0, pos.y), 1)
-			$WallsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))
+	pass
+	#for pos in implied:
+	#$Walls.set_cell_item(Vector3i(pos.x, 0, pos.y), int(not implied[pos]))
+	#$WallsMarching.mark_dirty(Vector3i(pos.x, 0, pos.y))

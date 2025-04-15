@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://b7bowc5qavoa4"]
+[gd_scene load_steps=14 format=3 uid="uid://b7bowc5qavoa4"]
 
 [ext_resource type="Script" uid="uid://dkaaekyue1ono" path="res://ToolScripts/CsgToMeshLibrary/ManyCsgToMeshLibrary.gd" id="1_mioo5"]
 [ext_resource type="Script" uid="uid://ch2djw4pry8yg" path="res://ToolScripts/CsgToMeshLibrary/CsgToMeshLibrary.gd" id="1_mnlfk"]
@@ -9,6 +9,9 @@
 [ext_resource type="Shader" uid="uid://crbuf7sf332p7" path="res://Crawler/FloorView/grid.gdshader" id="6_oqrgy"]
 [ext_resource type="Script" uid="uid://bbqftv2o40qsw" path="res://ToolScripts/CsgToMeshLibrary/PostProcessing/BevelExtended.gd" id="8_708lg"]
 [ext_resource type="MeshLibrary" uid="uid://qtni7dl66a4e" path="res://ToolScripts/CsgToMeshLibrary/Output/WallsExtendTopfaces.meshlib" id="8_bgpmr"]
+[ext_resource type="Script" uid="uid://cpk7rpb0q4k4r" path="res://ToolScripts/CsgToMeshLibrary/PostProcessing/SideWalls.gd" id="10_2lkaf"]
+[ext_resource type="MeshLibrary" uid="uid://cvjit1v1kq2xk" path="res://ToolScripts/CsgToMeshLibrary/Output/SideWalls.meshlib" id="10_r0ra6"]
+[ext_resource type="Material" uid="uid://cr0fpgv3xap2g" path="res://Crawler/FloorView/WallMaterial.tres" id="12_2le2m"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_haxnw"]
 render_priority = 0
@@ -222,3 +225,76 @@ transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
 rotation_edit_mode = 2
 polygon = PackedVector2Array(-1, -0.5, -1, 0.5, -0.5, 1, 0.5, 1, 1, 0.5, 1, -0.5, 0.5, -1, -0.5, -1)
 metadata/_edit_lock_ = true
+
+[node name="SideWalls" type="GridMap" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 15)
+mesh_library = ExtResource("10_r0ra6")
+cell_size = Vector3(1, 1, 1)
+cell_center_x = false
+cell_center_y = false
+cell_center_z = false
+data = {
+"cells": PackedInt32Array(0, 2, 0, 2, 2, 1, 4, 2, 2, 6, 2, 3, 8, 2, 4)
+}
+script = ExtResource("1_mnlfk")
+postprocessor = ExtResource("10_2lkaf")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="SideWalls"]
+metadata/_edit_lock_ = true
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="SideWalls/CSGCombiner3D"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
+rotation_edit_mode = 2
+polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0, -0.5)
+material = ExtResource("12_2le2m")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D2" type="CSGCombiner3D" parent="SideWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+metadata/_edit_lock_ = true
+
+[node name="CSGPolygon3D2" type="CSGPolygon3D" parent="SideWalls/CSGCombiner3D2"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
+rotation_edit_mode = 2
+polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0.5, 0, 0.5, -0.5)
+material = ExtResource("12_2le2m")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D3" type="CSGCombiner3D" parent="SideWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+metadata/_edit_lock_ = true
+
+[node name="CSGPolygon3D2" type="CSGPolygon3D" parent="SideWalls/CSGCombiner3D3"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
+rotation_edit_mode = 2
+polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0, -0.5)
+material = ExtResource("12_2le2m")
+metadata/_edit_lock_ = true
+
+[node name="CSGPolygon3D3" type="CSGPolygon3D" parent="SideWalls/CSGCombiner3D3"]
+transform = Transform3D(-1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0)
+rotation_edit_mode = 2
+polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0, 0, -0.5)
+material = ExtResource("12_2le2m")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D4" type="CSGCombiner3D" parent="SideWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 0)
+metadata/_edit_lock_ = true
+
+[node name="CSGPolygon3D4" type="CSGPolygon3D" parent="SideWalls/CSGCombiner3D4"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
+rotation_edit_mode = 2
+polygon = PackedVector2Array(-0.5, -0.5, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5)
+material = ExtResource("12_2le2m")
+metadata/_edit_lock_ = true
+
+[node name="CSGCombiner3D5" type="CSGCombiner3D" parent="SideWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
+metadata/_edit_lock_ = true
+
+[node name="CSGBox3D" type="CSGBox3D" parent="SideWalls/CSGCombiner3D5"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+material = ExtResource("12_2le2m")

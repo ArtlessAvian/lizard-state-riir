@@ -7,8 +7,8 @@ func postprocess(hardcoded_case: int, surface: int, mdt: MeshDataTool):
 
 	for vertex_i in range(mdt.get_vertex_count()):
 		var vert = mdt.get_vertex(vertex_i)
-		vert.x += sign(vert.x) * 0.01
-		vert.z += sign(vert.z) * 0.01
+		vert.x += sign(vert.x) * 0.001
+		vert.z += sign(vert.z) * 0.001
 		mdt.set_vertex(vertex_i, vert)
 
 	for face_i in range(mdt.get_face_count()):
