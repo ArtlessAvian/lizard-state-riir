@@ -150,9 +150,10 @@ impl StrictFOV {
         &self,
         center: AbsolutePosition,
         radius: u32,
+        strict: bool,
         blocks_vision: F,
     ) -> Vec<AbsolutePosition> {
-        self.get_field_of_view_tiles_relative(radius, |x| blocks_vision(center + x))
+        self.get_field_of_view_tiles_relative(radius, strict, |x| blocks_vision(center + x))
             .into_iter()
             .map(|x| center + x)
             .collect()
@@ -162,6 +163,7 @@ impl StrictFOV {
     fn get_field_of_view_tiles_relative<F: Fn(RelativePosition) -> bool>(
         &self,
         radius: u32,
+        strict: bool,
         blocks_vision_relative: F,
     ) -> Vec<RelativePosition> {
         assert!(
@@ -176,7 +178,7 @@ impl StrictFOV {
             // DFS through the trie. BFS would return tiles in order of radius, which is nice.
             let mut frontier = vec![TrieNodeIndex(0)];
             while let Some(current) = frontier.pop() {
-                if self.nodes[current].generator.run > radius {
+                if self.nodes[current].tile.run > radius {
                     // In this subtree, we know that every tile we would output
                     // would be outside the radius. Rather than checking radius before outputting,
                     // we can just stop early.
@@ -191,7 +193,7 @@ impl StrictFOV {
                 // This is what makes StrictFov "strict".
                 // This is equivalent to drawing a segment to the tile and checking everything in between.
                 // Without this, you are allowed to draw a segment *through* the tile and see it.
-                if self.nodes[current].generator == self.nodes[current].tile {
+                if !strict || self.nodes[current].generator == self.nodes[current].tile {
                     out.push(relative);
                 }
 
@@ -223,14 +225,15 @@ mod test {
     #[should_panic(expected = "caller requested radius 1, we have precalculated radius 0")]
     fn get_fov_radius_too_large() {
         let fov = StrictFOV::new(0);
-        fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 1, |_| true);
+        fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 1, true, |_| true);
     }
 
     #[test]
     fn get_fov() {
         let fov = StrictFOV::new(2);
         let blocks_vision = |_| false;
-        let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, blocks_vision);
+        let tiles =
+            fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, true, blocks_vision);
 
         for x in -2..=2 {
             for y in -2..=2 {
@@ -252,7 +255,8 @@ mod test {
     fn get_fov_with_obstruction() {
         let fov = StrictFOV::new(2);
         let blocks_vision = |pos: AbsolutePosition| pos.x > 0 && -1 <= pos.y && pos.y <= 1;
-        let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, blocks_vision);
+        let tiles =
+            fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 2, true, blocks_vision);
 
         // @#
         // .#
@@ -269,7 +273,8 @@ mod test {
     fn get_fov_with_direct_only() {
         let fov = StrictFOV::new(4);
         let blocks_vision = |pos: AbsolutePosition| pos.x / 3 != pos.y;
-        let tiles = fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 4, blocks_vision);
+        let tiles =
+            fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 4, true, blocks_vision);
 
         // We can see (4, 1) passing through (3, 1), but we can't see (3, 1) itself.
         // This causes a discontinuity, which is ugly but whatever. This makes sense for "game logic" like hitting each other.
@@ -278,5 +283,16 @@ mod test {
 
         assert!(tiles.contains(&AbsolutePosition::new(4, 1)));
         assert!(!tiles.contains(&AbsolutePosition::new(3, 1)));
+    }
+
+    #[test]
+    fn get_fov_unstrict() {
+        let fov = StrictFOV::new(10);
+        let blocks_vision = |pos: AbsolutePosition| pos.x / 3 != pos.y;
+        let tiles =
+            fov.get_field_of_view_tiles(AbsolutePosition::new(0, 0), 4, false, blocks_vision);
+
+        assert!(tiles.contains(&AbsolutePosition::new(4, 1)));
+        assert!(tiles.contains(&AbsolutePosition::new(3, 1)));
     }
 }
