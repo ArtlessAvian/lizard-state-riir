@@ -2,6 +2,7 @@
 extends GridMap
 
 @export var source: GridMap
+@export var nullable_superset_source: GridMap
 @export var tile: int
 @export_tool_button("Reready") var reready = _ready
 
@@ -43,6 +44,11 @@ func reset_my_cell(cell: Vector3i):
 		var dz = bit / 2  # Expected Integer Division
 		var offset = cell + Vector3i(dx, 0, dz)
 		if source.get_cell_item(offset) == tile:
+			pattern |= 1 << bit
+		elif (
+			nullable_superset_source != null
+			and nullable_superset_source.get_cell_item(offset) == tile
+		):
 			pattern |= 1 << bit
 	if pattern != 0:
 		self.set_cell_item(cell, MESHES[pattern], Y_ROT_TO_ORIENTATION[Y_ROT[pattern]])
