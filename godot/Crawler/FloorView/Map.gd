@@ -53,7 +53,9 @@ func clear():
 	$Floors.clear()
 	$Walls.clear()
 	$WallsMarching.clear()
+	$WallsMarching.dirty.clear()
 	$FloorsMarching.clear()
+	$FloorsMarching.dirty.clear()
 
 
 func add_vision(vision: Dictionary):
