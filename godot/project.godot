@@ -106,5 +106,9 @@ wall_texture={
 }
 oob_texture={
 "type": "sampler2D",
-"value": "res://Crawler/FloorView/oob_black.tres"
+"value": "res://Crawler/FloorView/oob_noise.tres"
+}
+fow_texture={
+"type": "sampler2D",
+"value": "res://Crawler/FloorView/oob_noise.tres"
 }
