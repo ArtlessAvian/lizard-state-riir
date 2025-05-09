@@ -61,7 +61,7 @@ pub mod positional {
     pub use lizstate_geom::positional::*;
 }
 
-pub(crate) mod pathfinding;
+pub use lizstate_geom::pathfinding;
 
 /// Functional Magic.
 mod writer;
