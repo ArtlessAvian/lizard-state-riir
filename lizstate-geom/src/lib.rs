@@ -9,3 +9,6 @@
 ///
 /// TODO: Maybe rename to something grid related?
 pub mod positional;
+
+pub mod algorithms;
+pub mod fov;

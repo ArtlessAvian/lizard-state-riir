@@ -3,11 +3,11 @@ use std::ops::IndexMut;
 
 use tracing::instrument;
 
-use super::AbsolutePosition;
-use super::InsideOctant;
-use super::RelativeOctantified;
-use super::RelativePosition;
 use super::algorithms::Segment;
+use crate::positional::AbsolutePosition;
+use crate::positional::InsideOctant;
+use crate::positional::RelativeOctantified;
+use crate::positional::RelativePosition;
 
 #[derive(Debug, Clone, Copy)]
 struct TrieNodeIndex(usize);

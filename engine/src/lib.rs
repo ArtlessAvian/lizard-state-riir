@@ -55,7 +55,11 @@ pub mod strategy;
 /// Integer math and algorithms on a grid.
 ///
 /// TODO: Maybe rename to something grid related?
-pub use lizstate_geom::positional;
+pub mod positional {
+    pub use lizstate_geom::algorithms;
+    pub use lizstate_geom::fov;
+    pub use lizstate_geom::positional::*;
+}
 
 pub(crate) mod pathfinding;
 

@@ -5,9 +5,9 @@
 // (Currently the only gameplay value is revealing the map in a neat way.)
 // (There's no cover mechanics for example.)
 
-use super::InsideOctant;
-use super::RelativeOctantified;
-use super::RelativePosition;
+use crate::positional::InsideOctant;
+use crate::positional::RelativeOctantified;
+use crate::positional::RelativePosition;
 
 /// A symmetric segment.
 ///
@@ -106,9 +106,9 @@ impl Segment {
 
 #[cfg(test)]
 mod test {
+    use crate::algorithms::Segment;
     use crate::positional::InsideOctant;
     use crate::positional::RelativePosition;
-    use crate::positional::algorithms::Segment;
 
     #[test]
     fn test_cardinal() {

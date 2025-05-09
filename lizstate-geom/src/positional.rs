@@ -1,6 +1,3 @@
-pub mod algorithms;
-pub mod fov;
-
 use std::collections::HashSet;
 use std::ops::Add;
 use std::ops::Mul;
@@ -157,13 +154,13 @@ impl Sub for AbsolutePosition {
 /// Represents a position ignoring symmetry.
 /// Don't make public.
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
-struct InsideOctant {
-    run: u32,
-    rise: u32, // rise <= run
+pub(crate) struct InsideOctant {
+    pub run: u32,
+    pub rise: u32, // rise <= run
 }
 
 impl InsideOctant {
-    fn new(rise: u32, run: u32) -> Self {
+    pub fn new(rise: u32, run: u32) -> Self {
         assert!(rise <= run);
         Self { run, rise }
     }
@@ -173,14 +170,14 @@ impl InsideOctant {
 /// Not very useful outside of algorithms.
 /// Don't make public.
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
-struct RelativeOctantified {
-    inside: InsideOctant,
-    octant: u8, // Treat as a black box.
+pub(crate) struct RelativeOctantified {
+    pub inside: InsideOctant,
+    pub octant: u8, // Treat as a black box.
 }
 
 impl RelativeOctantified {
     // If you are working in an octant, you are not likely to exit the octant.
-    fn in_same_octant(&self, inside: InsideOctant) -> Self {
+    pub fn in_same_octant(&self, inside: InsideOctant) -> Self {
         Self {
             inside,
             octant: self.octant,
