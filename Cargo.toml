@@ -2,5 +2,5 @@
 resolver = "2"
 
 members = [
-    "engine", "godot-glue",
+    "engine", "godot-glue", "lizstate-geom",
 ]

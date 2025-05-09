@@ -172,6 +172,7 @@ name = "engine"
 version = "0.1.0"
 dependencies = [
  "enum_delegate",
+ "lizstate-geom",
  "ptr_meta",
  "rkyv",
  "rkyv_dyn",
@@ -443,6 +444,16 @@ name = "libc"
 version = "0.2.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5aba8db14291edd000dfcc4d620c7ebfb122c613afb886ca8803fa4e128a20a"
+
+[[package]]
+name = "lizstate-geom"
+version = "0.1.0"
+dependencies = [
+ "rkyv",
+ "rkyv_dyn",
+ "rkyv_typename",
+ "tracing",
+]
 
 [[package]]
 name = "log"

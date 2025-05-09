@@ -1,0 +1,11 @@
+[package]
+name = "lizstate-geom"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# TODO: Decide if validation necessary (aka we yolo deserialization).
+rkyv = { version = "0.7.44", features = ["validation"] }
+rkyv_dyn = "0.7.44"
+rkyv_typename = "0.7.44"
+tracing = "0.1.40"

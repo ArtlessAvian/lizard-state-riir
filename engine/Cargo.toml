@@ -8,6 +8,7 @@ rust-version = "1.85"
 
 [dependencies]
 enum_delegate = "0.2.0"
+lizstate-geom = { version = "0.1.0", path = "../lizstate-geom" }
 # ptr_meta pinned by rkyv.
 ptr_meta = "~0.1.3"
 # TODO: Decide if validation necessary (aka we yolo deserialization).

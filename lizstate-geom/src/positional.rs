@@ -1,5 +1,5 @@
-pub(crate) mod algorithms;
-pub(crate) mod fov;
+pub mod algorithms;
+pub mod fov;
 
 use std::collections::HashSet;
 use std::ops::Add;
