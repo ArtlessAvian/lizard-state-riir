@@ -13,3 +13,4 @@ pub mod positional;
 pub mod algorithms;
 pub mod fov;
 pub mod pathfinding;
+pub mod shapes;
