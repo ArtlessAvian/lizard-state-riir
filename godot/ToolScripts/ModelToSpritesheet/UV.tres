@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://bak2apt7gcx2n"]
+
+[ext_resource type="Shader" uid="uid://dhiux182rxagp" path="res://ToolScripts/ModelToSpritesheet/UV.gdshader" id="1_inju5"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_inju5")

@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://cb57epcji0e7l"]
+
+[ext_resource type="PackedScene" uid="uid://cofxu18flcpi0" path="res://ToolScripts/ModelToSpritesheet/model from stuff1.blend" id="1_k8xvg"]
+[ext_resource type="Material" uid="uid://bak2apt7gcx2n" path="res://ToolScripts/ModelToSpritesheet/UV.tres" id="2_y8xca"]
+
+[node name="model from stuff1" instance=ExtResource("1_k8xvg")]
+
+[node name="BODY" parent="." index="0"]
+surface_material_override/0 = ExtResource("2_y8xca")
+
+[node name="HEAD" parent="." index="1"]
+surface_material_override/0 = ExtResource("2_y8xca")
+
+[node name="TAIL" parent="." index="2"]
+surface_material_override/0 = ExtResource("2_y8xca")
+
+[node name="ARM" parent="." index="3"]
+surface_material_override/0 = ExtResource("2_y8xca")

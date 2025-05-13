@@ -1,0 +1,109 @@
+[gd_scene load_steps=10 format=3 uid="uid://b5fjykqwp1prw"]
+
+[ext_resource type="Script" uid="uid://b2dsjw7ebb6ne" path="res://ToolScripts/ModelToSpritesheet/Yeah.gd" id="1_0lt8n"]
+[ext_resource type="Script" uid="uid://bw4nk8ghnxcha" path="res://ToolScripts/ModelToSpritesheet/model_to_spritesheet.gd" id="1_ab6b8"]
+[ext_resource type="Shader" uid="uid://cvcalt2hb4sup" path="res://ToolScripts/ModelToSpritesheet/Outline.gdshader" id="2_rwe7t"]
+[ext_resource type="Shader" uid="uid://crbuf7sf332p7" path="res://Crawler/FloorView/grid.gdshader" id="3_mtsjs"]
+[ext_resource type="Texture2D" uid="uid://b5310fstal4ot" path="res://Crawler/FloorView/Entity/tegu/tegu.png" id="5_pulid"]
+[ext_resource type="PackedScene" uid="uid://cb57epcji0e7l" path="res://ToolScripts/ModelToSpritesheet/model_from_stuff_1.tscn" id="5_rwe7t"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eelwn"]
+shader = ExtResource("2_rwe7t")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_3mpmn"]
+render_priority = 0
+shader = ExtResource("3_mtsjs")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_pulid"]
+material = SubResource("ShaderMaterial_3mpmn")
+size = Vector2(3, 3)
+
+[node name="ModelToSpritesheet" type="Node2D"]
+script = ExtResource("1_ab6b8")
+
+[node name="PreviewBase" type="Sprite2D" parent="."]
+texture_filter = 1
+material = SubResource("ShaderMaterial_eelwn")
+centered = false
+
+[node name="Tegu" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(149, 166)
+texture = ExtResource("5_pulid")
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+layers = 524288
+mesh = SubResource("PlaneMesh_pulid")
+skeleton = NodePath("../AngledCameras/SubViewport")
+
+[node name="Subject" type="Node3D" parent="."]
+
+[node name="model from stuff1" parent="Subject" instance=ExtResource("5_rwe7t")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+
+[node name="AngledCameras" type="Node" parent="."]
+
+[node name="SubViewport" type="SubViewport" parent="AngledCameras"]
+transparent_bg = true
+size = Vector2i(64, 64)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="AngledCameras/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 0.745356, 0.666667, 0, -0.666667, 0.745356, 0, 6.66667, 7.45356)
+cull_mask = 524287
+projection = 1
+current = true
+size = 2.667
+script = ExtResource("1_0lt8n")
+
+[node name="SubViewport2" type="SubViewport" parent="AngledCameras"]
+transparent_bg = true
+size = Vector2i(64, 64)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="AngledCameras/SubViewport2"]
+transform = Transform3D(0.707107, -0.471405, 0.527046, 0, 0.745356, 0.666667, -0.707107, -0.471405, 0.527046, 5.27046, 6.66667, 5.27046)
+cull_mask = 524287
+projection = 1
+current = true
+size = 2.667
+script = ExtResource("1_0lt8n")
+
+[node name="SubViewport3" type="SubViewport" parent="AngledCameras"]
+transparent_bg = true
+size = Vector2i(64, 64)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="AngledCameras/SubViewport3"]
+transform = Transform3D(-4.37114e-08, -0.666667, 0.745356, 0, 0.745356, 0.666667, -1, 2.91409e-08, -3.25805e-08, 7.45356, 6.66667, -3.25805e-07)
+cull_mask = 524287
+projection = 1
+current = true
+size = 2.667
+script = ExtResource("1_0lt8n")
+
+[node name="SubViewport4" type="SubViewport" parent="AngledCameras"]
+transparent_bg = true
+size = Vector2i(64, 64)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="AngledCameras/SubViewport4"]
+transform = Transform3D(-0.707107, -0.471405, 0.527046, 0, 0.745356, 0.666667, -0.707107, 0.471405, -0.527046, 5.27046, 6.66667, -5.27046)
+cull_mask = 524287
+projection = 1
+current = true
+size = 2.667
+script = ExtResource("1_0lt8n")
+
+[node name="SubViewport5" type="SubViewport" parent="AngledCameras"]
+transparent_bg = true
+size = Vector2i(64, 64)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="AngledCameras/SubViewport5"]
+transform = Transform3D(-1, 5.82819e-08, -6.51611e-08, 0, 0.745356, 0.666667, 8.74228e-08, 0.666667, -0.745356, -6.51611e-07, 6.66667, -7.45356)
+cull_mask = 524287
+projection = 1
+current = true
+size = 2.667
+script = ExtResource("1_0lt8n")
