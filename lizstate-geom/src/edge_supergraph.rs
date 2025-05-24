@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::rc::Rc;
 
 use crate::coords::Coords;
 use crate::coords::PlanarProjection;
@@ -14,13 +15,13 @@ pub enum AddEdgeError {
     OverwritingToConnection,
 }
 
-pub trait IsPlanarEdgeSupergraph {
+pub trait IsPlanarEdgeSupergraph: Clone {
     type Original: Grid<Neighbor = Self::Original> + PlanarProjection;
 
     // There does not exist an alternate implementation.
-    fn to_grid(&self, tile: Self::Original) -> SupergraphElement<'_, Self> {
+    fn to_grid(&self, tile: Self::Original) -> SupergraphElement<Self> {
         SupergraphElement {
-            original: self,
+            original: self.clone(),
             tile,
         }
     }
@@ -34,17 +35,17 @@ pub trait IsPlanarEdgeSupergraph {
     fn add_edge(&mut self, from: &Self::Original, to: &Self::Original) -> Result<(), AddEdgeError>;
 }
 
-pub struct SupergraphElement<'a, Supergraph>
+pub struct SupergraphElement<Supergraph>
 where
-    Supergraph: IsPlanarEdgeSupergraph + ?Sized,
+    Supergraph: IsPlanarEdgeSupergraph,
 {
-    pub original: &'a Supergraph,
+    pub original: Supergraph,
     pub tile: Supergraph::Original,
 }
 
-impl<T> Grid for SupergraphElement<'_, T>
+impl<T> Grid for SupergraphElement<T>
 where
-    T: IsPlanarEdgeSupergraph + ?Sized,
+    T: IsPlanarEdgeSupergraph,
 {
     type Neighbor = Self;
 
@@ -56,13 +57,13 @@ where
             .go(dir)
             .or_else(|| self.original.get_added_edge(&self.tile, dir))
             .map(|neighbor| SupergraphElement {
-                original: self.original,
+                original: self.original.clone(),
                 tile: neighbor,
             })
     }
 }
 
-impl<T> PlanarProjection for SupergraphElement<'_, T>
+impl<T> PlanarProjection for SupergraphElement<T>
 where
     T: IsPlanarEdgeSupergraph,
 {
@@ -73,16 +74,16 @@ where
 
 ///////////////////////////////////////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[must_use]
 pub struct PlanarEdgeSupergraph<T> {
-    edges: HashMap<(T, Direction), T>,
+    edges: Rc<HashMap<(T, Direction), T>>,
 }
 
 impl<Tile> PlanarEdgeSupergraph<Tile> {
     fn new_empty() -> Self {
         Self {
-            edges: HashMap::new(),
+            edges: Rc::new(HashMap::new()),
         }
     }
 }
@@ -130,8 +131,13 @@ where
             return Err(AddEdgeError::OverwritingToConnection);
         }
 
-        self.edges.insert(forwards, to.clone());
-        self.edges.insert(backwards, from.clone());
+        // TODO: Remove unwrap! Use inner struct!
+        Rc::get_mut(&mut self.edges)
+            .unwrap()
+            .insert(forwards, to.clone());
+        Rc::get_mut(&mut self.edges)
+            .unwrap()
+            .insert(backwards, from.clone());
 
         Ok(())
     }
