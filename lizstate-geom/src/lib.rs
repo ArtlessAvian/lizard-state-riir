@@ -21,28 +21,38 @@ pub mod shapes;
 
 // ------- PLANNED REFACTOR ----------
 
-/// Integer math on a grid plane.
+/// A trait for square grid movement, helpers.
 ///
 /// Can be thought of as a 4-connected graph.
-pub mod tiles;
+/// This library will refer to the nodes of the graph as `Tiles`.
+/// The outgoing edges of each `Tile` have a `Direction`, with rules for how they behave.
+pub mod grid;
 
-/// A configurable subgraph of all possible `Tiles`.
-pub mod map;
-
-/// The faces of the grid graph.
-pub mod dual;
-
-/// A map with layers.
+/// A boring implementation of `Grid`.
 ///
-/// Adds *connections* to movement on the grid.
-/// (Does not explain *HOW* the connections work.)
-pub mod layered_map;
+/// It's a plane!
+pub mod coords;
 
-/// An example of a space with layers.
+/// A trait for induced subgraphs, and an implementer, `IndoorMap`.
+///
+/// Useful for making "indoor maps."
+pub mod induced_subgraph;
+
+/// The least structured implementation of `Grid`.
+///
+/// Notably, there are multiple elements with the same projected coordinate, hence the `PlanarProjection` trait.
 pub mod free_group;
 
-/// A more practical use of the `free_group` module.
+/// A trait for adding edges while maintaining planarity, and an implementer.
+///
+/// Useful for connecting disconnected parts.
+pub mod edge_supergraph;
+
+/// Replaces each element of the grid with a bounded grid.
 pub mod chunks;
+
+/// The faces of the grid subgraph.
+pub mod dual;
 
 /// Flips and Rotations.
 pub mod isometry;

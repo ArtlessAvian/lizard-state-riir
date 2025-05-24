@@ -1,6 +1,7 @@
-use crate::tiles::Direction;
-use crate::tiles::Grid;
-use crate::tiles::PlanarProjection;
+use crate::coords::Coords;
+use crate::coords::PlanarProjection;
+use crate::grid::Direction;
+use crate::grid::Grid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[must_use]
@@ -47,7 +48,8 @@ impl Orientation {
     /// "up" is the direction with second most contribution
     /// This puts the vec inside the octant x >= 0, y >= 0, y <= x.
     #[expect(clippy::missing_panics_doc, reason = "expect")]
-    pub fn new_from_symmetry((mut x, mut y): (i32, i32)) -> Self {
+    pub fn new_from_symmetry(coords: Coords) -> Self {
+        let Coords { mut x, mut y } = coords;
         let mut up = Direction::Up;
         let mut right = Direction::Right;
 
@@ -86,8 +88,9 @@ impl Orientation {
         }
     }
 
-    fn local_to_inner(self, (x, y): (i32, i32)) -> (i32, i32) {
-        match self {
+    fn local_coords_to_inner(self, local: Coords) -> Coords {
+        let Coords { x, y } = local;
+        let (inner_x, inner_y) = match self {
             Self::UpLeft => (-x, y),
             Self::UpRight => (x, y),
             Self::DownLeft => (-x, -y),
@@ -96,15 +99,16 @@ impl Orientation {
             Self::LeftDown => (-y, -x),
             Self::RightUp => (y, x),
             Self::RightDown => (y, -x),
-        }
+        };
+        Coords::new(inner_x, inner_y)
     }
 
-    fn inner_to_local(self, (x, y): (i32, i32)) -> (i32, i32) {
-        self.inverse().local_to_inner((x, y))
+    fn inner_coords_to_local(self, inner: Coords) -> Coords {
+        self.inverse().local_coords_to_inner(inner)
     }
 
-    fn local_direction_to_inner(self, dir: Direction) -> Direction {
-        match dir {
+    fn local_direction_to_inner(self, local_dir: Direction) -> Direction {
+        match local_dir {
             Direction::Up => self.to_up(),
             Direction::Down => self.to_up().inverse(),
             Direction::Left => self.to_right().inverse(),
@@ -112,8 +116,8 @@ impl Orientation {
         }
     }
 
-    fn inner_direction_to_local(self, dir: Direction) -> Direction {
-        self.inverse().local_direction_to_inner(dir)
+    fn inner_direction_to_local(self, inner_dir: Direction) -> Direction {
+        self.inverse().local_direction_to_inner(inner_dir)
     }
 }
 
@@ -129,10 +133,10 @@ pub struct GridIsometry<T: Grid> {
 }
 
 impl<T: Grid> GridIsometry<T> {
-    pub fn new_from_symmetry(tile: T, (x, y): (i32, i32)) -> GridIsometry<T> {
+    pub fn new_from_symmetry(tile: T, coords: Coords) -> GridIsometry<T> {
         GridIsometry {
             tile,
-            orientation: Orientation::new_from_symmetry((x, y)),
+            orientation: Orientation::new_from_symmetry(coords),
         }
     }
 
@@ -147,15 +151,15 @@ impl<T: Grid> GridIsometry<T> {
         })
     }
 
-    pub fn unwrap(self) -> T {
+    pub fn forget(self) -> T {
         self.tile
     }
 }
 
-impl<T: Grid<NeighborType = T>> Grid for GridIsometry<T> {
-    type NeighborType = Self;
+impl<T: Grid<Neighbor = T>> Grid for GridIsometry<T> {
+    type Neighbor = Self;
 
-    fn go(&self, dir: Direction) -> Option<Self::NeighborType> {
+    fn go(&self, dir: Direction) -> Option<Self::Neighbor> {
         self.tile
             .go(self.orientation.local_direction_to_inner(dir))
             .map(|tile| GridIsometry {
@@ -172,45 +176,45 @@ impl<T: Grid<NeighborType = T>> Grid for GridIsometry<T> {
 /// We know T corectly implements the trait.
 /// When we call `Grid::up`, it's as if we called some other direction.
 /// We need to turn that direction back into up.
-impl<T: Grid<NeighborType = T> + PlanarProjection> PlanarProjection for GridIsometry<T> {
-    fn project_coords(&self) -> (i32, i32) {
-        self.orientation.inner_to_local(self.tile.project_coords())
+impl<T: Grid<Neighbor = T> + PlanarProjection> PlanarProjection for GridIsometry<T> {
+    fn project_coords(&self) -> Coords {
+        self.orientation
+            .inner_coords_to_local(self.tile.project_coords())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Orientation;
+    use crate::coords::Coords;
+    use crate::grid::Direction;
+    use crate::grid::GridShortcuts;
     use crate::isometry::GridIsometry;
-    use crate::tiles::Direction;
-    use crate::tiles::Grid;
-    use crate::tiles::Tile;
 
     #[test]
     fn symmetry() {
-        for (vec, expected) in [
-            ((2, 1), Orientation::UpRight),
-            ((-2, 1), Orientation::UpLeft),
-            ((2, -1), Orientation::DownRight),
-            ((-2, -1), Orientation::DownLeft),
-            ((-1, 2), Orientation::LeftUp),
-            ((-1, -2), Orientation::LeftDown),
-            ((1, 2), Orientation::RightUp),
-            ((1, -2), Orientation::RightDown),
+        let local = Coords::new(2, 1);
+
+        for (inner, expected) in [
+            (Coords::new(2, 1), Orientation::UpRight),
+            (Coords::new(-2, 1), Orientation::UpLeft),
+            (Coords::new(2, -1), Orientation::DownRight),
+            (Coords::new(-2, -1), Orientation::DownLeft),
+            (Coords::new(-1, 2), Orientation::LeftUp),
+            (Coords::new(-1, -2), Orientation::LeftDown),
+            (Coords::new(1, 2), Orientation::RightUp),
+            (Coords::new(1, -2), Orientation::RightDown),
         ] {
-            let orientation = Orientation::new_from_symmetry(vec);
+            let orientation = Orientation::new_from_symmetry(inner);
             assert_eq!(orientation, expected);
 
             println!("testing {expected:?}");
-            assert_eq!(orientation.local_to_inner((2, 1)), vec);
-            assert_eq!(orientation.inner_to_local(vec), (2, 1));
+            assert_eq!(orientation.local_coords_to_inner(local), inner);
+            assert_eq!(orientation.inner_coords_to_local(inner), local);
 
-            let iso = GridIsometry::new_from_symmetry(Tile::new(0, 0), vec);
+            let iso = GridIsometry::new_from_symmetry(Coords::ZERO, inner);
             assert_eq!(iso.orientation, expected);
-            assert_eq!(
-                iso.right().right().up().unwrap().tile,
-                Tile::new(vec.0, vec.1)
-            );
+            assert_eq!(iso.right().right().up().unwrap().tile, inner);
         }
     }
 

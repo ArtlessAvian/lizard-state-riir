@@ -1,8 +1,10 @@
+use crate::coords::Coords;
+use crate::coords::PlanarProjection;
+use crate::grid::Grid;
+use crate::grid::GridShortcuts;
 use crate::isometry::GridIsometry;
 use crate::isometry::Orientation;
 use crate::point::Point;
-use crate::tiles::Grid;
-use crate::tiles::PlanarProjection;
 
 // impl<T: Grid<NeighborType = T>> Grid for BoundedPoint<T> {
 //     type NeighborType = Self;
@@ -19,7 +21,7 @@ struct Line<T: Grid> {
     to: T,
 }
 
-impl<T: Grid<NeighborType = T> + Clone + PlanarProjection> IntoIterator for Line<T> {
+impl<T: Grid<Neighbor = T> + Clone + PlanarProjection> IntoIterator for Line<T> {
     type Item = Point<T>;
     type IntoIter = LineIterator<T>;
 
@@ -27,10 +29,10 @@ impl<T: Grid<NeighborType = T> + Clone + PlanarProjection> IntoIterator for Line
         let from_coord = self.from.project_coords();
         let to_coord = self.from.project_coords();
 
-        let dx = to_coord.0 - from_coord.0;
-        let dy = to_coord.1 - from_coord.1;
+        let dx = to_coord.x - from_coord.x;
+        let dy = to_coord.y - from_coord.y;
 
-        let orientation = Orientation::new_from_symmetry((dx, dy));
+        let orientation = Orientation::new_from_symmetry(Coords::new(dx, dy));
 
         let from = GridIsometry::new_from_orientation(self.from, orientation);
         let to = GridIsometry::new_from_orientation(self.to, orientation);
@@ -49,13 +51,13 @@ impl<T: Grid<NeighborType = T> + Clone + PlanarProjection> IntoIterator for Line
 }
 
 #[must_use]
-struct LineIterator<T: Grid<NeighborType = T> + Clone> {
+struct LineIterator<T: Grid<Neighbor = T> + Clone> {
     rotated_line: Line<GridIsometry<T>>,
     uninit: bool,
     just_returned: Option<GridIsometry<T>>,
 }
 
-impl<T: Grid<NeighborType = T> + PlanarProjection + Clone> Iterator for LineIterator<T> {
+impl<T: Grid<Neighbor = T> + PlanarProjection + Clone> Iterator for LineIterator<T> {
     type Item = Point<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -67,7 +69,7 @@ impl<T: Grid<NeighborType = T> + PlanarProjection + Clone> Iterator for LineIter
             return self
                 .just_returned
                 .clone()
-                .map(GridIsometry::unwrap)
+                .map(GridIsometry::forget)
                 .map(|tile| Point {
                     tile,
                     dx: 0f32,
@@ -86,7 +88,7 @@ impl<T: Grid<NeighborType = T> + PlanarProjection + Clone> Iterator for LineIter
             return None;
         }
 
-        if (2 * along.1 + 1) * (to.0 - from.0) < (2 * along.0 + 1 - 2 * from.0) * (to.1 - from.1) {
+        if (2 * along.y + 1) * (to.x - from.x) < (2 * along.x + 1 - 2 * from.x) * (to.y - from.y) {
             self.just_returned = previous.up();
             return self
                 .just_returned
@@ -98,7 +100,7 @@ impl<T: Grid<NeighborType = T> + PlanarProjection + Clone> Iterator for LineIter
                 })
                 .as_ref()
                 .map(Point::transpose)
-                .map(GridIsometry::unwrap);
+                .map(GridIsometry::forget);
         }
 
         self.just_returned = previous.right();
@@ -111,6 +113,6 @@ impl<T: Grid<NeighborType = T> + PlanarProjection + Clone> Iterator for LineIter
             })
             .as_ref()
             .map(Point::transpose)
-            .map(GridIsometry::unwrap)
+            .map(GridIsometry::forget)
     }
 }

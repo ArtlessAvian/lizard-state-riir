@@ -1,8 +1,9 @@
+use crate::coords::Coords;
+use crate::coords::PlanarProjection;
+use crate::grid::Direction;
+use crate::grid::Grid;
 use crate::isometry::GridIsometry;
 use crate::isometry::Orientation;
-use crate::tiles::Direction;
-use crate::tiles::Grid;
-use crate::tiles::PlanarProjection;
 
 /// A tile of side length 1, and an offset.
 ///
@@ -16,10 +17,10 @@ pub struct Point<T: Grid> {
     pub dy: f32, // - down up +
 }
 
-impl<T: Grid<NeighborType = T>> Grid for Point<T> {
-    type NeighborType = Self;
+impl<T: Grid<Neighbor = T>> Grid for Point<T> {
+    type Neighbor = Self;
 
-    fn go(&self, dir: Direction) -> Option<Self::NeighborType> {
+    fn go(&self, dir: Direction) -> Option<Self::Neighbor> {
         Some(Point {
             tile: self.tile.go(dir)?,
             ..*self
@@ -27,13 +28,13 @@ impl<T: Grid<NeighborType = T>> Grid for Point<T> {
     }
 }
 
-impl<T: Grid<NeighborType = T> + PlanarProjection> PlanarProjection for Point<T> {
-    fn project_coords(&self) -> (i32, i32) {
+impl<T: Grid<Neighbor = T> + PlanarProjection> PlanarProjection for Point<T> {
+    fn project_coords(&self) -> Coords {
         self.tile.project_coords()
     }
 }
 
-impl<T: Grid<NeighborType = T> + Clone> Point<GridIsometry<T>> {
+impl<T: Grid<Neighbor = T> + Clone> Point<GridIsometry<T>> {
     pub fn transpose(&self) -> GridIsometry<Point<T>> {
         let (dx, dy) = match self.tile.orientation {
             Orientation::UpRight => (self.dx, self.dy),
@@ -57,7 +58,7 @@ impl<T: Grid<NeighborType = T> + Clone> Point<GridIsometry<T>> {
     }
 }
 
-impl<T: Grid<NeighborType = T> + Clone> GridIsometry<Point<T>> {
+impl<T: Grid<Neighbor = T> + Clone> GridIsometry<Point<T>> {
     pub fn transpose(&self) -> Point<GridIsometry<T>> {
         let (dx, dy) = match self.orientation.inverse() {
             Orientation::UpRight => (self.tile.dx, self.tile.dy),
