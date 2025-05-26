@@ -3,7 +3,7 @@ use crate::grid::Grid;
 
 const CHUNK_SIZE: i8 = 8;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 struct Chunk<T> {
     tile: T,
     x: i8,
@@ -12,7 +12,7 @@ struct Chunk<T> {
 
 impl<T> Grid for Chunk<T>
 where
-    T: Grid<Neighbor = T> + Clone,
+    T: Grid<Neighbor = T>,
 {
     type Neighbor = Self;
 

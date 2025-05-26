@@ -31,7 +31,7 @@ impl Direction {
 /// * `t.up() == Some(t)` but `t.down() == None`
 ///
 /// We could bound Neighbor: Eq, but it's awkward.
-pub trait Grid {
+pub trait Grid: Clone {
     type Neighbor;
 
     #[must_use]

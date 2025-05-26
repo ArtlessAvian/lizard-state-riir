@@ -15,7 +15,7 @@ pub trait IsInducedSubgraph: Clone {
     fn to_grid(&self, tile: &Self::Original) -> Option<InducedSubgraphElement<Self>>;
 }
 
-#[derive(Debug, Hash)]
+#[derive(Debug, Hash, Clone)]
 pub struct InducedSubgraphElement<Subgraph>
 where
     Subgraph: IsInducedSubgraph,

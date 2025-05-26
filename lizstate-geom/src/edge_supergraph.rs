@@ -7,14 +7,6 @@ use crate::coords::PlanarProjection;
 use crate::grid::Direction;
 use crate::grid::Grid;
 
-pub enum AddEdgeError {
-    ProjectionNotAdjacent,
-    OriginalFromAlreadyConnected,
-    OriginalToAlreadyConnected,
-    OverwritingFromConnection,
-    OverwritingToConnection,
-}
-
 pub trait IsPlanarEdgeSupergraph: Clone {
     type Original: Grid<Neighbor = Self::Original> + PlanarProjection;
 
@@ -31,10 +23,9 @@ pub trait IsPlanarEdgeSupergraph: Clone {
     ///
     /// Implementers, be sure that `get_edge(get_edge(from, dir)?, dir.inverse()) == from`
     fn get_added_edge(&self, from: &Self::Original, dir: Direction) -> Option<Self::Original>;
-
-    fn add_edge(&mut self, from: &Self::Original, to: &Self::Original) -> Result<(), AddEdgeError>;
 }
 
+#[derive(Debug, Clone)]
 pub struct SupergraphElement<Supergraph>
 where
     Supergraph: IsPlanarEdgeSupergraph,
@@ -88,20 +79,20 @@ impl<Tile> PlanarEdgeSupergraph<Tile> {
     }
 }
 
-impl<T> IsPlanarEdgeSupergraph for PlanarEdgeSupergraph<T>
+pub enum AddEdgeError {
+    ProjectionNotAdjacent,
+    OriginalFromAlreadyConnected,
+    OriginalToAlreadyConnected,
+    OverwritingFromConnection,
+    OverwritingToConnection,
+}
+
+impl<T> PlanarEdgeSupergraph<T>
 where
     T: Grid<Neighbor = T> + PlanarProjection,
     T: Eq + Hash,
-    T: Clone,
 {
-    type Original = T;
-
-    fn get_added_edge(&self, from: &Self::Original, dir: Direction) -> Option<Self::Original> {
-        // TODO: Avoid cloning input >:/
-        self.edges.get(&(from.clone(), dir)).cloned()
-    }
-
-    fn add_edge(&mut self, from: &Self::Original, to: &Self::Original) -> Result<(), AddEdgeError> {
+    fn add_edge(&mut self, from: &T, to: &T) -> Result<(), AddEdgeError> {
         let from_coords = from.project_coords();
         let to_coords = to.project_coords();
 
@@ -140,6 +131,19 @@ where
             .insert(backwards, from.clone());
 
         Ok(())
+    }
+}
+
+impl<T> IsPlanarEdgeSupergraph for PlanarEdgeSupergraph<T>
+where
+    T: Grid<Neighbor = T> + PlanarProjection,
+    T: Eq + Hash,
+{
+    type Original = T;
+
+    fn get_added_edge(&self, from: &Self::Original, dir: Direction) -> Option<Self::Original> {
+        // TODO: Avoid cloning input >:/
+        self.edges.get(&(from.clone(), dir)).cloned()
     }
 }
 
