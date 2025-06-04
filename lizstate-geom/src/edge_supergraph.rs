@@ -34,6 +34,16 @@ where
     pub tile: Supergraph::Original,
 }
 
+impl<Supergraph> Hash for SupergraphElement<Supergraph>
+where
+    Supergraph: IsPlanarEdgeSupergraph,
+    Supergraph::Original: Hash,
+{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.tile.hash(state);
+    }
+}
+
 impl<T> Grid for SupergraphElement<T>
 where
     T: IsPlanarEdgeSupergraph,

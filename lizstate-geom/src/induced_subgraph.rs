@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::hash::Hash;
 use std::rc::Rc;
 
 use crate::coords::Coords;
@@ -15,13 +16,24 @@ pub trait IsInducedSubgraph: Clone {
     fn to_grid(&self, tile: &Self::Original) -> Option<InducedSubgraphElement<Self>>;
 }
 
-#[derive(Debug, Hash, Clone)]
+#[derive(Debug, Clone)]
 pub struct InducedSubgraphElement<Subgraph>
 where
     Subgraph: IsInducedSubgraph,
 {
     pub map: Subgraph,
     pub tile: Subgraph::Original,
+}
+
+impl<Subgraph> Hash for InducedSubgraphElement<Subgraph>
+where
+    Subgraph: IsInducedSubgraph,
+    Subgraph::Original: Hash,
+{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // Ignore self.map.
+        self.tile.hash(state);
+    }
 }
 
 impl<Subgraph> Grid for InducedSubgraphElement<Subgraph>
