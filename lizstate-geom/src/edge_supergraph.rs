@@ -25,7 +25,8 @@ pub trait IsPlanarEdgeSupergraph: Clone {
     fn get_added_edge(&self, from: &Self::Original, dir: Direction) -> Option<Self::Original>;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[must_use]
 pub struct SupergraphElement<Supergraph>
 where
     Supergraph: IsPlanarEdgeSupergraph,
@@ -75,20 +76,21 @@ where
 
 ///////////////////////////////////////
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 #[must_use]
 pub struct PlanarEdgeSupergraph<T> {
-    edges: Rc<HashMap<(T, Direction), T>>,
+    edges: HashMap<(T, Direction), T>,
 }
 
 impl<Tile> PlanarEdgeSupergraph<Tile> {
     fn new_empty() -> Self {
         Self {
-            edges: Rc::new(HashMap::new()),
+            edges: HashMap::new(),
         }
     }
 }
 
+#[derive(Debug)]
 pub enum AddEdgeError {
     ProjectionNotAdjacent,
     OriginalFromAlreadyConnected,
@@ -133,18 +135,14 @@ where
         }
 
         // TODO: Remove unwrap! Use inner struct!
-        Rc::get_mut(&mut self.edges)
-            .unwrap()
-            .insert(forwards, to.clone());
-        Rc::get_mut(&mut self.edges)
-            .unwrap()
-            .insert(backwards, from.clone());
+        self.edges.insert(forwards, to.clone());
+        self.edges.insert(backwards, from.clone());
 
         Ok(())
     }
 }
 
-impl<T> IsPlanarEdgeSupergraph for PlanarEdgeSupergraph<T>
+impl<T> IsPlanarEdgeSupergraph for &PlanarEdgeSupergraph<T>
 where
     T: Grid<Neighbor = T> + PlanarProjection,
     T: Eq + Hash,
@@ -152,80 +150,60 @@ where
     type Original = T;
 
     fn get_added_edge(&self, from: &Self::Original, dir: Direction) -> Option<Self::Original> {
-        // TODO: Avoid cloning input >:/
         self.edges.get(&(from.clone(), dir)).cloned()
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::PlanarEdgeSupergraph;
-//     use crate::free_group::FreeGroup;
-//     use crate::layered_map::SewingError;
-//     use crate::tiles::Grid;
-//     use crate::tiles::Tile;
+impl<T> IsPlanarEdgeSupergraph for Rc<PlanarEdgeSupergraph<T>>
+where
+    T: Grid<Neighbor = T> + PlanarProjection,
+    T: Eq + Hash,
+{
+    type Original = T;
 
-//     #[test]
-//     fn locate() {
-//         let mut map = PlanarEdgeSupergraph::new_empty();
+    fn get_added_edge(&self, from: &Self::Original, dir: Direction) -> Option<Self::Original> {
+        self.edges.get(&(from.clone(), dir)).cloned()
+    }
+}
 
-//         let tile = FreeGroup::new_empty();
-//         let tile_right = tile.right().unwrap();
+#[cfg(test)]
+mod tests {
+    use super::PlanarEdgeSupergraph;
+    use crate::edge_supergraph::IsPlanarEdgeSupergraph;
+    use crate::free_group::FreeGroup;
+    use crate::grid::GridShortcuts;
+    use crate::induced_subgraph::IndoorsMap;
+    use crate::induced_subgraph::IsInducedSubgraph;
 
-//         map.tiles.insert(tile, ());
+    #[test]
+    fn go_follow_edge() {
+        let free_identity = FreeGroup::new_empty();
+        let free_other = FreeGroup::new_empty().up().right().down().unwrap();
 
-//         assert!(map.locate(&tile).is_some());
-//         assert!(map.locate(&tile_right).is_none());
+        let mut valid_tiles = IndoorsMap::new_empty();
+        valid_tiles.0.insert(free_identity);
+        valid_tiles.0.insert(free_other);
 
-//         map.tiles.insert(tile_right, ());
+        {
+            let subset_identity = (&valid_tiles).to_grid(&free_identity).unwrap();
+            assert_eq!(subset_identity.right(), None);
 
-//         assert!(map.locate(&tile_right).is_some());
-//     }
+            let subset_other = (&valid_tiles).to_grid(&free_other).unwrap();
+            assert_eq!(subset_other.left(), None);
+        }
 
-//     #[test]
-//     fn add_connections() {
-//         let mut map = PlanarEdgeSupergraph::new_empty();
+        let mut supergraph = PlanarEdgeSupergraph::new_empty();
+        supergraph
+            .add_edge(
+                &(&valid_tiles).to_grid(&free_identity).unwrap(),
+                &(&valid_tiles).to_grid(&free_other).unwrap(),
+            )
+            .unwrap();
 
-//         let tile = FreeGroup::new_empty();
-//         let tile_right_down_left = tile.right().down().left().unwrap();
-//         map.tiles.insert(tile, ());
-//         map.tiles.insert(tile.right().unwrap(), ());
-//         map.tiles.insert(tile.right().down().unwrap(), ());
-//         map.tiles.insert(tile_right_down_left, ());
+        let dingus = (&supergraph).to_grid((&valid_tiles).to_grid(&free_identity).unwrap());
+        assert_eq!(dingus.right().unwrap().tile.tile, free_other);
 
-//         let in_map = map.locate(&tile).unwrap();
-//         assert!(in_map.down().is_none());
-//         drop(in_map);
-
-//         assert_eq!(map.insert_edge(&tile, &tile_right_down_left), Ok(()));
-
-//         let in_map = map.locate(&tile).unwrap();
-//         assert_eq!(*in_map.down().unwrap().tile, tile_right_down_left);
-//         assert_eq!(*in_map.down().up().unwrap().tile, *in_map.tile);
-//     }
-
-//     #[test]
-//     fn reject_invalid_connections() {
-//         let mut map = PlanarEdgeSupergraph::new_empty();
-
-//         let tile = Tile::new(0, 0);
-//         let tile_right_right = tile.right().right().unwrap();
-
-//         assert_eq!(
-//             map.insert_edge(&tile, &tile_right_right),
-//             Err(SewingError::MissingFrom)
-//         );
-//         map.tiles.insert(tile, ());
-
-//         assert_eq!(
-//             map.insert_edge(&tile, &tile_right_right),
-//             Err(SewingError::MissingTo)
-//         );
-//         map.tiles.insert(tile_right_right, ());
-
-//         assert_eq!(
-//             map.insert_edge(&tile, &tile_right_right),
-//             Err(SewingError::FromToNotAdjacent)
-//         );
-//     }
-// }
+        let dingus = (&supergraph).to_grid((&valid_tiles).to_grid(&free_other).unwrap());
+        assert_eq!(dingus.left().unwrap().tile.tile, free_identity);
+    }
+}

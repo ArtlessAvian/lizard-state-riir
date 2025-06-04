@@ -17,6 +17,7 @@ pub trait IsInducedSubgraph: Clone {
 }
 
 #[derive(Debug, Clone)]
+#[must_use]
 pub struct InducedSubgraphElement<Subgraph>
 where
     Subgraph: IsInducedSubgraph,
@@ -34,6 +35,23 @@ where
         // Ignore self.map.
         self.tile.hash(state);
     }
+}
+
+impl<Subgraph> PartialEq for InducedSubgraphElement<Subgraph>
+where
+    Subgraph: IsInducedSubgraph,
+    Subgraph::Original: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.tile == other.tile
+    }
+}
+
+impl<Subgraph> Eq for InducedSubgraphElement<Subgraph>
+where
+    Subgraph: IsInducedSubgraph,
+    Subgraph::Original: PartialEq,
+{
 }
 
 impl<Subgraph> Grid for InducedSubgraphElement<Subgraph>
@@ -59,29 +77,47 @@ where
 
 /// A set of tiles, connected if they exist in the set.
 #[derive(Debug, Clone)]
-pub struct IndoorsMap(Rc<HashSet<Coords>>);
+#[must_use]
+pub struct IndoorsMap<T>(pub HashSet<T>);
 
-impl IndoorsMap {
-    fn new_empty() -> Self {
-        Self(Rc::new(HashSet::new()))
+impl<T> IndoorsMap<T> {
+    pub fn new_empty() -> Self {
+        Self(HashSet::new())
     }
 }
 
-impl IsInducedSubgraph for IndoorsMap {
-    type Original = Coords;
+impl<T> IsInducedSubgraph for &IndoorsMap<T>
+where
+    T: Grid<Neighbor = T>,
+    T: Hash + Eq,
+{
+    type Original = T;
+
+    fn to_grid(&self, tile: &Self::Original) -> Option<InducedSubgraphElement<Self>> {
+        self.0.get(tile).map(|tile| InducedSubgraphElement {
+            map: *self,
+            tile: tile.clone(),
+        })
+    }
+}
+
+impl<T> IsInducedSubgraph for Rc<IndoorsMap<T>>
+where
+    T: Grid<Neighbor = T>,
+    T: Hash + Eq,
+{
+    type Original = T;
 
     fn to_grid(&self, tile: &Self::Original) -> Option<InducedSubgraphElement<Self>> {
         self.0.get(tile).map(|tile| InducedSubgraphElement {
             map: self.clone(),
-            tile: *tile,
+            tile: tile.clone(),
         })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
-
     use super::IndoorsMap;
     use crate::coords::Coords;
     use crate::grid::GridShortcuts;
@@ -93,14 +129,14 @@ mod tests {
         let tile_right = tile.right().unwrap();
 
         let mut map = IndoorsMap::new_empty();
-        Rc::get_mut(&mut map.0).unwrap().insert(tile);
+        map.0.insert(tile);
 
-        assert!(map.to_grid(&tile).is_some());
-        assert!(map.to_grid(&tile_right).is_none());
+        assert!((&map).to_grid(&tile).is_some());
+        assert!((&map).to_grid(&tile_right).is_none());
 
-        Rc::get_mut(&mut map.0).unwrap().insert(tile_right);
+        map.0.insert(tile_right);
 
-        assert!(map.to_grid(&tile_right).is_some());
+        assert!((&map).to_grid(&tile_right).is_some());
     }
 
     #[test]
@@ -109,10 +145,10 @@ mod tests {
         let tile_right = tile.right().unwrap();
 
         let mut map = IndoorsMap::new_empty();
-        Rc::get_mut(&mut map.0).unwrap().insert(tile);
-        Rc::get_mut(&mut map.0).unwrap().insert(tile_right);
+        map.0.insert(tile);
+        map.0.insert(tile_right);
 
-        assert_eq!(map.to_grid(&tile).right().left().unwrap().tile, tile);
-        assert!(map.to_grid(&tile).right().right().is_none());
+        assert_eq!((&map).to_grid(&tile).right().left().unwrap().tile, tile);
+        assert!((&map).to_grid(&tile).right().right().is_none());
     }
 }
