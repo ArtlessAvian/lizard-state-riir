@@ -4,14 +4,14 @@ use std::ops::Range;
 
 use lizstate_tiling::direction::Direction;
 use lizstate_tiling::tiling::HasSquareTiling;
-use lizstate_tiling::tiling::Tile;
+use lizstate_tiling::tiling::IsATile;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 struct LineGraph {}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct LineNode(i32);
-impl Tile for LineNode {}
+impl IsATile for LineNode {}
 
 impl HasSquareTiling<LineNode> for LineGraph {
     fn get_origin(&self) -> LineNode {
@@ -34,7 +34,7 @@ struct BoundedGridGraph(Range<i32>, Range<i32>);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct GridNode(i32, i32);
-impl Tile for GridNode {}
+impl IsATile for GridNode {}
 
 impl HasSquareTiling<GridNode> for &BoundedGridGraph {
     fn get_origin(&self) -> GridNode {
@@ -70,16 +70,16 @@ impl HasSquareTiling<GridNode> for &BoundedGridGraph {
 struct GraphIntersection<A, B>(A, B);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-struct IntersectionElement<TileA: Tile, TileB: Tile>(TileA, TileB);
-impl<TileA: Tile, TileB: Tile> Tile for IntersectionElement<TileA, TileB> {}
+struct IntersectionElement<TileA: IsATile, TileB: IsATile>(TileA, TileB);
+impl<TileA: IsATile, TileB: IsATile> IsATile for IntersectionElement<TileA, TileB> {}
 
-impl<A, B, TileA, TileB> HasSquareTiling<IntersectionElement<TileA, TileB>>
-    for GraphIntersection<A, B>
+impl<SpaceA, SpaceB, TileA, TileB> HasSquareTiling<IntersectionElement<TileA, TileB>>
+    for GraphIntersection<SpaceA, SpaceB>
 where
-    A: HasSquareTiling<TileA>,
-    B: HasSquareTiling<TileB>,
-    TileA: Tile,
-    TileB: Tile,
+    SpaceA: HasSquareTiling<TileA>,
+    SpaceB: HasSquareTiling<TileB>,
+    TileA: IsATile,
+    TileB: IsATile,
 {
     fn get_origin(&self) -> IntersectionElement<TileA, TileB> {
         IntersectionElement(self.0.get_origin(), self.1.get_origin())

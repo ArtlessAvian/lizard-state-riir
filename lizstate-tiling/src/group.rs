@@ -4,10 +4,10 @@ use crate::euclidean_plane::PairwiseAddition;
 use crate::free_group::FreeGroupConcat;
 use crate::free_group::FreeGroupElement;
 use crate::tiling::HasSquareTiling;
-use crate::tiling::Tile;
+use crate::tiling::IsATile;
 
 pub trait GroupOp: Sized {
-    type Element: Tile;
+    type Element: IsATile;
 
     const IDENTITY: Self::Element;
     const UP: Self::Element;

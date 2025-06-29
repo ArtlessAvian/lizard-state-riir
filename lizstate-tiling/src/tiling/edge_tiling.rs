@@ -1,23 +1,23 @@
 use crate::direction::Direction;
 use crate::tiling::HasSquareTiling;
-use crate::tiling::Tile;
+use crate::tiling::IsATile;
 use crate::tiling::TileUndirectedEdge;
 
-impl<TileType> Tile for TileUndirectedEdge<TileType> where TileType: Tile {}
+impl<Tile> IsATile for TileUndirectedEdge<Tile> where Tile: IsATile {}
 
 /// For every square in a tiling, replace every square's edge with a diamond.
 ///
 /// Alternatively, replace every graph edge with a vertex.
 /// Directions are rotated by 45 degrees.
 #[derive(PartialEq, Eq)]
-pub struct EdgeTiling<Tiling>(Tiling);
+pub struct EdgeTiling<Space>(Space);
 
-impl<Tiling, TileType> HasSquareTiling<TileUndirectedEdge<TileType>> for &EdgeTiling<Tiling>
+impl<Space, Tile> HasSquareTiling<TileUndirectedEdge<Tile>> for &EdgeTiling<Space>
 where
-    Tiling: HasSquareTiling<TileType>,
-    TileType: Tile,
+    Space: HasSquareTiling<Tile>,
+    Tile: IsATile,
 {
-    fn get_origin(&self) -> TileUndirectedEdge<TileType> {
+    fn get_origin(&self) -> TileUndirectedEdge<Tile> {
         let origin = self.0.get_origin();
         for dir in [
             Direction::Up,
@@ -34,9 +34,9 @@ where
 
     fn step(
         &self,
-        tile: &TileUndirectedEdge<TileType>,
+        tile: &TileUndirectedEdge<Tile>,
         dir: Direction,
-    ) -> Option<TileUndirectedEdge<TileType>> {
+    ) -> Option<TileUndirectedEdge<Tile>> {
         match tile {
             // A horizontal edge's neighbor will always be vertical.
             //      O   O

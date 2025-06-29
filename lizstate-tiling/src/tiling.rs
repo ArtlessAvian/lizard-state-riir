@@ -5,7 +5,7 @@ pub mod edge_tiling;
 /// Marker trait for tile types.
 ///
 /// Enforces subtraits. Reduces typing.
-pub trait Tile: Copy + Eq {}
+pub trait IsATile: Copy + Eq {}
 
 /// Trait for spaces with a square tiling of `Tile`s.
 ///
@@ -20,26 +20,26 @@ pub trait Tile: Copy + Eq {}
 ///
 /// An example of an invalid implementation is a graph with only `Up` and `Right` edges.
 /// Another example is a two vertex graph, one vertex with four edges to the other, and the other having four self-loops.
-pub trait HasSquareTiling<TileType: Tile>: Copy + Eq {
+pub trait HasSquareTiling<Tile: IsATile>: Copy + Eq {
     /// Gets a consistent tile within the space.
     /// Implementor can panic if the space is empty.
-    fn get_origin(&self) -> TileType;
+    fn get_origin(&self) -> Tile;
 
     /// Given a `Tile` node in the graph, follow the `Direction` edge.
     ///
     /// May return `None`, bounding movement.
     ///
     /// Ensure that `step(t, dir) == Some(n)` if and only if `step(n, dir.inverse()) == Some(t)`
-    fn step(&self, tile: &TileType, dir: Direction) -> Option<TileType>;
+    fn step(&self, tile: &Tile, dir: Direction) -> Option<Tile>;
 
     /// Returns an iterator following the path, outputting every tile along the way (including the first).
     ///
     /// As an implementor, it doesn't make too much sense to override this.
     fn follow_path(
         &self,
-        from: &TileType,
+        from: &Tile,
         path: impl IntoIterator<Item = Direction>,
-    ) -> impl Iterator<Item = GoResult<TileType>> {
+    ) -> impl Iterator<Item = GoResult<Tile>> {
         let path = path.into_iter();
 
         let tail = path.scan(Ok(*from), |status, dir| {
@@ -59,11 +59,7 @@ pub trait HasSquareTiling<TileType: Tile>: Copy + Eq {
     ///
     /// # Errors
     /// When a step of the path is invalid. Returns the edge attempted.
-    fn skip_path(
-        &self,
-        from: &TileType,
-        path: impl IntoIterator<Item = Direction>,
-    ) -> GoResult<TileType> {
+    fn skip_path(&self, from: &Tile, path: impl IntoIterator<Item = Direction>) -> GoResult<Tile> {
         path.into_iter().try_fold(*from, |current, dir| {
             self.step(&current, dir).ok_or({
                 MissingEdgeError(TileEdge {
@@ -76,27 +72,27 @@ pub trait HasSquareTiling<TileType: Tile>: Copy + Eq {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct TileEdge<TileType> {
-    pub tile: TileType,
+pub struct TileEdge<Tile> {
+    pub tile: Tile,
     pub edge: Direction,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TileUndirectedEdge<TileType> {
-    Horizontal { left: TileType, right: TileType },
-    Vertical { down: TileType, up: TileType },
+pub enum TileUndirectedEdge<Tile> {
+    Horizontal { left: Tile, right: Tile },
+    Vertical { down: Tile, up: Tile },
 }
 
-impl<TileType> TileUndirectedEdge<TileType>
+impl<Tile> TileUndirectedEdge<Tile>
 where
-    TileType: Tile,
+    Tile: IsATile,
 {
-    fn new<T: HasSquareTiling<TileType>>(
-        tiling: &T,
-        from: &TileType,
+    fn new<Space: HasSquareTiling<Tile>>(
+        space: &Space,
+        from: &Tile,
         dir: Direction,
     ) -> Option<Self> {
-        let to = tiling.step(from, dir)?;
+        let to = space.step(from, dir)?;
 
         Some(match dir {
             Direction::Up => TileUndirectedEdge::Vertical {
@@ -120,6 +116,6 @@ where
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MissingEdgeError<TileType>(TileEdge<TileType>);
+pub struct MissingEdgeError<Tile>(TileEdge<Tile>);
 
-pub type GoResult<TileType> = Result<TileType, MissingEdgeError<TileType>>;
+pub type GoResult<Tile> = Result<Tile, MissingEdgeError<Tile>>;

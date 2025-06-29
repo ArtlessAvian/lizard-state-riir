@@ -2,24 +2,24 @@ use core::marker::PhantomData;
 
 use crate::path::BoundedPathLike;
 use crate::tiling::HasSquareTiling;
-use crate::tiling::Tile;
+use crate::tiling::IsATile;
 
-struct NaivePathEquality<Path, Space, T>
+struct NaivePathEquality<Path, Space, Tile>
 where
     Path: BoundedPathLike,
-    Space: HasSquareTiling<T>,
-    T: Tile,
+    Space: HasSquareTiling<Tile>,
+    Tile: IsATile,
 {
     path: Path,
     space: Space,
-    t: PhantomData<T>,
+    tile: PhantomData<Tile>,
 }
 
-impl<Path, Space, T> PartialEq for NaivePathEquality<Path, Space, T>
+impl<Path, Space, Tile> PartialEq for NaivePathEquality<Path, Space, Tile>
 where
     Path: BoundedPathLike,
-    Space: HasSquareTiling<T>,
-    T: Tile,
+    Space: HasSquareTiling<Tile>,
+    Tile: IsATile,
 {
     fn eq(&self, other: &Self) -> bool {
         self.space == other.space

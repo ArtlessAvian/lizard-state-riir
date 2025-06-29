@@ -1,7 +1,7 @@
 use crate::direction::Direction;
 use crate::group::GroupOp;
 use crate::tiling::HasSquareTiling;
-use crate::tiling::Tile;
+use crate::tiling::IsATile;
 
 /// Z cross Z, though bounded by i32.
 ///
@@ -51,7 +51,7 @@ impl CartesianCoords {
     }
 }
 
-impl Tile for CartesianCoords {}
+impl IsATile for CartesianCoords {}
 
 // This is the only abelian group that can be generated with two (non-overlapping) elements.
 pub struct PairwiseAddition;
