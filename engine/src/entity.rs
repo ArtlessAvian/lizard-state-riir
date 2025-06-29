@@ -199,7 +199,7 @@ impl EntitySet {
             .map(|(index, element)| (EntityId(index), element.as_ref()))
     }
 
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<Rc<Entity>> {
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Rc<Entity>> {
         self.0.iter_mut()
     }
 }
@@ -343,7 +343,7 @@ impl BatchEntityUpdateContextless {
     }
 
     #[must_use]
-    pub fn add_context(self, context: &EntitySet) -> BatchEntityUpdate {
+    pub fn add_context(self, context: &EntitySet) -> BatchEntityUpdate<'_> {
         BatchEntityUpdate {
             contextless: self,
             context,

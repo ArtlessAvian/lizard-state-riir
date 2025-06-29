@@ -76,6 +76,7 @@ impl CommandTrait for TakeKnockbackUtil<'_> {
 }
 
 #[derive(Debug)]
+#[allow(dead_code, reason = "expect to use later")]
 pub struct MultiKnockbackUtil<'a> {
     pub parsed_floor: Cow<'a, Floor>,
     pub all_displacements: HashMap<EntityId, RelativePosition>,

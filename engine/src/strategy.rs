@@ -148,12 +148,11 @@ impl StrategyTrait for FollowStrategy {
 
         if let Some((_, ally)) = ally_in_range {
             // If ally is too far, stepping is priority
-            if subject.pos.distance(ally.pos) > 4 {
-                if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
-                    if let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos) {
-                        return x.do_action();
-                    }
-                }
+            if subject.pos.distance(ally.pos) > 4
+                && let Some(step_to) = original.map.get_step(subject.pos, ally.pos)
+                && let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos)
+            {
+                return x.do_action();
             }
         }
 
@@ -170,14 +169,12 @@ impl StrategyTrait for FollowStrategy {
             }
         }
 
-        if let Some((_ally_id, ally)) = ally_in_range {
-            if subject.pos.distance(ally.pos) > 2 {
-                if let Some(step_to) = original.map.get_step(subject.pos, ally.pos) {
-                    if let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos) {
-                        return x.do_action();
-                    }
-                }
-            }
+        if let Some((_ally_id, ally)) = ally_in_range
+            && subject.pos.distance(ally.pos) > 2
+            && let Some(step_to) = original.map.get_step(subject.pos, ally.pos)
+            && let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos)
+        {
+            return x.do_action();
         }
 
         WaitAction {}
@@ -205,10 +202,10 @@ impl StrategyTrait for RushdownStrategy {
 
         if let Some(other) = in_range {
             if subject.pos.distance(other.1.pos) > 1 {
-                if let Some(step_to) = original.map.get_step(subject.pos, other.1.pos) {
-                    if let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos) {
-                        return x.do_action();
-                    }
+                if let Some(step_to) = original.map.get_step(subject.pos, other.1.pos)
+                    && let Ok(x) = StepAction.verify(original, subject_id, step_to - subject.pos)
+                {
+                    return x.do_action();
                 }
             } else if let Ok(x) = BumpAction.verify(original, subject_id, other.1.pos - subject.pos)
             {

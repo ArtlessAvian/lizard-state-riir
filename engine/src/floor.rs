@@ -164,7 +164,7 @@ impl Floor {
     }
 
     pub fn update_entities_batch(&self, mut batch: BatchEntityUpdate) -> FloorUpdate {
-        assert!(std::ptr::eq(batch.context, &self.entities));
+        assert!(std::ptr::eq(batch.context, &raw const self.entities));
 
         Writer::transpose(
             self.downing

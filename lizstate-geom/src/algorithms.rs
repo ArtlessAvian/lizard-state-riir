@@ -72,7 +72,7 @@ impl Segment {
         }
 
         let mut alt = None;
-        if target.rise % 2 != 0 && target.run % 2 == 0 {
+        if !target.rise.is_multiple_of(2) && target.run.is_multiple_of(2) {
             let mut clone = tiles.clone();
             let mid = clone.len() / 2; // int division intentional.
             clone[mid].rise += 1;
