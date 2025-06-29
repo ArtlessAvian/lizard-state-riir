@@ -7,12 +7,16 @@ use crate::path::PathLike;
 /// Mostly exists for testing reference.
 #[derive(Debug, Clone, Copy)]
 #[must_use]
-struct PathString<const N: usize>(usize, [Direction; N]);
+pub struct PathString<const N: usize>(usize, [Direction; N]);
 
 // Const implementations. Bleh.
 impl<const N: usize> PathString<N> {
-    pub const fn new() -> Self {
-        Self(0, [Direction::Up; N])
+    pub const fn new_empty() -> Self {
+        PathString(0, [Direction::Up; N])
+    }
+
+    pub const fn new_from_array(array: [Direction; N]) -> Self {
+        Self(N, array)
     }
 
     #[must_use]
@@ -80,7 +84,7 @@ impl<const N: usize> PathString<N> {
 
 impl<const N: usize> Default for PathString<N> {
     fn default() -> Self {
-        Self::new()
+        Self::new_empty()
     }
 }
 
@@ -95,10 +99,10 @@ impl<const N: usize> Eq for PathString<N> {}
 
 impl<const N: usize> IntoIterator for PathString<N> {
     type Item = Direction;
-    type IntoIter = core::array::IntoIter<Direction, N>;
+    type IntoIter = core::iter::Take<core::array::IntoIter<Direction, N>>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.1.into_iter()
+        self.1.into_iter().take(self.0)
     }
 }
 

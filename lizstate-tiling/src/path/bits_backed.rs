@@ -175,6 +175,7 @@ mod tests {
     use crate::direction::Direction;
     use crate::path::bits_backed::PathBitString;
 
+    #[test]
     fn basic_inverses() {
         let right = PathBitString::new().push(Direction::Right).unwrap();
         let left = PathBitString::new().push(Direction::Left).unwrap();
@@ -183,10 +184,11 @@ mod tests {
 
         let up = PathBitString::new().push(Direction::Up).unwrap();
         let down = PathBitString::new().push(Direction::Down).unwrap();
-        assert_eq!(right.inverse(), up);
-        assert_eq!(left.inverse(), down);
+        assert_eq!(up.inverse(), down);
+        assert_eq!(down.inverse(), up);
     }
 
+    #[test]
     fn pair_inverses() {
         let right_up = PathBitString::new()
             .push(Direction::Right)
@@ -202,6 +204,7 @@ mod tests {
         assert_eq!(down_left.inverse(), right_up);
     }
 
+    #[test]
     fn iter() {
         let right_up = PathBitString::new()
             .push(Direction::Right)
