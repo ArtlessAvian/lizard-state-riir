@@ -11,6 +11,9 @@
 #![allow(dead_code)]
 #![warn(clippy::pedantic)]
 
+/// The four cardinal directions!
+pub mod direction;
+
 /// A trait for 4-regular undirected graphs. Implementations are "spaces."
 ///
 /// Every *directed* edge is labeled, and their reverse edges are labeled their inverse label.

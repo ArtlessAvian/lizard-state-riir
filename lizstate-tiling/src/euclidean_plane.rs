@@ -1,5 +1,5 @@
+use crate::direction::Direction;
 use crate::group::GroupOp;
-use crate::tiling::Direction;
 use crate::tiling::HasSquareTiling;
 use crate::tiling::Tile;
 
@@ -77,13 +77,12 @@ impl GroupOp for PairwiseAddition {
 
 #[cfg(test)]
 mod tests {
+    use crate::direction::Direction;
     use crate::euclidean_plane::CartesianCoords;
     use crate::euclidean_plane::EuclideanPlane;
     use crate::euclidean_plane::PairwiseAddition;
     use crate::group::GroupOp;
-    use crate::tiling::Direction;
     use crate::tiling::HasSquareTiling;
-    use crate::tiling::PathHelper;
 
     #[test]
     fn space_traversal() {
@@ -96,8 +95,7 @@ mod tests {
                 Direction::Right,
                 Direction::Down,
                 Direction::Left,
-            ]
-            .into_iter(),
+            ],
         );
 
         assert_eq!(up_right_down_left, Ok(origin));

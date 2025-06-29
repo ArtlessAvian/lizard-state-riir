@@ -2,7 +2,7 @@
 
 use std::ops::Range;
 
-use lizstate_tiling::tiling::Direction;
+use lizstate_tiling::direction::Direction;
 use lizstate_tiling::tiling::HasSquareTiling;
 use lizstate_tiling::tiling::Tile;
 

@@ -2,7 +2,6 @@ use core::marker::PhantomData;
 
 use crate::path::PathLike;
 use crate::tiling::HasSquareTiling;
-use crate::tiling::PathHelper;
 use crate::tiling::Tile;
 
 struct NaivePathEquality<Path, Space, T>

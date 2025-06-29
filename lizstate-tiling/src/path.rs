@@ -3,7 +3,7 @@
     reason = "type can grow maybe (and still be copy)"
 )]
 
-use crate::tiling::Direction;
+use crate::direction::Direction;
 
 pub trait PathLike
 where

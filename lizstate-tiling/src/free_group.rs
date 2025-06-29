@@ -1,8 +1,8 @@
 use core::ops::Deref;
 
+use crate::direction::Direction;
 use crate::group::GroupOp;
 use crate::path::PathBitString;
-use crate::tiling::Direction;
 use crate::tiling::HasSquareTiling;
 use crate::tiling::Tile;
 
@@ -86,13 +86,12 @@ impl GroupOp for FreeGroupConcat {
 
 #[cfg(test)]
 mod tests {
+    use crate::direction::Direction;
     use crate::free_group::FreeGroup;
     use crate::free_group::FreeGroupConcat;
     use crate::free_group::FreeGroupElement;
     use crate::group::GroupOp;
-    use crate::tiling::Direction;
     use crate::tiling::HasSquareTiling;
-    use crate::tiling::PathHelper;
 
     #[test]
     fn space_traversal() {
@@ -105,8 +104,7 @@ mod tests {
                 Direction::Right,
                 Direction::Down,
                 Direction::Left,
-            ]
-            .into_iter(),
+            ],
         );
 
         assert_ne!(up_right_down_left, Ok(origin));
@@ -199,9 +197,7 @@ mod tests {
             Direction::Up,
         ];
 
-        let string = FreeGroup
-            .skip_path(&FreeGroupElement::new(), path.into_iter())
-            .unwrap();
+        let string = FreeGroup.skip_path(&FreeGroupElement::new(), path).unwrap();
 
         assert_eq!(
             FreeGroupConcat.op(&string, &FreeGroupConcat.inverse(&string)),
