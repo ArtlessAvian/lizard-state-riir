@@ -7,12 +7,12 @@ use crate::path::PathLike;
 /// Mostly exists for testing reference.
 #[derive(Debug, Clone, Copy)]
 #[must_use]
-struct PathString(usize, [Direction; 15]);
+struct PathString<const N: usize>(usize, [Direction; N]);
 
 // Const implementations. Bleh.
-impl PathString {
+impl<const N: usize> PathString<N> {
     pub const fn new() -> Self {
-        Self(0, [Direction::Up; 15])
+        Self(0, [Direction::Up; N])
     }
 
     #[must_use]
@@ -27,7 +27,7 @@ impl PathString {
 
     #[must_use]
     pub const fn is_full(&self) -> bool {
-        self.len() >= 15
+        self.len() >= N
     }
 
     #[must_use]
@@ -61,7 +61,7 @@ impl PathString {
     }
 
     pub const fn inverse(&self) -> Self {
-        let mut array = [Direction::Up; 15];
+        let mut array = [Direction::Up; N];
 
         let mut to = 0;
         while to < self.0 {
@@ -78,30 +78,31 @@ impl PathString {
     }
 }
 
-impl Default for PathString {
+impl<const N: usize> Default for PathString<N> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl PartialEq for PathString {
+// Since PathString::pop was lazy, we can't derive Eq.
+impl<const N: usize> PartialEq for PathString<N> {
     fn eq(&self, other: &Self) -> bool {
         (self.0 == other.0) && (self.as_slice() == other.as_slice())
     }
 }
 
-impl Eq for PathString {}
+impl<const N: usize> Eq for PathString<N> {}
 
-impl IntoIterator for PathString {
+impl<const N: usize> IntoIterator for PathString<N> {
     type Item = Direction;
-    type IntoIter = core::array::IntoIter<Direction, 15>;
+    type IntoIter = core::array::IntoIter<Direction, N>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.1.into_iter()
     }
 }
 
-impl PathLike for PathString {
+impl<const N: usize> PathLike for PathString<N> {
     fn append(&self, dir: Direction) -> Option<Self> {
         self.append(dir)
     }

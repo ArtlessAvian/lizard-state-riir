@@ -45,7 +45,7 @@ impl GroupHomomorphism for FlattenFreeGroup {
 
     fn homomorphism(&self, free_group: FreeGroupElement) -> Option<CartesianCoords> {
         free_group
-            .iter()
+            .into_iter()
             .try_fold(PairwiseAddition::IDENTITY, |tile, dir| {
                 EuclideanPlane.step(&tile, dir)
             })

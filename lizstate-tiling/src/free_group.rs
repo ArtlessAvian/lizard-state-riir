@@ -77,7 +77,7 @@ impl GroupOp for FreeGroupConcat {
 
     fn op(&self, a: &Self::Element, b: &Self::Element) -> Option<Self::Element> {
         let mut ab = *a;
-        for element in b.iter() {
+        for element in b.into_iter() {
             ab = ab.append_cancel(element)?;
         }
         Some(ab)
@@ -147,7 +147,7 @@ mod tests {
             })
             .unwrap();
 
-        let mut iter = string.iter();
+        let mut iter = string.into_iter();
         for expected in [Direction::Right, Direction::Down, Direction::Down] {
             assert_eq!(iter.next().unwrap(), expected);
         }
@@ -158,7 +158,7 @@ mod tests {
     fn string_overflow() {
         let mut string = FreeGroupElement::new();
 
-        for _ in 0..29 {
+        for _ in 0..28 {
             string = string.append_cancel(Direction::Right).unwrap();
         }
 

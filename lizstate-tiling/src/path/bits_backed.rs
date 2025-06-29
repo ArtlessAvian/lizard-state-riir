@@ -3,30 +3,44 @@ use crate::path::PathLike;
 
 /// Pairs of bits interpreted as `Directions`.
 ///
-/// Note some pairs may be "uninitialized". Yay.
-#[derive(Debug, Clone, Copy)]
+/// The implementation *does* shift every element, compared to the array version.
+/// This does let us derive Eq.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[must_use]
-pub struct PathBitString(u64);
+pub struct PathBitString(u8, [u8; 7]);
 
 impl PathBitString {
-    // Suppose we want to store N elements.
-    // We need 2N storage bits, and ceil(log_2(N)) bits to store size.
-    // When N = 14, we use 4 len bits and 28 storage bits.
-    pub const MAX_CAPACITY: usize = 29;
-    const SIZE_BITS: usize = 6;
+    /*
+        // Suppose we want to store N elements.
+        // We need 2N storage bits, and ceil(log_2(N)) bits to store size.
+        // When N = 14, we use 4 len bits and 28 storage bits.
+        pub const MAX_CAPACITY: usize = 29;
+        const SIZE_BITS: usize = 6;
 
-    const _MAX_CAP_REPRESENTABLE: () = assert!((1 << Self::SIZE_BITS) - 1 < Self::MAX_CAPACITY);
-    const _FITS_IN_U32: () = assert!(Self::MAX_CAPACITY * 2 + Self::SIZE_BITS <= 64);
+        const _MAX_CAP_REPRESENTABLE: () = assert!((1 << Self::SIZE_BITS) - 1 < Self::MAX_CAPACITY);
+        const _FITS_IN_U32: () = assert!(Self::MAX_CAPACITY * 2 + Self::SIZE_BITS <= 64);
+    */
 
-    const SIZE_MASK: u64 = !((!0) << Self::SIZE_BITS);
+    // We don't need to be *that* efficient.
+    // We barely lose capacity.
+    const MAX_CAPACITY: usize = 8 * 7 / 2;
 
     pub const fn new() -> Self {
-        PathBitString(0)
+        PathBitString(0, [0; 7])
+    }
+
+    pub const fn debug_assert_valid(self) -> Self {
+        debug_assert!({
+            let mask = u64::MAX << (2 * self.0);
+            let masked = Self::reinterpret(self.1) & mask;
+            masked == 0
+        });
+        self
     }
 
     #[must_use]
     pub const fn len(&self) -> usize {
-        (self.0 & Self::SIZE_MASK) as usize
+        self.0 as usize
     }
 
     #[must_use]
@@ -34,14 +48,29 @@ impl PathBitString {
         self.len() == 0
     }
 
+    #[expect(clippy::many_single_char_names, reason = "silly const destructuring")]
+    #[must_use]
+    pub const fn reinterpret(bytes: [u8; 7]) -> u64 {
+        let [a, b, c, d, e, f, g] = bytes;
+        u64::from_le_bytes([a, b, c, d, e, f, g, 0])
+    }
+
+    #[expect(clippy::many_single_char_names, reason = "silly const destructuring")]
+    #[must_use]
+    pub const fn rereinterpret(val: u64) -> [u8; 7] {
+        let [a, b, c, d, e, f, g, _] = val.to_le_bytes();
+        [a, b, c, d, e, f, g]
+    }
+
     #[must_use]
     pub const fn append(&self, dir: Direction) -> Option<Self> {
         if self.len() >= Self::MAX_CAPACITY {
             None
         } else {
-            let mut written = self.write_index(self.len(), dir);
-            written.0 += 1;
-            Some(written)
+            let raw = Self::reinterpret(self.1);
+            let new_raw = (raw << 2) + Self::dir_to_pattern(dir);
+            let new = Self(self.0 + 1, Self::rereinterpret(new_raw)).debug_assert_valid();
+            Some(new)
         }
     }
 
@@ -50,49 +79,26 @@ impl PathBitString {
         if self.is_empty() {
             None
         } else {
-            let last = self.read_index(self.len() - 1);
-            Some((Self(self.0 - 1), last))
+            let raw = Self::reinterpret(self.1);
+            let new_raw = raw >> 2;
+            let new = Self(self.0 - 1, Self::rereinterpret(new_raw)).debug_assert_valid();
+            let dir = Self::pattern_to_dir(raw & 0b11);
+            Some((new, dir))
         }
     }
 
+    #[expect(clippy::missing_panics_doc, reason = "expect")]
     pub const fn inverse(&self) -> Self {
-        let size_bits = self.0 & Self::SIZE_MASK;
-        let len = self.len();
-
-        // (64 - 2 * len - 6) zeros, (2 * len) ones, then 6 zeros.
-        let contents_mask = (!((!0) << (2 * len))) << Self::SIZE_BITS;
-        let mut content_bits = self.0 & contents_mask;
-
-        // 6 zeros, (2 * len) bits to reinterpret, then (64 - 2 * len - 6) zeros.
-        content_bits = content_bits.reverse_bits();
-        // Back to leading zeros, bits, then 4 zeros.
-        content_bits >>= 64 - 12 - 2 * len;
-
-        let pair_firsts = 0x5555_5555_5555_5555 << Self::SIZE_BITS;
-        let firsts = content_bits & pair_firsts;
-        let seconds = (content_bits >> 1) & pair_firsts;
-
-        let pair_xnor = firsts ^ seconds ^ pair_firsts;
-        let up_down_mask = pair_xnor | (pair_xnor << 1);
-
-        // To flip Up and Down, simply xor.
-        content_bits ^= up_down_mask;
-
-        Self(content_bits | size_bits)
-    }
-
-    pub const fn write_index(&self, index: usize, dir: Direction) -> Self {
-        let bit_offset = 2 * index + Self::SIZE_BITS;
-        let mut bits = self.0;
-        bits &= !(0b11 << bit_offset);
-        bits |= Self::dir_to_pattern(dir) << bit_offset;
-        Self(bits)
-    }
-
-    pub const fn read_index(&self, index: usize) -> Direction {
-        let bit_offset = 2 * index + Self::SIZE_BITS;
-        let pattern = (self.0 >> bit_offset) & 0b11;
-        Self::pattern_to_dir(pattern)
+        // i could write unreadable bit level shenanigans, but lets do this the normal way.
+        let mut out = Self::new();
+        let mut copy = *self;
+        while let Some((next, dir)) = copy.pop() {
+            copy = next;
+            out = out
+                .append(dir.inverse())
+                .expect("we cannot pop more than MAX_CAPACITY elements before the loop terminates");
+        }
+        out.debug_assert_valid()
     }
 
     #[must_use]
@@ -115,10 +121,6 @@ impl PathBitString {
             _ => unreachable!(),
         }
     }
-
-    pub fn iter(&self) -> impl Iterator<Item = Direction> {
-        self.into_iter()
-    }
 }
 
 impl Default for PathBitString {
@@ -126,18 +128,6 @@ impl Default for PathBitString {
         Self::new()
     }
 }
-
-impl PartialEq for PathBitString {
-    fn eq(&self, other: &Self) -> bool {
-        // We don't need to check if self.len() == other.len()
-        // The mask will not or 1's over the len bits.
-        let mask_out = (!0) << (2 * self.len() + 4);
-        let mask = !mask_out;
-        (self.0 & mask) == (other.0 & mask)
-    }
-}
-
-impl Eq for PathBitString {}
 
 impl IntoIterator for PathBitString {
     type Item = Direction;
@@ -150,21 +140,23 @@ impl IntoIterator for PathBitString {
 
 pub struct PathBitStringIter {
     string: PathBitString,
-    i: usize,
+    i: u8,
 }
 
 impl Iterator for PathBitStringIter {
     type Item = Direction;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.i >= self.string.len() {
-            return None;
+        if self.i >= self.string.0 {
+            None
+        } else {
+            let raw = PathBitString::reinterpret(self.string.1);
+            let pat = (raw >> (2 * (self.string.0 - 1 - self.i))) & 0b11;
+            let dir = PathBitString::pattern_to_dir(pat);
+
+            self.i += 1;
+            Some(dir)
         }
-
-        let dir = self.string.read_index(self.i);
-
-        self.i += 1;
-        Some(dir)
     }
 }
 
@@ -179,5 +171,51 @@ impl PathLike for PathBitString {
 
     fn inverse(&self) -> Self {
         self.inverse()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::direction::Direction;
+    use crate::path::bits_backed::PathBitString;
+
+    fn basic_inverses() {
+        let right = PathBitString::new().append(Direction::Right).unwrap();
+        let left = PathBitString::new().append(Direction::Left).unwrap();
+        assert_eq!(right.inverse(), left);
+        assert_eq!(left.inverse(), right);
+
+        let up = PathBitString::new().append(Direction::Up).unwrap();
+        let down = PathBitString::new().append(Direction::Down).unwrap();
+        assert_eq!(right.inverse(), up);
+        assert_eq!(left.inverse(), down);
+    }
+
+    fn pair_inverses() {
+        let right_up = PathBitString::new()
+            .append(Direction::Right)
+            .unwrap()
+            .append(Direction::Up)
+            .unwrap();
+        let down_left = PathBitString::new()
+            .append(Direction::Down)
+            .unwrap()
+            .append(Direction::Left)
+            .unwrap();
+        assert_eq!(right_up.inverse(), down_left);
+        assert_eq!(down_left.inverse(), right_up);
+    }
+
+    fn iter() {
+        let right_up = PathBitString::new()
+            .append(Direction::Right)
+            .unwrap()
+            .append(Direction::Up)
+            .unwrap();
+
+        let mut iter = right_up.into_iter();
+        assert_eq!(iter.next(), Some(Direction::Right));
+        assert_eq!(iter.next(), Some(Direction::Up));
+        assert_eq!(iter.next(), None);
     }
 }
