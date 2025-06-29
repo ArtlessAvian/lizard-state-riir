@@ -107,6 +107,8 @@ impl<const N: usize> IntoIterator for PathString<N> {
 }
 
 impl<const N: usize> PathLike for PathString<N> {
+    const MAX_CAPACITY: usize = N;
+
     fn push(&self, dir: Direction) -> Option<Self> {
         self.push(dir)
     }

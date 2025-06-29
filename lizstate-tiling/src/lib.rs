@@ -1,15 +1,20 @@
 //! Square tilings that fill 2D spaces (plural!).
 //! Or, 2D spaces formed by joining square tiles.
 //!
-//! Also `no_std`!
-#![no_std]
-//! (Maybe)
-//!
+//! # Usage
 //! All Copy + Eq traits are intended to be implemented on references or unit types.
 //! All Clone + Eq traits are intended to be implemented on the references, unit types, OR smart pointers.
+//!
+//! # Contributing
+//! Careful about making marker traits `Default.` Reference types cannot be `Default.`
 
+// clippy
 #![allow(dead_code)]
 #![warn(clippy::pedantic)]
+// no_std
+#![no_std]
+#[cfg(feature = "std")]
+extern crate std;
 
 /// The four cardinal directions!
 pub mod direction;

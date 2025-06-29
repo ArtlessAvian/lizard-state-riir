@@ -7,15 +7,28 @@ use crate::direction::Direction;
 
 pub mod array_backed;
 pub mod bits_backed;
+#[cfg(feature = "std")]
+pub mod vec_backed;
 
+pub struct PathAlreadyEmpty;
+
+/// An immutable value type, behaving like a Vec, but with bounded size.
+///
+/// For longer paths, see `UnboundedPathLike`, which drops the `Copy` bound and has a mutable interface.
 pub trait PathLike
 where
     Self: Default + Copy + Eq + IntoIterator<Item = Direction>,
 {
+    const MAX_CAPACITY: usize;
+
     fn push(&self, dir: Direction) -> Option<Self>;
 
     fn pop(&self) -> Option<(Self, Direction)>;
 
+    /// Returns the path backwards with inverse directions.
+    ///
+    /// This undoes the path.
+    /// `path.extend(path.inverse()) == Path::new_empty()`
     #[must_use]
     fn inverse(&self) -> Self {
         let mut out = Self::default();
@@ -29,21 +42,31 @@ where
         out
     }
 
+    /// Appends one path to another.
+    ///
+    /// May return None if path cannot be represented by the implementer.
     fn extend(&self, path: impl IntoIterator<Item = Direction>) -> Option<Self> {
         path.into_iter().try_fold(*self, |out, dir| out.push(dir))
     }
 
+    /// Cancels if the last direction is opposite, otherwise pushes.
+    #[must_use]
+    fn push_or_cancel(&self, dir: Direction) -> Option<Self> {
+        if let Some((init, last)) = self.pop()
+            && last.inverse() == dir
+        {
+            Some(init)
+        } else {
+            self.push(dir)
+        }
+    }
+
+    /// Cleans up redundant steps in the path.
     #[must_use]
     fn cancel_inverses(&self) -> Self {
         let mut out = Self::default();
         for dir in *self {
-            if let Some((init, last)) = out.pop()
-                && last.inverse().const_eq(dir)
-            {
-                out = init;
-            } else {
-                out = out.push(dir).expect("Assuming if PathLike implementer can represent a path of length N, it can represent all paths of length N");
-            }
+            out = out.push_or_cancel(dir).expect("Assuming if PathLike implementer can represent a path of length N, it can represent all paths of length N");
         }
         out
     }

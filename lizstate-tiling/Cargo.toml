@@ -5,3 +5,7 @@ edition = "2024"
 
 [dependencies]
 petgraph = { version = "0.8.2", optional = true }
+
+[features]
+default = ["std"]
+std = []

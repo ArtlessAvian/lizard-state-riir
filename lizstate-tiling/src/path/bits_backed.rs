@@ -23,7 +23,7 @@ impl PathBitString {
 
     // We don't need to be *that* efficient.
     // We barely lose capacity.
-    const MAX_CAPACITY: usize = 8 * 7 / 2;
+    const MAX_CAPACITY: usize = 7 * 8 / 2;
 
     pub const fn new() -> Self {
         PathBitString(0, [0; 7])
@@ -161,6 +161,8 @@ impl Iterator for PathBitStringIter {
 }
 
 impl PathLike for PathBitString {
+    const MAX_CAPACITY: usize = 7 * 8 / 2;
+
     fn push(&self, dir: Direction) -> Option<Self> {
         self.push(dir)
     }
