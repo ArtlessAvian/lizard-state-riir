@@ -127,24 +127,6 @@ impl Default for PathBitString {
     }
 }
 
-impl PathLike for PathBitString {
-    fn append(&self, dir: Direction) -> Option<Self> {
-        self.append(dir)
-    }
-
-    fn pop(&self) -> Option<(Self, Direction)> {
-        self.pop()
-    }
-
-    fn inverse(&self) -> Self {
-        self.inverse()
-    }
-
-    fn iter(&self) -> impl Iterator<Item = Direction> {
-        self.into_iter()
-    }
-}
-
 impl PartialEq for PathBitString {
     fn eq(&self, other: &Self) -> bool {
         // We don't need to check if self.len() == other.len()
@@ -157,21 +139,21 @@ impl PartialEq for PathBitString {
 
 impl Eq for PathBitString {}
 
-impl<'a> IntoIterator for &'a PathBitString {
+impl IntoIterator for PathBitString {
     type Item = Direction;
-    type IntoIter = PathBitStringIter<'a>;
+    type IntoIter = PathBitStringIter;
 
     fn into_iter(self) -> Self::IntoIter {
         PathBitStringIter { string: self, i: 0 }
     }
 }
 
-pub struct PathBitStringIter<'a> {
-    string: &'a PathBitString,
+pub struct PathBitStringIter {
+    string: PathBitString,
     i: usize,
 }
 
-impl Iterator for PathBitStringIter<'_> {
+impl Iterator for PathBitStringIter {
     type Item = Direction;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -183,5 +165,19 @@ impl Iterator for PathBitStringIter<'_> {
 
         self.i += 1;
         Some(dir)
+    }
+}
+
+impl PathLike for PathBitString {
+    fn append(&self, dir: Direction) -> Option<Self> {
+        self.append(dir)
+    }
+
+    fn pop(&self) -> Option<(Self, Direction)> {
+        self.pop()
+    }
+
+    fn inverse(&self) -> Self {
+        self.inverse()
     }
 }

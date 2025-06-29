@@ -23,11 +23,7 @@ where
 {
     fn eq(&self, other: &Self) -> bool {
         self.space == other.space
-            && self
-                .space
-                .skip_path(&self.space.get_origin(), self.path.iter())
-                == other
-                    .space
-                    .skip_path(&other.space.get_origin(), other.path.iter())
+            && self.space.skip_path(&self.space.get_origin(), self.path)
+                == other.space.skip_path(&other.space.get_origin(), other.path)
     }
 }

@@ -10,7 +10,7 @@ pub mod bits_backed;
 
 pub trait PathLike
 where
-    Self: Default + Copy + Eq,
+    Self: Default + Copy + Eq + IntoIterator<Item = Direction>,
 {
     fn append(&self, dir: Direction) -> Option<Self>;
 
@@ -18,6 +18,4 @@ where
 
     #[must_use]
     fn inverse(&self) -> Self;
-
-    fn iter(&self) -> impl Iterator<Item = Direction>;
 }

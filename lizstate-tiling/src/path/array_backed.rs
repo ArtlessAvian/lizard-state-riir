@@ -92,12 +92,12 @@ impl PartialEq for PathString {
 
 impl Eq for PathString {}
 
-impl<'a> IntoIterator for &'a PathString {
+impl IntoIterator for PathString {
     type Item = Direction;
-    type IntoIter = core::iter::Copied<core::slice::Iter<'a, Direction>>;
+    type IntoIter = core::array::IntoIter<Direction, 15>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.as_slice().iter().copied()
+        self.1.into_iter()
     }
 }
 
@@ -112,9 +112,5 @@ impl PathLike for PathString {
 
     fn inverse(&self) -> Self {
         self.inverse()
-    }
-
-    fn iter(&self) -> impl Iterator<Item = Direction> {
-        (self).into_iter()
     }
 }
