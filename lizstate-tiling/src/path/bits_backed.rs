@@ -1,5 +1,5 @@
+use crate::path::BoundedPathLike;
 use crate::path::Direction;
-use crate::path::PathLike;
 
 /// Pairs of bits interpreted as `Directions`.
 ///
@@ -74,16 +74,17 @@ impl PathBitString {
         }
     }
 
-    #[must_use]
-    pub const fn pop(&self) -> Option<(Self, Direction)> {
+    /// # Errors
+    /// The path is already empty.
+    pub const fn pop(&self) -> Result<(Self, Direction), super::PathAlreadyEmpty> {
         if self.is_empty() {
-            None
+            Err(super::PathAlreadyEmpty)
         } else {
             let raw = Self::reinterpret(self.1);
             let new_raw = raw >> 2;
             let new = Self(self.0 - 1, Self::rereinterpret(new_raw)).debug_assert_valid();
             let dir = Self::pattern_to_dir(raw & 0b11);
-            Some((new, dir))
+            Ok((new, dir))
         }
     }
 
@@ -92,7 +93,7 @@ impl PathBitString {
         // i could write unreadable bit level shenanigans, but lets do this the normal way.
         let mut out = Self::new();
         let mut copy = *self;
-        while let Some((next, dir)) = copy.pop() {
+        while let Ok((next, dir)) = copy.pop() {
             copy = next;
             out = out
                 .push(dir.inverse())
@@ -160,14 +161,14 @@ impl Iterator for PathBitStringIter {
     }
 }
 
-impl PathLike for PathBitString {
+impl BoundedPathLike for PathBitString {
     const MAX_CAPACITY: usize = 7 * 8 / 2;
 
     fn push(&self, dir: Direction) -> Option<Self> {
         self.push(dir)
     }
 
-    fn pop(&self) -> Option<(Self, Direction)> {
+    fn pop(&self) -> Result<(Self, Direction), super::PathAlreadyEmpty> {
         self.pop()
     }
 }

@@ -1,15 +1,14 @@
 use crate::direction::Direction;
 use crate::path::PathAlreadyEmpty;
 
-/// A mutable Vec for Directions.
+/// A mutable `Vec` for `Directions`.
+///
+/// Unimplementable with `no_std` (unless you want to panic).
+/// For `no_std`, use `BoundedPathLike`
 pub trait UnboundedPathLike
 where
-    Self: Default
-        + Clone
-        + Eq
-        + IntoIterator<Item = Direction>
-        + FromIterator<Direction>
-        + Extend<Direction>,
+    Self: Default + Clone + Eq + IntoIterator<Item = Direction>,
+    Self: FromIterator<Direction> + Extend<Direction>,
 {
     fn push(&mut self, dir: Direction);
 

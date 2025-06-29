@@ -35,7 +35,7 @@ impl FreeGroupElement {
 
     #[must_use]
     pub const fn append_cancel(self, dir: Direction) -> Option<Self> {
-        if let Some((init, last)) = self.0.pop()
+        if let Ok((init, last)) = self.0.pop()
             && dir.inverse().const_eq(last)
         {
             return Some(Self(init));

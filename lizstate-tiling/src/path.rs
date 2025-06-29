@@ -14,16 +14,20 @@ pub struct PathAlreadyEmpty;
 
 /// An immutable value type, behaving like a Vec, but with bounded size.
 ///
-/// For longer paths, see `UnboundedPathLike`, which drops the `Copy` bound and has a mutable interface.
-pub trait PathLike
+/// Works in `no_std` contexts.
+/// For longer paths, see `UnboundedPathLike`, which drops the `Copy` bound.
+pub trait BoundedPathLike
 where
-    Self: Default + Copy + Eq + IntoIterator<Item = Direction>,
+    Self: Default + Clone + Eq + IntoIterator<Item = Direction>,
+    Self: Copy,
 {
     const MAX_CAPACITY: usize;
 
     fn push(&self, dir: Direction) -> Option<Self>;
 
-    fn pop(&self) -> Option<(Self, Direction)>;
+    /// # Errors
+    /// The path is already empty.
+    fn pop(&self) -> Result<(Self, Direction), PathAlreadyEmpty>;
 
     /// Returns the path backwards with inverse directions.
     ///
@@ -33,7 +37,7 @@ where
     fn inverse(&self) -> Self {
         let mut out = Self::default();
         let mut copy = *self;
-        while let Some((next, dir)) = copy.pop() {
+        while let Ok((next, dir)) = copy.pop() {
             copy = next;
             out = out
                 .push(dir.inverse())
@@ -52,7 +56,7 @@ where
     /// Cancels if the last direction is opposite, otherwise pushes.
     #[must_use]
     fn push_or_cancel(&self, dir: Direction) -> Option<Self> {
-        if let Some((init, last)) = self.pop()
+        if let Ok((init, last)) = self.pop()
             && last.inverse() == dir
         {
             Some(init)
@@ -75,7 +79,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::direction::Direction;
-    use crate::path::PathLike;
+    use crate::path::BoundedPathLike;
     use crate::path::array_backed::PathString;
 
     #[test]

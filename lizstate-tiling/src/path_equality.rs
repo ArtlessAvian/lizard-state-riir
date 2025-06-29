@@ -1,12 +1,12 @@
 use core::marker::PhantomData;
 
-use crate::path::PathLike;
+use crate::path::BoundedPathLike;
 use crate::tiling::HasSquareTiling;
 use crate::tiling::Tile;
 
 struct NaivePathEquality<Path, Space, T>
 where
-    Path: PathLike,
+    Path: BoundedPathLike,
     Space: HasSquareTiling<T>,
     T: Tile,
 {
@@ -17,7 +17,7 @@ where
 
 impl<Path, Space, T> PartialEq for NaivePathEquality<Path, Space, T>
 where
-    Path: PathLike,
+    Path: BoundedPathLike,
     Space: HasSquareTiling<T>,
     T: Tile,
 {

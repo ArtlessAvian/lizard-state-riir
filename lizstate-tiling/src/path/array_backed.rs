@@ -1,5 +1,6 @@
+use super::PathAlreadyEmpty;
+use crate::path::BoundedPathLike;
 use crate::path::Direction;
-use crate::path::PathLike;
 
 /// A string of `Directions`.
 ///
@@ -55,12 +56,13 @@ impl<const N: usize> PathString<N> {
         Some(out)
     }
 
-    #[must_use]
-    pub const fn pop(&self) -> Option<(Self, Direction)> {
+    /// # Errors
+    /// The path is already empty.
+    pub const fn pop(&self) -> Result<(Self, Direction), PathAlreadyEmpty> {
         if let Some(last) = self.last() {
-            Some((Self(self.0 - 1, self.1), last))
+            Ok((Self(self.0 - 1, self.1), last))
         } else {
-            None
+            Err(PathAlreadyEmpty)
         }
     }
 
@@ -106,14 +108,14 @@ impl<const N: usize> IntoIterator for PathString<N> {
     }
 }
 
-impl<const N: usize> PathLike for PathString<N> {
+impl<const N: usize> BoundedPathLike for PathString<N> {
     const MAX_CAPACITY: usize = N;
 
     fn push(&self, dir: Direction) -> Option<Self> {
         self.push(dir)
     }
 
-    fn pop(&self) -> Option<(Self, Direction)> {
+    fn pop(&self) -> Result<(Self, Direction), PathAlreadyEmpty> {
         self.pop()
     }
 }
