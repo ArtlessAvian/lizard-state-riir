@@ -2,7 +2,7 @@ use core::ops::Deref;
 
 use crate::direction::Direction;
 use crate::group::GroupOp;
-use crate::path::PathBitString;
+use crate::path::bits_backed::PathBitString;
 use crate::tiling::HasSquareTiling;
 use crate::tiling::Tile;
 
