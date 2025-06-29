@@ -3,7 +3,7 @@
 //!
 //! # Usage
 //! All Copy + Eq traits are intended to be implemented on references or unit types.
-//! All Clone + Eq traits are intended to be implemented on the references, unit types, OR smart pointers.
+//! All Clone + Eq traits are intended to be implemented on references, unit types, or smart pointers.
 //!
 //! # Contributing
 //! Careful about making marker traits `Default.` Reference types cannot be `Default.`

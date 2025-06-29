@@ -5,6 +5,7 @@ pub mod edge_tiling;
 /// Marker trait for tile types.
 ///
 /// Enforces subtraits. Reduces typing.
+/// You can imagine these as indexes or keys into a space.
 pub trait IsATile: Copy + Eq {}
 
 /// Trait for spaces with a square tiling of `Tile`s.
