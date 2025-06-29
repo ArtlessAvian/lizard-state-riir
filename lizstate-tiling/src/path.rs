@@ -7,7 +7,7 @@ use crate::tiling::Direction;
 
 pub trait PathLike
 where
-    Self: Copy + Eq,
+    Self: Default + Copy + Eq,
 {
     fn append(&self, dir: Direction) -> Option<Self>;
 
@@ -15,6 +15,8 @@ where
 
     #[must_use]
     fn inverse(&self) -> Self;
+
+    fn iter(&self) -> impl Iterator<Item = Direction>;
 }
 
 /// A string of `Directions`.
@@ -92,45 +94,6 @@ impl PathString {
     pub fn as_slice(&self) -> &[Direction] {
         &self.1[..self.0]
     }
-
-    pub fn iter(&self) -> impl Iterator<Item = Direction> {
-        self.into_iter()
-    }
-}
-
-impl PathLike for PathString {
-    // fn new_from_iter(mut iter: impl Iterator<Item = Direction>) -> Option<Self> {
-    //     let head = iter.by_ref().take(15);
-    //     let mut tail = iter;
-
-    //     if let Some(_) = tail.next() {
-    //         // Doesn't fit.
-    //         return None;
-    //     }
-
-    //     let mut count = 0;
-    //     let mut array = [Direction::Up; 15];
-
-    //     let zipped = array.iter_mut().zip(head);
-    //     for (slot, el) in zipped {
-    //         *slot = el;
-    //         count += 1;
-    //     }
-
-    //     Some(Self(count, array))
-    // }
-
-    fn append(&self, dir: Direction) -> Option<Self> {
-        self.append(dir)
-    }
-
-    fn pop(&self) -> Option<(Self, Direction)> {
-        self.pop()
-    }
-
-    fn inverse(&self) -> Self {
-        self.inverse()
-    }
 }
 
 impl Default for PathString {
@@ -153,6 +116,24 @@ impl<'a> IntoIterator for &'a PathString {
 
     fn into_iter(self) -> Self::IntoIter {
         self.as_slice().iter().copied()
+    }
+}
+
+impl PathLike for PathString {
+    fn append(&self, dir: Direction) -> Option<Self> {
+        self.append(dir)
+    }
+
+    fn pop(&self) -> Option<(Self, Direction)> {
+        self.pop()
+    }
+
+    fn inverse(&self) -> Self {
+        self.inverse()
+    }
+
+    fn iter(&self) -> impl Iterator<Item = Direction> {
+        (self).into_iter()
     }
 }
 
@@ -290,6 +271,10 @@ impl PathLike for PathBitString {
 
     fn inverse(&self) -> Self {
         self.inverse()
+    }
+
+    fn iter(&self) -> impl Iterator<Item = Direction> {
+        self.into_iter()
     }
 }
 
