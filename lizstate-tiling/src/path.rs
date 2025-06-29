@@ -12,10 +12,24 @@ pub trait PathLike
 where
     Self: Default + Copy + Eq + IntoIterator<Item = Direction>,
 {
-    fn append(&self, dir: Direction) -> Option<Self>;
+    fn push(&self, dir: Direction) -> Option<Self>;
 
     fn pop(&self) -> Option<(Self, Direction)>;
 
     #[must_use]
-    fn inverse(&self) -> Self;
+    fn inverse(&self) -> Self {
+        let mut out = Self::default();
+        let mut copy = *self;
+        while let Some((next, dir)) = copy.pop() {
+            copy = next;
+            out = out
+                .push(dir.inverse())
+                .expect("we cannot pop more than MAX_CAPACITY elements before the loop terminates");
+        }
+        out
+    }
+
+    fn extend(&self, path: impl IntoIterator<Item = Direction>) -> Option<Self> {
+        path.into_iter().try_fold(*self, |out, dir| out.push(dir))
+    }
 }

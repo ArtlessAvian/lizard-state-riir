@@ -63,7 +63,7 @@ impl PathBitString {
     }
 
     #[must_use]
-    pub const fn append(&self, dir: Direction) -> Option<Self> {
+    pub const fn push(&self, dir: Direction) -> Option<Self> {
         if self.len() >= Self::MAX_CAPACITY {
             None
         } else {
@@ -95,7 +95,7 @@ impl PathBitString {
         while let Some((next, dir)) = copy.pop() {
             copy = next;
             out = out
-                .append(dir.inverse())
+                .push(dir.inverse())
                 .expect("we cannot pop more than MAX_CAPACITY elements before the loop terminates");
         }
         out.debug_assert_valid()
@@ -161,16 +161,12 @@ impl Iterator for PathBitStringIter {
 }
 
 impl PathLike for PathBitString {
-    fn append(&self, dir: Direction) -> Option<Self> {
-        self.append(dir)
+    fn push(&self, dir: Direction) -> Option<Self> {
+        self.push(dir)
     }
 
     fn pop(&self) -> Option<(Self, Direction)> {
         self.pop()
-    }
-
-    fn inverse(&self) -> Self {
-        self.inverse()
     }
 }
 
@@ -180,27 +176,27 @@ mod tests {
     use crate::path::bits_backed::PathBitString;
 
     fn basic_inverses() {
-        let right = PathBitString::new().append(Direction::Right).unwrap();
-        let left = PathBitString::new().append(Direction::Left).unwrap();
+        let right = PathBitString::new().push(Direction::Right).unwrap();
+        let left = PathBitString::new().push(Direction::Left).unwrap();
         assert_eq!(right.inverse(), left);
         assert_eq!(left.inverse(), right);
 
-        let up = PathBitString::new().append(Direction::Up).unwrap();
-        let down = PathBitString::new().append(Direction::Down).unwrap();
+        let up = PathBitString::new().push(Direction::Up).unwrap();
+        let down = PathBitString::new().push(Direction::Down).unwrap();
         assert_eq!(right.inverse(), up);
         assert_eq!(left.inverse(), down);
     }
 
     fn pair_inverses() {
         let right_up = PathBitString::new()
-            .append(Direction::Right)
+            .push(Direction::Right)
             .unwrap()
-            .append(Direction::Up)
+            .push(Direction::Up)
             .unwrap();
         let down_left = PathBitString::new()
-            .append(Direction::Down)
+            .push(Direction::Down)
             .unwrap()
-            .append(Direction::Left)
+            .push(Direction::Left)
             .unwrap();
         assert_eq!(right_up.inverse(), down_left);
         assert_eq!(down_left.inverse(), right_up);
@@ -208,9 +204,9 @@ mod tests {
 
     fn iter() {
         let right_up = PathBitString::new()
-            .append(Direction::Right)
+            .push(Direction::Right)
             .unwrap()
-            .append(Direction::Up)
+            .push(Direction::Up)
             .unwrap();
 
         let mut iter = right_up.into_iter();

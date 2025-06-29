@@ -40,7 +40,7 @@ impl<const N: usize> PathString<N> {
     }
 
     #[must_use]
-    pub const fn append(&self, dir: Direction) -> Option<Self> {
+    pub const fn push(&self, dir: Direction) -> Option<Self> {
         if self.is_full() {
             return None;
         }
@@ -103,15 +103,11 @@ impl<const N: usize> IntoIterator for PathString<N> {
 }
 
 impl<const N: usize> PathLike for PathString<N> {
-    fn append(&self, dir: Direction) -> Option<Self> {
-        self.append(dir)
+    fn push(&self, dir: Direction) -> Option<Self> {
+        self.push(dir)
     }
 
     fn pop(&self) -> Option<(Self, Direction)> {
         self.pop()
-    }
-
-    fn inverse(&self) -> Self {
-        self.inverse()
     }
 }

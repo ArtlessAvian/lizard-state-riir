@@ -41,7 +41,7 @@ impl FreeGroupElement {
             return Some(Self(init));
         }
 
-        match self.0.append(dir) {
+        match self.0.push(dir) {
             Some(x) => Some(Self(x)),
             None => None,
         }
