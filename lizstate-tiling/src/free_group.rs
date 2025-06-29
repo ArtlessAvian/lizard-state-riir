@@ -15,7 +15,7 @@ impl HasSquareTiling<FreeGroupElement> for FreeGroup {
         FreeGroupElement::new()
     }
 
-    fn go(&self, tile: &FreeGroupElement, dir: Direction) -> Option<FreeGroupElement>
+    fn step(&self, tile: &FreeGroupElement, dir: Direction) -> Option<FreeGroupElement>
     where
         FreeGroupElement: Clone,
     {

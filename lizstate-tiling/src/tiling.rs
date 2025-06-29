@@ -46,7 +46,7 @@ impl Direction {
 /// When the `Space` is a unit type, the graph is known entirely at compile time.
 ///
 /// # Correctness
-/// Implementors must ensure that `go(t, dir) == Some(n)` if and only if `go(n, dir.inverse()) == Some(t)`.
+/// Implementors must ensure that `step(t, dir) == Some(n)` if and only if `step(n, dir.inverse()) == Some(t)`.
 ///
 /// An example of an invalid implementation is a graph with only `Up` and `Right` edges.
 /// Another example is a two vertex graph, one vertex with four edges to the other, and the other having four self-loops.
@@ -59,8 +59,8 @@ pub trait HasSquareTiling<TileType: Tile>: Copy + Eq {
     ///
     /// May return `None`, bounding movement.
     ///
-    /// Ensure that `go(t, dir) == Some(n)` if and only if `go(n, dir.inverse()) == Some(t)`
-    fn go(&self, tile: &TileType, dir: Direction) -> Option<TileType>;
+    /// Ensure that `step(t, dir) == Some(n)` if and only if `step(n, dir.inverse()) == Some(t)`
+    fn step(&self, tile: &TileType, dir: Direction) -> Option<TileType>;
 }
 
 ////////////////////////////////////////////////////////////
@@ -86,7 +86,7 @@ where
         from: &TileType,
         dir: Direction,
     ) -> Option<Self> {
-        let to = tiling.go(from, dir)?;
+        let to = tiling.step(from, dir)?;
 
         Some(match dir {
             Direction::Up => TileUndirectedEdge::Vertical {
@@ -140,7 +140,7 @@ where
         panic!("origin is disconnected?")
     }
 
-    fn go(
+    fn step(
         &self,
         tile: &TileUndirectedEdge<TileType>,
         dir: Direction,
@@ -216,7 +216,7 @@ where
         PathIterator: Iterator<Item = Direction>,
     {
         path.try_fold(*from, |current, dir| {
-            self.go(&current, dir).ok_or({
+            self.step(&current, dir).ok_or({
                 MissingEdgeError(TileEdge {
                     tile: current,
                     edge: dir,
@@ -235,7 +235,7 @@ where
     {
         let tail = path.scan(Ok(*from), |status, dir| {
             if let Ok(current) = status {
-                *status = self.go(current, dir).ok_or(MissingEdgeError(TileEdge {
+                *status = self.step(current, dir).ok_or(MissingEdgeError(TileEdge {
                     tile: *current,
                     edge: dir,
                 }));

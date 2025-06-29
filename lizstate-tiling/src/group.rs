@@ -47,7 +47,7 @@ impl GroupHomomorphism for FlattenFreeGroup {
         free_group
             .iter()
             .try_fold(PairwiseAddition::IDENTITY, |tile, dir| {
-                EuclideanPlane.go(&tile, dir)
+                EuclideanPlane.step(&tile, dir)
             })
 
         // It's helpful to think about all strings that map to the identity, aka the kernel.

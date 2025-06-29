@@ -18,7 +18,7 @@ impl HasSquareTiling<LineNode> for LineGraph {
         LineNode(0)
     }
 
-    fn go(&self, tile: &LineNode, dir: Direction) -> Option<LineNode> {
+    fn step(&self, tile: &LineNode, dir: Direction) -> Option<LineNode> {
         match dir {
             Direction::Up => None,
             Direction::Down => None,
@@ -50,7 +50,7 @@ impl HasSquareTiling<GridNode> for &BoundedGridGraph {
         )
     }
 
-    fn go(&self, tile: &GridNode, dir: Direction) -> Option<GridNode> {
+    fn step(&self, tile: &GridNode, dir: Direction) -> Option<GridNode> {
         let temp = match dir {
             Direction::Up => GridNode(tile.0, tile.1 + 1),
             Direction::Down => GridNode(tile.0, tile.1 - 1),
@@ -85,14 +85,14 @@ where
         IntersectionElement(self.0.get_origin(), self.1.get_origin())
     }
 
-    fn go(
+    fn step(
         &self,
         tile: &IntersectionElement<TileA, TileB>,
         dir: Direction,
     ) -> Option<IntersectionElement<TileA, TileB>> {
         Some(IntersectionElement(
-            self.0.go(&tile.0, dir)?,
-            self.1.go(&tile.1, dir)?,
+            self.0.step(&tile.0, dir)?,
+            self.1.step(&tile.1, dir)?,
         ))
     }
 }

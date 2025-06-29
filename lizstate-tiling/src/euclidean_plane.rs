@@ -14,7 +14,7 @@ impl HasSquareTiling<CartesianCoords> for EuclideanPlane {
         CartesianCoords { x: 0, y: 0 }
     }
 
-    fn go(&self, tile: &CartesianCoords, dir: Direction) -> Option<CartesianCoords>
+    fn step(&self, tile: &CartesianCoords, dir: Direction) -> Option<CartesianCoords>
     where
         CartesianCoords: Clone,
     {
