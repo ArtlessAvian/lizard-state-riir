@@ -5,6 +5,9 @@ pub mod bits_backed;
 #[cfg(feature = "std")]
 pub mod vec_backed;
 
+/// A path is efficient if there are no adjacent inverses.
+pub mod efficient;
+
 pub struct PathAlreadyEmpty;
 
 /// An immutable value type, behaving like a Vec, but with bounded size.
