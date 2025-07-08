@@ -1,8 +1,8 @@
 use crate::euclidean_plane::CartesianCoords;
 use crate::euclidean_plane::EuclideanPlane;
-use crate::euclidean_plane::PairwiseAddition;
-use crate::free_group::FreeGroupConcat;
+use crate::euclidean_plane::impl_isagroup::PairwiseAddition;
 use crate::free_group::FreeGroupElement;
+use crate::free_group::impl_isagroup::FreeGroupConcat;
 use crate::tiling::HasSquareTiling;
 use crate::tiling::IsATile;
 
