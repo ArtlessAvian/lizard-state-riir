@@ -1,5 +1,5 @@
 use crate::direction::Direction;
-use crate::group::GroupOp;
+use crate::group::IsAGroup;
 use crate::tiling::HasSquareTiling;
 use crate::tiling::IsATile;
 
@@ -56,7 +56,7 @@ impl IsATile for CartesianCoords {}
 // This is the only abelian group that can be generated with two (non-overlapping) elements.
 pub struct PairwiseAddition;
 
-impl GroupOp for PairwiseAddition {
+impl IsAGroup for PairwiseAddition {
     type Element = CartesianCoords;
 
     const IDENTITY: Self::Element = CartesianCoords { x: 0, y: 0 };
@@ -81,7 +81,7 @@ mod tests {
     use crate::euclidean_plane::CartesianCoords;
     use crate::euclidean_plane::EuclideanPlane;
     use crate::euclidean_plane::PairwiseAddition;
-    use crate::group::GroupOp;
+    use crate::group::IsAGroup;
     use crate::tiling::HasSquareTiling;
 
     #[test]

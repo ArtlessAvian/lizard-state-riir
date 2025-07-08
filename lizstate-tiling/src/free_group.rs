@@ -1,7 +1,7 @@
 use core::ops::Deref;
 
 use crate::direction::Direction;
-use crate::group::GroupOp;
+use crate::group::IsAGroup;
 use crate::path::bits_backed::PathBitString;
 use crate::tiling::HasSquareTiling;
 use crate::tiling::IsATile;
@@ -60,7 +60,7 @@ impl IsATile for FreeGroupElement {}
 
 pub struct FreeGroupConcat;
 
-impl GroupOp for FreeGroupConcat {
+impl IsAGroup for FreeGroupConcat {
     type Element = FreeGroupElement;
 
     const IDENTITY: Self::Element = FreeGroupElement::new();
@@ -90,7 +90,7 @@ mod tests {
     use crate::free_group::FreeGroup;
     use crate::free_group::FreeGroupConcat;
     use crate::free_group::FreeGroupElement;
-    use crate::group::GroupOp;
+    use crate::group::IsAGroup;
     use crate::tiling::HasSquareTiling;
 
     #[test]

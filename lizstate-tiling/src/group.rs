@@ -6,7 +6,7 @@ use crate::free_group::FreeGroupElement;
 use crate::tiling::HasSquareTiling;
 use crate::tiling::IsATile;
 
-pub trait GroupOp: Sized {
+pub trait IsAGroup: Sized {
     type Element: IsATile;
 
     const IDENTITY: Self::Element;
@@ -25,16 +25,17 @@ pub trait GroupOp: Sized {
 
 /// A function from a group to one of its subgroups.
 ///
-/// The function must satisfy h(ab) = h(a)h(b).
+/// The function must satisfy h(ab) = h(a)h(b). Notably,
+/// a, b, and ab are elements of the domain.
+/// h(a), h(b), and h(ab) are elements of the codomain.
 trait GroupHomomorphism {
-    type Domain: GroupOp;
-    type Codomain: GroupOp;
+    type Domain: IsAGroup;
+    type Codomain: IsAGroup;
 
-    /// The function.
     fn homomorphism(
         &self,
-        from: <Self::Domain as GroupOp>::Element,
-    ) -> Option<<Self::Codomain as GroupOp>::Element>;
+        from: <Self::Domain as IsAGroup>::Element,
+    ) -> Option<<Self::Codomain as IsAGroup>::Element>;
 }
 
 struct FlattenFreeGroup;
