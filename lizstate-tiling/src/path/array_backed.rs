@@ -118,4 +118,8 @@ impl<const N: usize> BoundedPathLike for PathString<N> {
     fn pop(&self) -> Result<(Self, Direction), PathAlreadyEmpty> {
         self.pop()
     }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
 }

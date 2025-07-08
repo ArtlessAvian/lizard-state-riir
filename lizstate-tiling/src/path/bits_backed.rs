@@ -1,3 +1,8 @@
+#![allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "type can grow maybe (and still be copy)"
+)]
+
 use crate::path::BoundedPathLike;
 use crate::path::Direction;
 
@@ -170,6 +175,10 @@ impl BoundedPathLike for PathBitString {
 
     fn pop(&self) -> Result<(Self, Direction), super::PathAlreadyEmpty> {
         self.pop()
+    }
+
+    fn len(&self) -> usize {
+        self.len()
     }
 }
 

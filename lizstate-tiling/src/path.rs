@@ -1,8 +1,3 @@
-#![allow(
-    clippy::trivially_copy_pass_by_ref,
-    reason = "type can grow maybe (and still be copy)"
-)]
-
 use crate::direction::Direction;
 
 pub mod array_backed;
@@ -28,6 +23,12 @@ where
     /// # Errors
     /// The path is already empty.
     fn pop(&self) -> Result<(Self, Direction), PathAlreadyEmpty>;
+
+    fn len(&self) -> usize;
+
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 
     /// Returns the path backwards with inverse directions.
     ///
