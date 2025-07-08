@@ -16,6 +16,8 @@
 #[cfg(feature = "std")]
 extern crate std;
 
+// ************** Basics and HasSquareTiling **************
+
 /// The four cardinal directions!
 pub mod direction;
 
@@ -29,6 +31,14 @@ pub mod tiling;
 /// A trait for behavior, and implementors with finite storage.
 pub mod path;
 
+/// The familiar 2D coordinates, implementing `HasSquareTiling`.
+pub mod euclidean_plane;
+
+/// The least restricted space. Two efficient paths lead to the same tile IFF they are the same path.
+pub mod free_group;
+
+// ************** Traits and Impls on Above **************
+
 /// Runtime defined equality classes on paths.
 ///
 /// Appending equal paths preserves equality.
@@ -40,15 +50,7 @@ pub mod path_equality;
 /// Can be seen as edge supergraphs of the 4-regular undirected graph.
 pub mod group;
 
-/// The familiar 2D coordinates, implementing `HasSquareTiling`.
-///
-/// Also known as the group Z \cross Z. A free abelian group!
-pub mod euclidean_plane;
-
-/// A wrapper to make Paths behave like a group!
-///
-/// Intercepts the `PathLike` trait to cancel redundant movement.
-pub mod free_group;
+// ************** The Thing We Care About **************
 
 /// A space *defined* by tiles with multiple paths to them.
 pub mod custom_space;

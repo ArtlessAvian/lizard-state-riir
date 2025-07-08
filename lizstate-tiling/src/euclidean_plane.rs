@@ -4,9 +4,21 @@ use crate::tiling::IsATile;
 
 pub mod impl_isagroup;
 
-/// Z cross Z, though bounded by i32.
-///
-/// Alternatively, you can think of the `FreeGroup`, but the elements commute!
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[must_use]
+pub struct CartesianCoords {
+    x: i32,
+    y: i32,
+}
+
+impl CartesianCoords {
+    pub fn new(x: i32, y: i32) -> Self {
+        Self { x, y }
+    }
+}
+
+impl IsATile for CartesianCoords {}
+
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub struct EuclideanPlane;
 
@@ -39,20 +51,6 @@ impl HasSquareTiling<CartesianCoords> for EuclideanPlane {
         })
     }
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[must_use]
-pub struct CartesianCoords {
-    x: i32,
-    y: i32,
-}
-impl CartesianCoords {
-    pub fn new(x: i32, y: i32) -> Self {
-        Self { x, y }
-    }
-}
-
-impl IsATile for CartesianCoords {}
 
 #[cfg(test)]
 mod tests {
