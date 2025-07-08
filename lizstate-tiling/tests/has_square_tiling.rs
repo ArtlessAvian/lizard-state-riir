@@ -5,6 +5,7 @@ use std::ops::Range;
 
 use lizstate_tiling::direction::Direction;
 use lizstate_tiling::tiling::HasSquareTiling;
+use lizstate_tiling::tiling::IsASpace;
 use lizstate_tiling::tiling::IsATile;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -13,6 +14,8 @@ impl IsATile for LineNode {}
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 struct LineGraph {}
+
+impl IsASpace for LineGraph {}
 
 impl HasSquareTiling<LineNode> for LineGraph {
     fn get_origin(&self) -> LineNode {
@@ -33,6 +36,8 @@ impl HasSquareTiling<LineNode> for LineGraph {
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 struct VerticalLineGraph {}
 
+impl IsASpace for VerticalLineGraph {}
+
 impl HasSquareTiling<LineNode> for VerticalLineGraph {
     fn get_origin(&self) -> LineNode {
         LineNode(0)
@@ -51,6 +56,7 @@ impl HasSquareTiling<LineNode> for VerticalLineGraph {
 #[derive(Default, PartialEq, Eq)]
 /// Range doesn't impl Copy? Because they're iterators? Woag.
 struct BoundedGridGraph(Range<i32>, Range<i32>);
+impl IsASpace for &BoundedGridGraph {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct GridNode(i32, i32);
@@ -81,6 +87,12 @@ impl HasSquareTiling<GridNode> for &BoundedGridGraph {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct GraphIntersection<SpaceA, SpaceB>(SpaceA, SpaceB);
+impl<SpaceA, SpaceB> IsASpace for GraphIntersection<SpaceA, SpaceB>
+where
+    SpaceA: IsASpace,
+    SpaceB: IsASpace,
+{
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct IntersectionElement<TileA: IsATile, TileB: IsATile>(TileA, TileB);
@@ -125,6 +137,7 @@ fn grid_intersection() {
 
 #[derive(Clone, PartialEq, Eq)]
 struct OutdoorMap(HashSet<GridNode>);
+impl IsASpace for &OutdoorMap {}
 
 impl HasSquareTiling<GridNode> for &OutdoorMap {
     fn get_origin(&self) -> GridNode {

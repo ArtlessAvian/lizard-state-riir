@@ -3,7 +3,7 @@ use crate::direction::Direction;
 use crate::path::BoundedPathLike;
 
 #[must_use]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Efficient<Path: BoundedPathLike>(Path)
 where
     Path: BoundedPathLike;

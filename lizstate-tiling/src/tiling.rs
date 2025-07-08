@@ -8,6 +8,9 @@ pub mod edge_tiling;
 /// You can imagine these as indexes or keys into a space.
 pub trait IsATile: Copy + Eq {}
 
+/// Marker trait for space types.
+pub trait IsASpace: Clone + Eq {}
+
 /// Trait for spaces with a square tiling of `Tile`s.
 ///
 /// `Space`s are high level descriptions of a 4-regular graph.
@@ -21,7 +24,7 @@ pub trait IsATile: Copy + Eq {}
 ///
 /// An example of an invalid implementation is a graph with only `Up` and `Right` edges.
 /// Another example is a two vertex graph, one vertex with four edges to the other, and the other having four self-loops.
-pub trait HasSquareTiling<Tile: IsATile>: Copy + Eq {
+pub trait HasSquareTiling<Tile: IsATile>: IsASpace {
     /// Gets a consistent tile within the space.
     /// Implementor can panic if the space is empty.
     fn get_origin(&self) -> Tile;

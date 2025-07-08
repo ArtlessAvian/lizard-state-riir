@@ -1,5 +1,6 @@
 use crate::direction::Direction;
 use crate::tiling::HasSquareTiling;
+use crate::tiling::IsASpace;
 use crate::tiling::IsATile;
 use crate::tiling::TileUndirectedEdge;
 
@@ -11,6 +12,8 @@ impl<Tile> IsATile for TileUndirectedEdge<Tile> where Tile: IsATile {}
 /// Directions are rotated by 45 degrees.
 #[derive(PartialEq, Eq)]
 pub struct EdgeTiling<Space>(Space);
+
+impl<Space> IsASpace for &EdgeTiling<Space> where Space: IsASpace {}
 
 impl<Space, Tile> HasSquareTiling<TileUndirectedEdge<Tile>> for &EdgeTiling<Space>
 where

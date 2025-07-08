@@ -10,7 +10,7 @@ use crate::path::Direction;
 ///
 /// The implementation *does* shift every element, compared to the array version.
 /// This does let us derive Eq.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
 pub struct PathBitString(u8, [u8; 7]);
 
