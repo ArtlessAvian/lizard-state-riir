@@ -1,3 +1,59 @@
+use core::result::Result;
+
+use crate::coords::CartesianCoords;
+use crate::direction::Direction;
+use crate::tiling_graph::CanFindArbitraryPath;
+use crate::tiling_graph::IsASpace;
+use crate::tiling_graph::IsATile;
+use crate::tiling_graph::IsTilingGraph;
+use crate::tiling_graph::IsWalkable;
+use crate::tiling_graph::StepError;
+use crate::walk::traits::IsAWalk;
+
+impl IsATile for CartesianCoords {}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
+pub struct TheEuclideanPlane;
+
+impl IsASpace for TheEuclideanPlane {}
+
+impl IsTilingGraph for TheEuclideanPlane {
+    // Ok, If you want to be PEDANTIC about it, this isnt *the* Euclidean plane.
+    // Tile would need to be `(BigInt, BigInt)`.
+    type Tile = CartesianCoords;
+
+    fn get_origin(&self) -> Self::Tile {
+        CartesianCoords::new(0, 0)
+    }
+
+    fn step(&self, tile: &Self::Tile, dir: Direction) -> Result<CartesianCoords, StepError> {
+        tile.step(dir).ok_or(StepError::Unrepresentable)
+    }
+}
+
+impl IsWalkable for TheEuclideanPlane {}
+
+impl CanFindArbitraryPath for TheEuclideanPlane {
+    fn path_from_origin<Walk: IsAWalk>(&self, to: &Self::Tile) -> Result<Walk, Walk::PushError> {
+        let out = Walk::new_empty();
+        let out = out.try_extend((0..to.x).map(|_| Direction::Right))?;
+        let out = out.try_extend((0..-to.x).map(|_| Direction::Left))?;
+        let out = out.try_extend((0..to.y).map(|_| Direction::Up))?;
+        let out = out.try_extend((0..-to.y).map(|_| Direction::Down))?;
+        Ok(out)
+    }
+
+    fn path_between_tiles<Walk: IsAWalk>(
+        &self,
+        from: &Self::Tile,
+        to: &Self::Tile,
+    ) -> Result<Walk, Walk::PushError> {
+        let dx = to.x - from.x;
+        let dy = to.y - from.y;
+        self.path_from_origin(&CartesianCoords::new(dx, dy))
+    }
+}
+
 // use crate::direction::Direction;
 // use crate::tiling::HasSquareTiling;
 // use crate::tiling::IsATile;

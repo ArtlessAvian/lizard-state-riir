@@ -18,7 +18,7 @@ extern crate std;
 /// The four cardinal directions!
 pub mod direction;
 
-// A pair of integers!
+/// A pair of integers!
 pub mod coords;
 
 /// Sequences of directions.
@@ -28,6 +28,16 @@ pub mod walk;
 ///
 /// Outgoing directed edges are named.
 pub mod tiling_graph;
+
+// *************** Example Graphs ***************
+
+/// The familiar 2D coordinates.
+pub mod euclidean_plane;
+
+/// A big ass graph.
+pub mod free_group;
+
+// *************** Customizable Graphs ***************
 
 // *****************************************************
 // ************** OLD STUFF, WAY TOO DANK **************

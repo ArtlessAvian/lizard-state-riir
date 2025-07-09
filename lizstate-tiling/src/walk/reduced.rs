@@ -7,7 +7,7 @@ use crate::walk::traits::IsAWalkPartial;
 pub type ReducedWalk = Reduced<WalkEnum>;
 
 // "Reduced" like a "word" from group theory.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Reduced<Walk: IsAWalkPartial>(Walk);
 
 impl<Walk: IsAWalkPartial> IsAWalkPartial for Reduced<Walk> {

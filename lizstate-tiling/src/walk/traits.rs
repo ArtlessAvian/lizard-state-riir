@@ -113,11 +113,27 @@ where
         Ok(out)
     }
 
+    /// Takes ownership of `self` and some Iterator of Directions.
+    /// If successful, returns a Self with the two contents.
+    /// # Errors
+    /// Self cannot represent path with combined length.
+    /// This will also drop both self and iter, which are in invalid states.
+    fn try_extend(
+        self,
+        iter: impl IntoIterator<Item = Direction>,
+    ) -> Result<Self, Self::PushError> {
+        let mut out = self;
+        for dir in iter {
+            out.push_mut(dir)?;
+        }
+        Ok(out)
+    }
+
     /// Takes ownership of `self` and another of the same type.
     /// If successful, returns a Self with the two contents.
     /// # Errors
     /// Self cannot represent path with combined length.
-    /// This will also drop both self and iter.
+    /// This will also drop both self and other, which are in invalid states.
     fn try_append(self, other: Self) -> Result<Self, Self::PushError> {
         let mut out = self;
         for dir in other {

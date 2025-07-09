@@ -12,6 +12,11 @@ pub trait IsATile: Copy + Eq {}
 /// Marker trait for space/graph types.
 pub trait IsASpace: Clone + Eq {}
 
+pub enum StepError {
+    NotInSpace,
+    Unrepresentable, // For infinite graphs. Surely you aren't doing that right?
+}
+
 /// 4-regular undirected graphs. There is one outgoing directed edges for every `Direction`.
 ///
 /// When the implementor is a unit type, the graph is known entirely at compile time.
@@ -21,7 +26,7 @@ pub trait IsASpace: Clone + Eq {}
 ///
 /// An example of an invalid implementation is a graph with only `Up` and `Right` edges.
 /// Another example is a two vertex graph, one vertex with four edges to the other, and the other having four self-loops.
-pub trait IsSquareTilingGraph: IsASpace {
+pub trait IsTilingGraph: IsASpace {
     /// A reasonable way to think about the vertices in the graph.
     /// Remember that two tiles that are `Eq` represent the same location in *every* space.
     type Tile: IsATile;
@@ -32,10 +37,10 @@ pub trait IsSquareTilingGraph: IsASpace {
 
     /// Given a `Tile` vertex in the graph, follow the `Direction` edge.
     ///
-    /// May return `None`, bounding movement.
-    ///
     /// Ensure that `step(t, dir) == Some(n)` if and only if `step(n, dir.inverse()) == Some(t)`
-    fn step(&self, tile: &Self::Tile, dir: Direction) -> Option<Self::Tile>;
+    /// # Errors
+    /// Implementation may return any error if the step is invalid.
+    fn step(&self, tile: &Self::Tile, dir: Direction) -> Result<Self::Tile, StepError>;
 }
 
 /// Trait for converting paths to tiles efficiently.
@@ -44,15 +49,17 @@ pub trait IsSquareTilingGraph: IsASpace {
 /// Default implementations are linear time. Feel free to overwrite them.
 ///
 /// Also a desirable trait of the place you live. /j
-pub trait IsWalkable: IsSquareTilingGraph {
+pub trait IsWalkable: IsTilingGraph {
     /// Walks from a tile and returns the destination.
     ///
     /// Default impl takes time linear to the length of the walk.
+    /// # Errors
+    /// Any step is invalid.
     fn walk_from_tile(
         &self,
         from: &Self::Tile,
         walk: impl IntoIterator<Item = Direction>,
-    ) -> Option<Self::Tile> {
+    ) -> Result<Self::Tile, StepError> {
         walk.into_iter()
             .try_fold(*from, |current, dir| self.step(&current, dir))
     }
@@ -60,7 +67,12 @@ pub trait IsWalkable: IsSquareTilingGraph {
     /// Walks from the origin and returns the destination.
     ///
     /// Default impl takes time linear to the length of the walk.
-    fn walk_from_origin(&self, walk: impl IntoIterator<Item = Direction>) -> Option<Self::Tile> {
+    /// # Errors
+    /// Any step is invalid.
+    fn walk_from_origin(
+        &self,
+        walk: impl IntoIterator<Item = Direction>,
+    ) -> Result<Self::Tile, StepError> {
         self.walk_from_tile(&self.get_origin(), walk)
     }
 }
@@ -73,7 +85,7 @@ pub trait IsWalkable: IsSquareTilingGraph {
 ///
 /// Default implementations time linear to the output.
 /// Do not do worse than that, like an O(V^2) search!
-pub trait CanFindPath: IsSquareTilingGraph {
+pub trait CanFindArbitraryPath: IsTilingGraph {
     /// # Errors
     /// Path is too long to be represented by `Walk`
     fn path_from_origin<Walk: IsAWalk>(&self, to: &Self::Tile) -> Result<Walk, Walk::PushError>;
@@ -96,6 +108,6 @@ pub trait CanFindPath: IsSquareTilingGraph {
         let out = self.path_to_origin::<Walk>(from)?;
         let extension = self.path_from_origin::<Walk>(to)?;
 
-        out.try_append(extension)
+        out.try_extend(extension)
     }
 }
