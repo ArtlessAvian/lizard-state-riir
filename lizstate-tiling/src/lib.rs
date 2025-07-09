@@ -13,41 +13,41 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-// *************** The reason why this crate exists ***************
-
-/// A space defined by the user, following specific rules.
-#[cfg(feature = "std")]
-pub mod custom_space;
-
-/// Replaces every tile of a space with many tiles.
-pub mod expansion;
-
-// *************** How do we get there? ***************
-
-/// The four cardinal directions!
-pub mod direction;
-
-// A pair of integers!
-pub mod coords;
-
-/// Sequences of directions.
-///
-/// A trait for behavior, and implementors with finite storage.
-pub mod path;
-
-/// A trait for 4-regular undirected graphs. Implementations are "spaces."
-///
-/// Every *directed* edge is labeled, and their reverse edges are labeled their inverse label.
-pub mod tiling;
-
-/// A path in a space, with a **fixed** beginning.
-///
-/// Appending new paths is legal. Prepending is not!
-pub mod path_from_origin;
-
 // *****************************************************
 // ************** OLD STUFF, WAY TOO DANK **************
 // *****************************************************
+
+// *************** The reason why this crate exists ***************
+
+// /// A space defined by the user, following specific rules.
+// #[cfg(feature = "std")]
+// pub mod custom_space;
+
+// /// Replaces every tile of a space with many tiles.
+// pub mod expansion;
+
+// // *************** How do we get there? ***************
+
+// /// The four cardinal directions!
+// pub mod direction;
+
+// // A pair of integers!
+// pub mod coords;
+
+// /// Sequences of directions.
+// ///
+// /// A trait for behavior, and implementors with finite storage.
+// pub mod path;
+
+// /// A trait for 4-regular undirected graphs. Implementations are "spaces."
+// ///
+// /// Every *directed* edge is labeled, and their reverse edges are labeled their inverse label.
+// pub mod tiling;
+
+// /// A path in a space, with a **fixed** beginning.
+// ///
+// /// Appending new paths is legal. Prepending is not!
+// pub mod path_from_origin;
 
 // /// The familiar 2D coordinates, implementing `HasSquareTiling`.
 // pub mod euclidean_plane;
