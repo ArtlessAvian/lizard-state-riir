@@ -66,14 +66,18 @@ impl Walk {
         }
     }
 
+    // The direction at the end of the walk.
+    pub const fn peek(&self) -> Direction {
+        Self::pattern_to_dir(self.encoding.get() & 0b11)
+    }
+
     /// # Errors
     /// Nothing to pop from walk.
     pub const fn pop_copy(&self) -> Result<(Self, Direction), WalkIsEmpty> {
         let shr = self.encoding.get() >> 2;
         let maybe_encoding = NonZero::new(shr >> 2);
         if let Some(encoding) = maybe_encoding {
-            let pattern = self.encoding.get() & 0b11;
-            Ok((Self { encoding }, Self::pattern_to_dir(pattern)))
+            Ok((Self { encoding }, self.peek()))
         } else {
             Err(WalkIsEmpty)
         }

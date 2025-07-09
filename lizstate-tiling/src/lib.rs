@@ -24,6 +24,11 @@ pub mod coords;
 /// Sequences of directions.
 pub mod walk;
 
+/// Traits for 4-regular undirected graphs and their vertices.
+///
+/// Outgoing directed edges are named.
+pub mod tiling_graph;
+
 // *****************************************************
 // ************** OLD STUFF, WAY TOO DANK **************
 // *****************************************************
