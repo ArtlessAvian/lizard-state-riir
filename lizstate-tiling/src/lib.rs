@@ -22,7 +22,7 @@ pub mod direction;
 pub mod coords;
 
 /// Sequences of directions.
-pub mod path;
+pub mod walk;
 
 // *****************************************************
 // ************** OLD STUFF, WAY TOO DANK **************
