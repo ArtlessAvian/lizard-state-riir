@@ -9,13 +9,18 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use crate::direction::Direction;
+use crate::tiling_graph::CanFindArbitraryPath;
 use crate::tiling_graph::IsASpace;
 use crate::tiling_graph::IsATile;
 use crate::tiling_graph::IsTilingGraph;
+use crate::tiling_graph::IsWalkable;
 use crate::tiling_graph::StepError;
 use crate::walk::WalkIsFull;
+use crate::walk::reduced::Reduced;
 use crate::walk::reduced::ReducedWalk;
+use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkRaw;
 
 // pub mod shared;
 // pub mod tiling_graph;
@@ -102,15 +107,26 @@ impl IsTilingGraph for CustomSpace {
 
     fn step(
         &self,
-        _tile: &Self::Tile,
-        _dir: crate::direction::Direction,
+        tile: &Self::Tile,
+        dir: crate::direction::Direction,
     ) -> Result<Self::Tile, StepError> {
-        // let tentative = tile
-        //     .0
-        //     .push_copy(dir)
-        //     .map_err(|WalkIsFull| StepError::Unrepresentable)?;
+        let rep = self
+            .try_path_into_rep(&tile.0)
+            .map_err(|_| StepError::NotInSpace)?;
+        let neighbor = rep.step(dir).map_err(|_| StepError::Unrepresentable)?;
+        let step_rep = neighbor.try_rep(self).map_err(|_| StepError::NotInSpace)?;
+        Ok(CustomSpaceTile(step_rep.0))
+    }
+}
 
-        todo!()
+impl IsWalkable for CustomSpace {}
+
+impl CanFindArbitraryPath for CustomSpace {
+    fn path_from_origin<Walk: IsAWalkRaw>(
+        &self,
+        to: &Self::Tile,
+    ) -> Result<Reduced<Walk>, Walk::PushError> {
+        Reduced::<Walk>::try_new_from_iter(to.0)
     }
 }
 
