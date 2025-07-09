@@ -15,7 +15,6 @@ use crate::walk::traits::IsAWalkRaw;
 
 impl IsATile for CartesianCoords {}
 
-#[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub struct TheEuclideanPlane;
 
 impl IsASpace for TheEuclideanPlane {}

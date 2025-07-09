@@ -17,9 +17,19 @@ pub trait IsATile: Copy + Eq {}
 /// Marker trait for space/graph types.
 pub trait IsASpace {}
 
-pub enum StepError {
+pub enum TileError {
+    Unrepresentable,
+}
+
+pub enum SpaceError {
     NotInSpace,
-    Unrepresentable, // For infinite graphs. Surely you aren't doing that right?
+    Unrepresentable,
+}
+
+pub enum StepError {
+    ArgNotInSpace,
+    StepNotInSpace,
+    Unrepresentable,
 }
 
 /// 4-regular undirected graphs. There is one outgoing directed edges for every `Direction`.
@@ -44,7 +54,8 @@ pub trait IsTilingGraph: IsASpace {
     ///
     /// Ensure that `step(t, dir) == Some(n)` if and only if `step(n, dir.inverse()) == Some(t)`
     /// # Errors
-    /// Implementation may return any error if the step is invalid.
+    /// Implementor may return if the space it represents does not contain either end of the step,
+    /// or if the Tile cannot be represented.
     fn step(&self, tile: &Self::Tile, dir: Direction) -> Result<Self::Tile, StepError>;
 }
 

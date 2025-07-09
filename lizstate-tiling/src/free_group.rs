@@ -26,8 +26,6 @@ impl IsATile for FreeGroupWord {}
 ///
 /// We don't really *care* that this is a group.
 /// We aren't doing group operations.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-#[must_use]
 pub struct TheFreeGroup;
 
 impl IsASpace for TheFreeGroup {}

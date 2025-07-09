@@ -14,7 +14,9 @@ use crate::tiling_graph::IsASpace;
 use crate::tiling_graph::IsATile;
 use crate::tiling_graph::IsTilingGraph;
 use crate::tiling_graph::IsWalkable;
+use crate::tiling_graph::SpaceError;
 use crate::tiling_graph::StepError;
+use crate::tiling_graph::TileError;
 use crate::walk::WalkIsFull;
 use crate::walk::reduced::Reduced;
 use crate::walk::reduced::ReducedWalk;
@@ -24,11 +26,6 @@ use crate::walk::traits::IsAWalkRaw;
 
 // pub mod shared;
 // pub mod tiling_graph;
-
-pub enum CustomSpaceError {
-    NotInSpace,
-    Unrepresentable,
-}
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CustomSpaceTile(ReducedWalk);
@@ -52,10 +49,10 @@ pub struct CustomSpace {
 /// Typestate to help reasoning.
 struct Representative(ReducedWalk);
 impl Representative {
-    fn step(self, dir: Direction) -> Result<RepNeighbor, CustomSpaceError> {
+    fn step(self, dir: Direction) -> Result<RepNeighbor, TileError> {
         match self.0.push_copy(dir) {
             Ok(stepped) => Ok(RepNeighbor(stepped)),
-            Err(WalkIsFull) => Err(CustomSpaceError::Unrepresentable),
+            Err(WalkIsFull) => Err(TileError::Unrepresentable),
         }
     }
 }
@@ -63,13 +60,13 @@ impl Representative {
 /// Typestate to help reasoning.
 struct RepNeighbor(ReducedWalk);
 impl RepNeighbor {
-    fn try_rep(self, space: &CustomSpace) -> Result<Representative, CustomSpaceError> {
+    fn try_rep(self, space: &CustomSpace) -> Result<Representative, SpaceError> {
         if space.contained_reps.contains(&self.0) {
             Ok(Representative(self.0))
         } else if let Some(rep) = space.equivalent_rep.get(&self.0).copied() {
             Ok(Representative(rep))
         } else {
-            Err(CustomSpaceError::NotInSpace)
+            Err(SpaceError::NotInSpace)
         }
     }
 }
@@ -80,7 +77,7 @@ impl CustomSpace {
     const THE_ORIGIN_TILE: CustomSpaceTile = CustomSpaceTile(Self::EMPTY_PATH);
 
     /// Checks if the tile at the destination has a representative.
-    fn try_path_into_rep(&self, path: &ReducedWalk) -> Result<Representative, CustomSpaceError> {
+    fn try_path_into_rep(&self, path: &ReducedWalk) -> Result<Representative, SpaceError> {
         if *path == Self::EMPTY_PATH || self.contained_reps.contains(path) {
             Ok(Representative(*path))
         } else {
@@ -89,8 +86,13 @@ impl CustomSpace {
                 .expect("tile does not eq the origin, which means its not empty");
 
             let prefix_rep = self.try_path_into_rep(&prefix)?;
-            let neighbor = prefix_rep.step(popped)?;
+
+            let neighbor = prefix_rep
+                .step(popped)
+                .map_err(|TileError::Unrepresentable| SpaceError::Unrepresentable)?;
+
             let rep = neighbor.try_rep(self)?;
+
             Ok(rep)
         }
     }
@@ -112,9 +114,16 @@ impl IsTilingGraph for CustomSpace {
     ) -> Result<Self::Tile, StepError> {
         let rep = self
             .try_path_into_rep(&tile.0)
-            .map_err(|_| StepError::NotInSpace)?;
-        let neighbor = rep.step(dir).map_err(|_| StepError::Unrepresentable)?;
-        let step_rep = neighbor.try_rep(self).map_err(|_| StepError::NotInSpace)?;
+            .map_err(|_| StepError::ArgNotInSpace)?;
+
+        let neighbor = rep
+            .step(dir)
+            .map_err(|TileError::Unrepresentable| StepError::Unrepresentable)?;
+
+        let step_rep = neighbor
+            .try_rep(self)
+            .map_err(|_| StepError::StepNotInSpace)?;
+
         Ok(CustomSpaceTile(step_rep.0))
     }
 }
