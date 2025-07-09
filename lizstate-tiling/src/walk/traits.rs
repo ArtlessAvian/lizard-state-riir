@@ -99,4 +99,30 @@ where
     Self: Clone + PartialEq + Eq + Hash,
     Self: IntoIterator<Item = Direction>,
 {
+    /// Creates a new Self from an iterator.
+    /// # Errors
+    /// Self cannot represent path with combined length.
+    /// This will also drop both self and iter.
+    fn try_new_from_iter(
+        iter: impl IntoIterator<Item = Direction>,
+    ) -> Result<Self, Self::PushError> {
+        let mut out = Self::new_empty();
+        for dir in iter {
+            out.push_mut(dir)?;
+        }
+        Ok(out)
+    }
+
+    /// Takes ownership of `self` and another of the same type.
+    /// If successful, returns a Self with the two contents.
+    /// # Errors
+    /// Self cannot represent path with combined length.
+    /// This will also drop both self and iter.
+    fn try_append(self, other: Self) -> Result<Self, Self::PushError> {
+        let mut out = self;
+        for dir in other {
+            out.push_mut(dir)?;
+        }
+        Ok(out)
+    }
 }

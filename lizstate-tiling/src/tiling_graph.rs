@@ -1,4 +1,5 @@
 use crate::direction::Direction;
+use crate::walk::traits::IsAWalk;
 
 /// Marker trait for tile/vertex types.
 ///
@@ -38,6 +39,7 @@ pub trait IsSquareTilingGraph: IsASpace {
 }
 
 /// Trait for converting paths to tiles efficiently.
+/// This should always be implementable.
 ///
 /// Default implementations are linear time. Feel free to overwrite them.
 ///
@@ -72,17 +74,28 @@ pub trait IsWalkable: IsSquareTilingGraph {
 /// Default implementations time linear to the output.
 /// Do not do worse than that, like an O(V^2) search!
 pub trait CanFindPath: IsSquareTilingGraph {
-    fn path_from_origin(&self, _to: &Self::Tile) -> () {
-        todo!()
+    /// # Errors
+    /// Path is too long to be represented by `Walk`
+    fn path_from_origin<Walk: IsAWalk>(&self, to: &Self::Tile) -> Result<Walk, Walk::PushError>;
+
+    /// # Errors
+    /// Path is too long to be represented by `Walk`
+    fn path_to_origin<Walk: IsAWalk>(&self, from: &Self::Tile) -> Result<Walk, Walk::PushError> {
+        let mut out = self.path_from_origin::<Walk>(from)?;
+        out.inverse_mut();
+        Ok(out)
     }
 
-    fn path_to_origin(&self, _from: &Self::Tile) -> () {
-        // self.path_from_origin(from).inverse()
-        todo!()
-    }
+    /// # Errors
+    /// Path is too long to be represented by `Walk`
+    fn path_between_tiles<Walk: IsAWalk>(
+        &self,
+        from: &Self::Tile,
+        to: &Self::Tile,
+    ) -> Result<Walk, Walk::PushError> {
+        let out = self.path_to_origin::<Walk>(from)?;
+        let extension = self.path_from_origin::<Walk>(to)?;
 
-    fn path_between_tiles(&self, _from: &Self::Tile, _to: &Self::Tile) -> () {
-        // self.path_to_origin(from).concat(self.path_from_origin(to))
-        todo!()
+        out.try_append(extension)
     }
 }
