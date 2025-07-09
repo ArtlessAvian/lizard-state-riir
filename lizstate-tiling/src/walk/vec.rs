@@ -2,7 +2,7 @@ use std::vec::Vec;
 
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
-use crate::walk::traits::IsAWalk;
+use crate::walk::traits::IsAWalkPartial;
 
 pub enum Never {}
 
@@ -12,7 +12,7 @@ pub struct WalkVec {
     vec: Vec<Direction>,
 }
 
-impl IsAWalk for WalkVec {
+impl IsAWalkPartial for WalkVec {
     type PushError = Never;
 
     fn new_empty() -> Self {

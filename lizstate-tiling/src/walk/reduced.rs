@@ -2,13 +2,15 @@ use super::WalkIsEmpty;
 use crate::direction::Direction;
 use crate::walk::enumeration::WalkEnum;
 use crate::walk::traits::IsAWalk;
+use crate::walk::traits::IsAWalkPartial;
 
 pub type ReducedWalk = Reduced<WalkEnum>;
 
 // "Reduced" like a "word" from group theory.
-pub struct Reduced<Walk: IsAWalk>(Walk);
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Reduced<Walk: IsAWalkPartial>(Walk);
 
-impl<Walk: IsAWalk> IsAWalk for Reduced<Walk> {
+impl<Walk: IsAWalkPartial> IsAWalkPartial for Reduced<Walk> {
     type PushError = Walk::PushError;
 
     fn new_empty() -> Self {
@@ -40,3 +42,18 @@ impl<Walk: IsAWalk> IsAWalk for Reduced<Walk> {
         self.0.pop_mut()
     }
 }
+
+impl<Walk> IntoIterator for Reduced<Walk>
+where
+    Walk: IsAWalkPartial,
+    Walk: IntoIterator<Item = Direction>,
+{
+    type Item = Direction;
+    type IntoIter = Walk::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<Walk: IsAWalk> IsAWalk for Reduced<Walk> {}

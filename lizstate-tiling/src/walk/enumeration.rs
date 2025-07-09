@@ -8,8 +8,7 @@ use core::num::NonZeroU64;
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 use crate::walk::WalkIsFull;
-use crate::walk::traits::IsAWalk;
-use crate::walk::traits::IsAWalkCopy;
+use crate::walk::traits::IsAWalkPartial;
 
 /// Enumeration in the math sense.
 ///
@@ -111,7 +110,7 @@ impl WalkEnum {
     }
 }
 
-impl IsAWalk for WalkEnum {
+impl IsAWalkPartial for WalkEnum {
     type PushError = WalkIsFull;
 
     fn new_empty() -> Self {
@@ -136,9 +135,7 @@ impl IsAWalk for WalkEnum {
         (*self, popped) = self.pop_copy()?;
         Ok(popped)
     }
-}
 
-impl IsAWalkCopy for WalkEnum {
     fn push_copy(&self, dir: Direction) -> Result<Self, Self::PushError> {
         self.push_copy(dir)
     }
