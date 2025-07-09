@@ -4,6 +4,8 @@
 
 #[derive(Debug)]
 pub struct WalkIsEmpty;
+
+#[derive(Debug)]
 pub struct WalkIsFull;
 
 // Yeah

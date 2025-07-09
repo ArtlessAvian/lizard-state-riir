@@ -1,9 +1,12 @@
+use core::iter::IntoIterator;
 use std::vec::Vec;
 
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
+use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
 
+#[derive(Debug)]
 pub enum Never {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -36,3 +39,14 @@ impl IsAWalkPartial for WalkVec {
         self.vec.pop().ok_or(WalkIsEmpty)
     }
 }
+
+impl IntoIterator for WalkVec {
+    type Item = Direction;
+    type IntoIter = <Vec<Direction> as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.vec.into_iter()
+    }
+}
+
+impl IsAWalk for WalkVec {}

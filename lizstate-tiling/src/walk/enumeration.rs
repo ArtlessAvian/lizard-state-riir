@@ -8,6 +8,7 @@ use core::num::NonZeroU64;
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 use crate::walk::WalkIsFull;
+use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
 
 /// Enumeration in the math sense.
@@ -144,3 +145,31 @@ impl IsAWalkPartial for WalkEnum {
         self.pop_copy()
     }
 }
+
+impl IntoIterator for WalkEnum {
+    type Item = Direction;
+    type IntoIter = WalkEnumIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        // HACK: We want a queue, but we have a stack interface.
+        // Inverting both reverses the sequence and inverts each direction.
+        // We'll need to revert the directions later.
+        let mut inverse = self;
+        inverse.inverse_mut();
+        WalkEnumIter { inverse }
+    }
+}
+
+pub struct WalkEnumIter {
+    inverse: WalkEnum,
+}
+
+impl Iterator for WalkEnumIter {
+    type Item = Direction;
+    fn next(&mut self) -> Option<Self::Item> {
+        // HACK: We can pop directions the inverse of our path. We can revert individual directions now.
+        self.inverse.pop_mut().ok().map(Direction::inverse)
+    }
+}
+
+impl IsAWalk for WalkEnum {}
