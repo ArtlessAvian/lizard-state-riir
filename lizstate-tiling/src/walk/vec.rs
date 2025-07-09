@@ -1,13 +1,15 @@
 use core::iter::IntoIterator;
 use std::vec::Vec;
 
+use thiserror::Error;
+
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
 use crate::walk::traits::IsAWalkRaw;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum Never {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

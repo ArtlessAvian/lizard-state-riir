@@ -89,7 +89,8 @@ impl CustomSpace {
 
             let neighbor = prefix_rep
                 .step(popped)
-                .map_err(|TileError::Unrepresentable| SpaceError::Unrepresentable)?;
+                .map_err(|TileError::Unrepresentable| SpaceError::NotInSpace)?;
+            // Even if `path` is representable, the path cannot be in the space.
 
             let rep = neighbor.try_rep(self)?;
 
@@ -114,15 +115,15 @@ impl IsTilingGraph for CustomSpace {
     ) -> Result<Self::Tile, StepError> {
         let rep = self
             .try_path_into_rep(&tile.0)
-            .map_err(|_| StepError::ArgNotInSpace)?;
+            .map_err(|SpaceError::NotInSpace| StepError::ArgumentNotInSpace)?;
 
         let neighbor = rep
             .step(dir)
-            .map_err(|TileError::Unrepresentable| StepError::Unrepresentable)?;
+            .map_err(|TileError::Unrepresentable| StepError::DestinationUnrepresentable)?;
 
         let step_rep = neighbor
             .try_rep(self)
-            .map_err(|_| StepError::StepNotInSpace)?;
+            .map_err(|SpaceError::NotInSpace| StepError::DestinationNotInSpace)?;
 
         Ok(CustomSpaceTile(step_rep.0))
     }

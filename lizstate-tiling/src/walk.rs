@@ -2,10 +2,14 @@
 //! Without knowing the graph we are walking on, we cannot know if a walk is a path (no repeated vertices)
 //! We can *sort of* know if a walk is a trail (no repeated edges).
 
-#[derive(Debug)]
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+#[error("Walk contains no elements")]
 pub struct WalkIsEmpty;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[error("Walk cannot contain more elements")]
 pub struct WalkIsFull;
 
 // Yeah

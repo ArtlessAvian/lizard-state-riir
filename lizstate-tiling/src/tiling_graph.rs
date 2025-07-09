@@ -1,3 +1,5 @@
+use thiserror::Error;
+
 use crate::direction::Direction;
 use crate::walk::reduced::Reduced;
 use crate::walk::traits::IsAWalk;
@@ -17,19 +19,26 @@ pub trait IsATile: Copy + Eq {}
 /// Marker trait for space/graph types.
 pub trait IsASpace {}
 
+#[derive(Debug, Error)]
 pub enum TileError {
+    #[error("Tile cannot be reasonably represented in memory")]
     Unrepresentable,
 }
 
+#[derive(Debug, Error)]
 pub enum SpaceError {
+    #[error("Space does not contain tile")]
     NotInSpace,
-    Unrepresentable,
 }
 
+#[derive(Debug, Error)]
 pub enum StepError {
-    ArgNotInSpace,
-    StepNotInSpace,
-    Unrepresentable,
+    #[error("Space does not contain argument")]
+    ArgumentNotInSpace,
+    #[error("Destination cannot be reasonably represented in memory")]
+    DestinationUnrepresentable,
+    #[error("Space does not contain destination")]
+    DestinationNotInSpace,
 }
 
 /// 4-regular undirected graphs. There is one outgoing directed edges for every `Direction`.

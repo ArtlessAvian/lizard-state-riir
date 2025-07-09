@@ -1,4 +1,4 @@
-use core::fmt::Debug;
+use core::error::Error;
 use core::hash::Hash;
 
 use crate::direction::Direction;
@@ -6,7 +6,7 @@ use crate::walk::WalkIsEmpty;
 
 #[must_use]
 pub trait IsAWalkPartial {
-    type PushError: Debug;
+    type PushError: Error;
 
     fn new_empty() -> Self
     where

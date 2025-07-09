@@ -29,7 +29,7 @@ impl IsTilingGraph for TheEuclideanPlane {
     }
 
     fn step(&self, tile: &Self::Tile, dir: Direction) -> Result<CartesianCoords, StepError> {
-        tile.step(dir).ok_or(StepError::Unrepresentable)
+        tile.step(dir).ok_or(StepError::DestinationUnrepresentable)
     }
 }
 

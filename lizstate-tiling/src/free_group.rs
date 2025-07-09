@@ -45,7 +45,7 @@ impl IsTilingGraph for TheFreeGroup {
         tile.0
             .push_copy(dir)
             .map(FreeGroupWord)
-            .map_err(|_| StepError::Unrepresentable)
+            .map_err(|_| StepError::DestinationUnrepresentable)
     }
 }
 
