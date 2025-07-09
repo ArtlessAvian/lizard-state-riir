@@ -1,5 +1,8 @@
 use crate::direction::Direction;
+use crate::walk::reduced::Reduced;
 use crate::walk::traits::IsAWalk;
+use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkRaw;
 
 /// Marker trait for tile/vertex types.
 ///
@@ -88,11 +91,17 @@ pub trait IsWalkable: IsTilingGraph {
 pub trait CanFindArbitraryPath: IsTilingGraph {
     /// # Errors
     /// Path is too long to be represented by `Walk`
-    fn path_from_origin<Walk: IsAWalk>(&self, to: &Self::Tile) -> Result<Walk, Walk::PushError>;
+    fn path_from_origin<Walk: IsAWalkRaw>(
+        &self,
+        to: &Self::Tile,
+    ) -> Result<Reduced<Walk>, Walk::PushError>;
 
     /// # Errors
     /// Path is too long to be represented by `Walk`
-    fn path_to_origin<Walk: IsAWalk>(&self, from: &Self::Tile) -> Result<Walk, Walk::PushError> {
+    fn path_to_origin<Walk: IsAWalkRaw>(
+        &self,
+        from: &Self::Tile,
+    ) -> Result<Reduced<Walk>, Walk::PushError> {
         let mut out = self.path_from_origin::<Walk>(from)?;
         out.inverse_mut();
         Ok(out)
@@ -100,11 +109,11 @@ pub trait CanFindArbitraryPath: IsTilingGraph {
 
     /// # Errors
     /// Path is too long to be represented by `Walk`
-    fn path_between_tiles<Walk: IsAWalk>(
+    fn path_between_tiles<Walk: IsAWalkRaw>(
         &self,
         from: &Self::Tile,
         to: &Self::Tile,
-    ) -> Result<Walk, Walk::PushError> {
+    ) -> Result<Reduced<Walk>, Walk::PushError> {
         let out = self.path_to_origin::<Walk>(from)?;
         let extension = self.path_from_origin::<Walk>(to)?;
 

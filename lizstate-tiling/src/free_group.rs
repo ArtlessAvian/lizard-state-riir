@@ -6,9 +6,11 @@ use crate::tiling_graph::IsATile;
 use crate::tiling_graph::IsTilingGraph;
 use crate::tiling_graph::IsWalkable;
 use crate::tiling_graph::StepError;
+use crate::walk::reduced::Reduced;
 use crate::walk::reduced::ReducedWalk;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkRaw;
 
 /// A reduced "word" formed from the alphabet Up, Right, and their inverses.
 ///
@@ -52,8 +54,11 @@ impl IsTilingGraph for TheFreeGroup {
 impl IsWalkable for TheFreeGroup {}
 
 impl CanFindArbitraryPath for TheFreeGroup {
-    fn path_from_origin<Walk: IsAWalk>(&self, to: &Self::Tile) -> Result<Walk, Walk::PushError> {
-        Walk::try_new_from_iter(to.0)
+    fn path_from_origin<Walk: IsAWalkRaw>(
+        &self,
+        to: &Self::Tile,
+    ) -> Result<Reduced<Walk>, Walk::PushError> {
+        Reduced::<Walk>::try_new_from_iter(to.0)
     }
 }
 

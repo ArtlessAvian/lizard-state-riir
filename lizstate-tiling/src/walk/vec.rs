@@ -5,6 +5,7 @@ use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkRaw;
 
 #[derive(Debug)]
 pub enum Never {}
@@ -50,3 +51,5 @@ impl IntoIterator for WalkVec {
 }
 
 impl IsAWalk for WalkVec {}
+
+impl IsAWalkRaw for WalkVec {}

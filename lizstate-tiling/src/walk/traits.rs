@@ -142,3 +142,8 @@ where
         Ok(out)
     }
 }
+
+/// Marker trait for *NOT WRAPPERS*
+///
+/// Similar to nalgebra's storage stuff.
+pub trait IsAWalkRaw: IsAWalk {}

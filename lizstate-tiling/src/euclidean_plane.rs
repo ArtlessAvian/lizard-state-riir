@@ -8,7 +8,10 @@ use crate::tiling_graph::IsATile;
 use crate::tiling_graph::IsTilingGraph;
 use crate::tiling_graph::IsWalkable;
 use crate::tiling_graph::StepError;
+use crate::walk::reduced::Reduced;
 use crate::walk::traits::IsAWalk;
+use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkRaw;
 
 impl IsATile for CartesianCoords {}
 
@@ -34,8 +37,11 @@ impl IsTilingGraph for TheEuclideanPlane {
 impl IsWalkable for TheEuclideanPlane {}
 
 impl CanFindArbitraryPath for TheEuclideanPlane {
-    fn path_from_origin<Walk: IsAWalk>(&self, to: &Self::Tile) -> Result<Walk, Walk::PushError> {
-        let out = Walk::new_empty();
+    fn path_from_origin<Walk: IsAWalkRaw>(
+        &self,
+        to: &Self::Tile,
+    ) -> Result<Reduced<Walk>, Walk::PushError> {
+        let out = Reduced::<Walk>::new_empty();
         let out = out.try_extend((0..to.x).map(|_| Direction::Right))?;
         let out = out.try_extend((0..-to.x).map(|_| Direction::Left))?;
         let out = out.try_extend((0..to.y).map(|_| Direction::Up))?;
@@ -43,11 +49,11 @@ impl CanFindArbitraryPath for TheEuclideanPlane {
         Ok(out)
     }
 
-    fn path_between_tiles<Walk: IsAWalk>(
+    fn path_between_tiles<Walk: IsAWalkRaw>(
         &self,
         from: &Self::Tile,
         to: &Self::Tile,
-    ) -> Result<Walk, Walk::PushError> {
+    ) -> Result<Reduced<Walk>, Walk::PushError> {
         let dx = to.x - from.x;
         let dy = to.y - from.y;
         self.path_from_origin(&CartesianCoords::new(dx, dy))

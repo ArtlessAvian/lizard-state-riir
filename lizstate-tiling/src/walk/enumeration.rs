@@ -10,6 +10,7 @@ use crate::walk::WalkIsEmpty;
 use crate::walk::WalkIsFull;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkRaw;
 
 /// Enumeration in the math sense.
 ///
@@ -173,3 +174,5 @@ impl Iterator for WalkEnumIter {
 }
 
 impl IsAWalk for WalkEnum {}
+
+impl IsAWalkRaw for WalkEnum {}
