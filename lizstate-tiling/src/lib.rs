@@ -13,6 +13,17 @@
 #[cfg(feature = "std")]
 extern crate std;
 
+// *************** Core ***************
+
+/// The four cardinal directions!
+pub mod direction;
+
+// A pair of integers!
+pub mod coords;
+
+/// Sequences of directions.
+pub mod path;
+
 // *****************************************************
 // ************** OLD STUFF, WAY TOO DANK **************
 // *****************************************************
