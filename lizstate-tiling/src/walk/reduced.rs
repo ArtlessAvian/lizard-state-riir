@@ -7,8 +7,16 @@ use crate::walk::traits::IsAWalkRaw;
 
 pub type ReducedWalk = Reduced<WalkEnum>;
 
+// Const impl, as needed
+impl ReducedWalk {
+    #[must_use]
+    pub const fn new_empty() -> Self {
+        Reduced(WalkEnum::new_empty())
+    }
+}
+
 // "Reduced" like a "word" from group theory.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Reduced<Walk: IsAWalkRaw>(Walk);
 
 impl<Walk: IsAWalkRaw> IsAWalkPartial for Reduced<Walk> {

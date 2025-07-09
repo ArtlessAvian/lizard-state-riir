@@ -39,18 +39,18 @@ pub mod free_group;
 
 // *************** Customizable Graphs ***************
 
+/// A space defined by the user, following specific rules.
+#[cfg(feature = "std")]
+pub mod custom_space;
+
+/// Replaces every tile of a space with many tiles.
+pub mod expansion;
+
 // *****************************************************
 // ************** OLD STUFF, WAY TOO DANK **************
 // *****************************************************
 
 // *************** The reason why this crate exists ***************
-
-// /// A space defined by the user, following specific rules.
-// #[cfg(feature = "std")]
-// pub mod custom_space;
-
-// /// Replaces every tile of a space with many tiles.
-// pub mod expansion;
 
 // // *************** How do we get there? ***************
 
