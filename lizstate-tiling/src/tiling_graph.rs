@@ -8,12 +8,14 @@ use crate::walk::traits::IsAWalkRaw;
 ///
 /// Enforces subtraits. Reduces typing.
 /// You can imagine these as indexes or keys into a space.
+/// Like keys, you can't expect to have a valid key in one map and have it be valid in another map.
+/// So be careful with mutable spaces.
 ///
 /// Two tiles that are `Eq` represent the same tile in *every* space.
 pub trait IsATile: Copy + Eq {}
 
 /// Marker trait for space/graph types.
-pub trait IsASpace: Clone + Eq {}
+pub trait IsASpace {}
 
 pub enum StepError {
     NotInSpace,

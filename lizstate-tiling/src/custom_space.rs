@@ -1,72 +1,103 @@
+#![allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "ReducedWalk can grow maybe (and still be copy)"
+)]
+
+use core::ops::Deref;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use crate::direction::Direction;
 use crate::tiling_graph::IsASpace;
 use crate::tiling_graph::IsATile;
 use crate::tiling_graph::IsTilingGraph;
 use crate::tiling_graph::StepError;
+use crate::walk::WalkIsFull;
 use crate::walk::reduced::ReducedWalk;
+use crate::walk::traits::IsAWalkPartial;
 
 // pub mod shared;
 // pub mod tiling_graph;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct CustomSpaceRepresentative(ReducedWalk);
+pub enum CustomSpaceError {
+    NotInSpace,
+    Unrepresentable,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CustomSpaceTile(ReducedWalk);
 impl IsATile for CustomSpaceTile {}
 
 /// Data supporting extra connections in the free group.
-struct CustomSpace {
-    /// The representative tiles for all valid locations.
-    /// Multiple tiles may represent the same location,
+#[derive(Default)]
+#[must_use]
+pub struct CustomSpace {
+    /// The representative paths for all valid locations.
+    /// There are multiple paths to the same location,
     /// so this set chooses one for each.
     /// (Multiple? More like, infinitely many)
-    /// Always contains `CustomSpaceInner::THE_ORIGIN`.
-    contained_rep: HashSet<CustomSpaceTile>,
-    /// A map from (non-representative tile adjacent to a representative) to (a representative).
-    /// Tiles two steps away are not present.
+    contained_reps: HashSet<ReducedWalk>,
+    /// A map from (non-representative path, one longer than a representative) to (a representative).
+    /// Paths two longer than a representative are not stored.
     /// Ideally, the value is shorter than the key.
-    equivalent_rep: HashMap<CustomSpaceTile, CustomSpaceTile>,
+    equivalent_rep: HashMap<ReducedWalk, ReducedWalk>,
 }
 
-impl CustomSpace {
-    const THE_ORIGIN: CustomSpaceTile = CustomSpaceTile(ReducedWalk::new_empty());
-
-    pub fn new() -> Self {
-        let mut contained_rep = HashSet::new();
-        let equivalent_rep = HashMap::new();
-
-        contained_rep.insert(Self::THE_ORIGIN);
-
-        Self {
-            contained_rep,
-            equivalent_rep,
+/// Typestate to help reasoning.
+struct Representative(ReducedWalk);
+impl Representative {
+    fn step(self, dir: Direction) -> Result<RepNeighbor, CustomSpaceError> {
+        match self.0.push_copy(dir) {
+            Ok(stepped) => Ok(RepNeighbor(stepped)),
+            Err(WalkIsFull) => Err(CustomSpaceError::Unrepresentable),
         }
     }
 }
 
-/// The free group, with extra connections. Assume readonly!
-#[derive(Clone)]
-pub struct SharedCustomSpace(Rc<CustomSpace>);
-
-impl PartialEq for SharedCustomSpace {
-    fn eq(&self, other: &Self) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
+/// Typestate to help reasoning.
+struct RepNeighbor(ReducedWalk);
+impl RepNeighbor {
+    fn try_rep(self, space: &CustomSpace) -> Result<Representative, CustomSpaceError> {
+        if space.contained_reps.contains(&self.0) {
+            Ok(Representative(self.0))
+        } else if let Some(rep) = space.equivalent_rep.get(&self.0).copied() {
+            Ok(Representative(rep))
+        } else {
+            Err(CustomSpaceError::NotInSpace)
+        }
     }
 }
 
-impl Eq for SharedCustomSpace {}
+impl CustomSpace {
+    const EMPTY_PATH: ReducedWalk = ReducedWalk::new_empty();
+    const THE_ORIGIN_REP: Representative = Representative(Self::EMPTY_PATH);
+    const THE_ORIGIN_TILE: CustomSpaceTile = CustomSpaceTile(Self::EMPTY_PATH);
 
-impl IsASpace for SharedCustomSpace {}
+    /// Checks if the tile at the destination has a representative.
+    fn try_path_into_rep(&self, path: &ReducedWalk) -> Result<Representative, CustomSpaceError> {
+        if *path == Self::EMPTY_PATH || self.contained_reps.contains(path) {
+            Ok(Representative(*path))
+        } else {
+            let (prefix, popped) = path
+                .pop_copy()
+                .expect("tile does not eq the origin, which means its not empty");
 
-impl IsTilingGraph for SharedCustomSpace {
+            let prefix_rep = self.try_path_into_rep(&prefix)?;
+            let neighbor = prefix_rep.step(popped)?;
+            let rep = neighbor.try_rep(self)?;
+            Ok(rep)
+        }
+    }
+}
+
+impl IsASpace for CustomSpace {}
+
+impl IsTilingGraph for CustomSpace {
     type Tile = CustomSpaceTile;
 
     fn get_origin(&self) -> Self::Tile {
-        CustomSpaceTile(ReducedWalk::new_empty())
+        Self::THE_ORIGIN_TILE
     }
 
     fn step(
@@ -83,69 +114,15 @@ impl IsTilingGraph for SharedCustomSpace {
     }
 }
 
-// //! From a space, we want to select a subset of tiles from that space, and add connections between tiles in that space.
+// Newtype around `Rc<CustomSpace>`.
+// Derefs to `CustomSpace`, so you can still access the `IsTilingGraph` trait.
+#[derive(Clone)]
+pub struct SharedCustomSpace(Rc<CustomSpace>);
 
-// use std::collections::HashMap;
-// use std::collections::HashSet;
-// use std::rc::Rc;
+impl Deref for SharedCustomSpace {
+    type Target = CustomSpace;
 
-// use crate::path::BoundedPathLike;
-// use crate::path::bits_backed::PathBitString;
-// use crate::path::efficient::Efficient;
-// use crate::tiling::HasSquareTiling;
-// use crate::tiling::IsASpace;
-// use crate::tiling::IsATile;
-
-// // #[derive(Clone, Copy, PartialEq, Eq, Hash, Default)]
-// type PathInCustomSpace = Efficient<PathBitString>;
-// impl IsATile for PathInCustomSpace {}
-
-// struct CustomSpaceInner {
-//     // A set of paths. These form a trie / prefix list.
-//     preferred_paths: HashSet<PathInCustomSpace>,
-//     // A map of paths (not in the trie) to paths in the trie.
-//     // The value's length should always be shorter than the key.
-//     forced_connections: HashMap<PathInCustomSpace, PathInCustomSpace>,
-// }
-
-// #[derive(Clone)]
-// struct CustomSpace(Rc<CustomSpaceInner>);
-
-// impl PartialEq for CustomSpace {
-//     fn eq(&self, other: &Self) -> bool {
-//         Rc::ptr_eq(&self.0, &other.0)
-//     }
-// }
-
-// impl Eq for CustomSpace {}
-
-// impl IsASpace for CustomSpace {}
-
-// impl HasSquareTiling<PathInCustomSpace> for CustomSpace {
-//     fn get_origin(&self) -> PathInCustomSpace {
-//         PathInCustomSpace::default()
-//     }
-
-//     fn step(
-//         &self,
-//         tile: &PathInCustomSpace,
-//         dir: crate::direction::Direction,
-//     ) -> Option<PathInCustomSpace> {
-//         let tentative = tile.push(dir)?;
-
-//         let mut prefix = PathInCustomSpace::new();
-//         for yea in tentative {
-//             prefix = prefix.push(yea)?;
-//             if self.0.preferred_paths.contains(&prefix) {
-//                 continue;
-//             }
-//             if let Some(preferred) = self.0.forced_connections.get(&prefix) {
-//                 prefix = *preferred;
-//                 continue;
-//             }
-//             return None;
-//         }
-
-//         Some(prefix)
-//     }
-// }
+    fn deref(&self) -> &Self::Target {
+        self.0.as_ref()
+    }
+}
