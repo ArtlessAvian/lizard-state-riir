@@ -14,7 +14,22 @@ use crate::walk::traits::IsAWalkRaw;
 
 /// Enumeration in the math sense.
 ///
-/// Highly efficient storage!
+/// This is *like* how binary trees are indexed.
+/// A parent i has children 2i + 1 and 2i + 2.
+/// We have a quatenary (4-ary) tree instead, with [4i + 1, 4i + 4].
+/// This is a bijection between natural numbers and nodes!
+///
+/// With this approach, the greatest index path of length h is
+/// f(h) = -1 + \sum_{n=0}^{h} 4^h
+/// Notably f(31) <= `u64::MAX` < f(32),
+/// so a `u64` can enumerate all walks up to length 31, with a lot of room to spare.
+///
+/// I'm not sure how to make Rust do funny niches. `NonZero` definitely works.
+/// We can shift the empty list to 1 instead of 0.
+/// Then, parent i instead have children [4i-2, 4i+1].
+/// This also keeps everything contiguous.
+///
+/// TODO: Replace encoding.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
 pub struct WalkEnum {
@@ -44,9 +59,9 @@ impl WalkEnum {
     #[must_use]
     pub const fn len(&self) -> usize {
         // Integer division intentional.
-        // 1..4 -> 0 (we want to ignore the leading bit)
-        // 4..16 -> 1
-        // 16..64 -> 2
+        // 1..=3 -> 0 (we want to ignore the leading bit)
+        // 4..=15 -> 1
+        // 16..=63 -> 2
         (self.encoding.ilog2() / 2) as usize
     }
 
