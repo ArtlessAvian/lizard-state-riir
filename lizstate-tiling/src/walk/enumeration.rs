@@ -3,8 +3,6 @@
     reason = "type can grow maybe (and still be copy)"
 )]
 
-use core::num::NonZeroU64;
-
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 use crate::walk::WalkIsFull;
@@ -15,8 +13,8 @@ use crate::walk::traits::IsAWalkRaw;
 /// Enumeration in the math sense.
 ///
 /// This is *like* how binary trees are indexed.
-/// A parent i has children 2i + 1 and 2i + 2.
-/// We have a quatenary (4-ary) tree instead, with [4i + 1, 4i + 4].
+/// A parent i has children 2i+1 and 2i+2.
+/// We have a quatenary (4-ary) tree instead, with children ranging from (4i+1)..=(4i+4).
 /// This is a bijection between natural numbers and nodes!
 ///
 /// With this approach, the greatest index path of length h is
@@ -24,104 +22,89 @@ use crate::walk::traits::IsAWalkRaw;
 /// Notably f(31) <= `u64::MAX` < f(32),
 /// so a `u64` can enumerate all walks up to length 31, with a lot of room to spare.
 ///
-/// I'm not sure how to make Rust do funny niches. `NonZero` definitely works.
-/// We can shift the empty list to 1 instead of 0.
-/// Then, parent i instead have children [4i-2, 4i+1].
-/// This also keeps everything contiguous.
-///
-/// TODO: Replace encoding.
+/// About the "wasted" space, we can use `NonZero` and shift everything,
+/// but it makes the math sad. (children range from (4i-2)..=(4i+1) )
+/// We *can* use accursed attributes:
+/// `#[rustc_layout_scalar_valid_range_end()]`
+/// But that might be overengineering.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
-pub struct WalkEnum {
-    // A number to be interpreted in 4-ary.
-    // The leading digit is ignored
-    // The rest of the digits are treated as directions.
-    encoding: NonZeroU64,
-}
+pub struct WalkEnum(u64);
 
 impl WalkEnum {
+    const SMALLEST_OF_LEN: [u64; 32] = {
+        let mut out = [0; 32];
+        let mut len = 1;
+        while len < 32 {
+            out[len] = out[len - 1] * 4 + 1;
+            len += 1;
+        }
+        out
+    };
+
+    const LARGEST_OF_LEN: [u64; 32] = {
+        let mut out = [0; 32];
+        let mut len = 1;
+        while len < 32 {
+            out[len] = out[len - 1] * 4 + 4;
+            len += 1;
+        }
+        out
+    };
+
+    const SMALLEST_FULL: u64 = Self::SMALLEST_OF_LEN[31];
+    const LARGEST_FULL: u64 = Self::LARGEST_OF_LEN[31];
+
     pub const fn new_empty() -> Self {
-        Self {
-            encoding: NonZeroU64::MIN,
+        Self(0)
+    }
+
+    #[must_use]
+    pub const fn try_from_index(index: u64) -> Option<Self> {
+        if index <= Self::LARGEST_FULL {
+            Some(Self(index))
+        } else {
+            None
         }
     }
 
     #[must_use]
     pub const fn is_empty(&self) -> bool {
-        self.encoding.get() >> 2 == 0
+        self.0 == 0
     }
 
     #[must_use]
     pub const fn is_full(&self) -> bool {
-        self.encoding.get().checked_shl(2).is_none()
+        self.0 >= Self::SMALLEST_FULL
     }
 
     #[must_use]
     pub const fn len(&self) -> usize {
-        // Integer division intentional.
-        // 1..=3 -> 0 (we want to ignore the leading bit)
-        // 4..=15 -> 1
-        // 16..=63 -> 2
-        (self.encoding.ilog2() / 2) as usize
-    }
-
-    /// # Errors
-    /// Extended walk cannot be stored in Storage.
-    /// # Panics
-    /// Unwrapping `Option<NonZero>`, but it should never happen.
-    pub const fn push_copy(&self, dir: Direction) -> Result<Self, WalkIsFull> {
-        let checked_shl = self.encoding.get().checked_shl(2);
-        if let Some(shifted) = checked_shl {
-            let encoding = shifted | Self::dir_to_pattern(dir);
-            let encoding = NonZeroU64::new(encoding).expect("nonoverflowing shl is never zero");
-            Ok(Self { encoding })
-        } else {
-            Err(WalkIsFull)
+        let mut len = 0;
+        while len < 32 {
+            if self.0 <= Self::LARGEST_OF_LEN[len] {
+                return len;
+            }
+            len += 1;
         }
+        unreachable!()
     }
 
-    // The direction at the end of the walk.
-    /// # Errors
-    /// Nothing to pop from walk.
-    pub const fn peek(&self) -> Result<Direction, WalkIsEmpty> {
-        if self.is_empty() {
-            Err(WalkIsEmpty)
-        } else {
-            Ok(Self::pattern_to_dir(self.encoding.get() & 0b11))
-        }
-    }
-
-    /// # Errors
-    /// Nothing to pop from walk.
-    pub const fn pop_copy(&self) -> Result<(Self, Direction), WalkIsEmpty> {
-        let maybe_encoding = NonZeroU64::new(self.encoding.get() >> 2);
-        let maybe_peek = self.peek();
-
-        if let Some(encoding) = maybe_encoding
-            && let Ok(peek) = maybe_peek
-        {
-            Ok((Self { encoding }, peek))
-        } else {
-            Err(WalkIsEmpty)
-        }
-    }
-
-    const fn dir_to_pattern(dir: Direction) -> u64 {
-        // Patterns chosen so that reversing the bits and flipping both if same results in the inverse.
+    const fn dir_to_quaternary(dir: Direction) -> u8 {
         match dir {
-            Direction::Up => 0b00,
-            Direction::Down => 0b11,
-            Direction::Right => 0b01,
-            Direction::Left => 0b10,
+            Direction::Up => 0,
+            Direction::Down => 1,
+            Direction::Right => 2,
+            Direction::Left => 3,
         }
     }
 
-    const fn pattern_to_dir(two_bits: u64) -> Direction {
+    const fn quaternary_to_dir(two_bits: u8) -> Direction {
         match two_bits {
-            0b00 => Direction::Up,
-            0b11 => Direction::Down,
-            0b01 => Direction::Right,
-            0b10 => Direction::Left,
+            0 => Direction::Up,
+            1 => Direction::Down,
+            2 => Direction::Right,
+            3 => Direction::Left,
             _ => unreachable!(),
         }
     }
@@ -139,26 +122,34 @@ impl IsAWalkPartial for WalkEnum {
     }
 
     fn peek(&self) -> Result<Direction, WalkIsEmpty> {
-        self.peek()
+        if self.is_empty() {
+            Err(WalkIsEmpty)
+        } else {
+            #[expect(clippy::cast_possible_truncation, reason = "k mod 4 < 4")]
+            let quaternary: u8 = (self.0 - 1).rem_euclid(4) as u8;
+            Ok(Self::quaternary_to_dir(quaternary))
+        }
     }
 
     fn push_mut(&mut self, dir: Direction) -> Result<(), Self::PushError> {
-        *self = self.push_copy(dir)?;
-        Ok(())
+        if self.0 >= WalkEnum::SMALLEST_FULL {
+            Err(WalkIsFull)
+        } else {
+            self.0 *= 4;
+            self.0 += 1 + (dir as u64);
+            Ok(())
+        }
     }
 
     fn pop_mut(&mut self) -> Result<Direction, WalkIsEmpty> {
-        let popped;
-        (*self, popped) = self.pop_copy()?;
-        Ok(popped)
-    }
-
-    fn push_copy(&self, dir: Direction) -> Result<Self, Self::PushError> {
-        self.push_copy(dir)
-    }
-
-    fn pop_copy(&self) -> Result<(Self, Direction), WalkIsEmpty> {
-        self.pop_copy()
+        if let Ok(popped) = self.peek() {
+            // We want to map 4k+1 through 4k+4 to k.
+            self.0 -= 1; // 4k+0 through 4k+3
+            self.0 /= 4; // k
+            Ok(popped)
+        } else {
+            Err(WalkIsEmpty)
+        }
     }
 }
 
@@ -191,3 +182,27 @@ impl Iterator for WalkEnumIter {
 impl IsAWalk for WalkEnum {}
 
 impl IsAWalkRaw for WalkEnum {}
+
+#[cfg(test)]
+mod tests {
+    use crate::walk::enumeration::WalkEnum;
+
+    #[test]
+    fn walk_enum_len() {
+        let mut min_index = 0u64;
+        let mut max_index = 0u64;
+        let mut expected_len = 0usize;
+        while expected_len < 31 {
+            let min_enum = WalkEnum::try_from_index(min_index).unwrap();
+            let max_enum = WalkEnum::try_from_index(max_index).unwrap();
+
+            assert_eq!(min_enum.len(), expected_len, "index: {min_index}");
+            assert_eq!(max_enum.len(), expected_len, "index: {max_index}");
+            // and we can reason that everything in between is the expected len.
+
+            expected_len += 1;
+            min_index = min_index * 4 + 1;
+            max_index = max_index * 4 + 4;
+        }
+    }
+}
