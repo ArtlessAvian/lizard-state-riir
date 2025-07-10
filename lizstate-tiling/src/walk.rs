@@ -4,11 +4,11 @@
 
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 #[error("Walk contains no elements")]
 pub struct WalkIsEmpty;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 #[error("Walk cannot contain more elements")]
 pub struct WalkIsFull;
 
@@ -22,3 +22,48 @@ pub mod vec;
 
 // Wrappers
 pub mod reduced;
+
+#[cfg(all(test, feature = "std"))]
+mod tests {
+    use std::fmt::Debug;
+
+    use crate::direction::Direction;
+    use crate::walk::WalkIsEmpty;
+    use crate::walk::traits::IsAWalk;
+
+    fn pop_empty_err<Walk: IsAWalk>() {
+        let mut walk = Walk::new_empty();
+        assert_eq!(walk.pop_mut().unwrap_err(), WalkIsEmpty);
+    }
+
+    fn push_mut_eq_push_copy<Walk>()
+    where
+        Walk: IsAWalk + Copy + Debug,
+    {
+        let mut walk = Walk::new_empty();
+        for _ in 0..10 {
+            let res_copy = walk.push_copy(Direction::Right);
+            let res_mut: Result<(), Walk::PushError> = walk.push_mut(Direction::Right);
+
+            let copy = res_copy.unwrap();
+            res_mut.unwrap();
+
+            assert_eq!(walk, copy);
+        }
+    }
+
+    #[test]
+    fn walkenum_suite() {
+        use crate::walk::enumeration::WalkEnum;
+
+        pop_empty_err::<WalkEnum>();
+        push_mut_eq_push_copy::<WalkEnum>();
+    }
+
+    #[test]
+    fn walkvec_suite() {
+        use crate::walk::vec::WalkVec;
+
+        pop_empty_err::<WalkVec>();
+    }
+}
