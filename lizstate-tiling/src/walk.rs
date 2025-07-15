@@ -17,6 +17,7 @@ pub mod traits;
 
 // Implementations
 pub mod enumeration;
+pub mod reduced_enum;
 #[cfg(feature = "std")]
 pub mod vec;
 
