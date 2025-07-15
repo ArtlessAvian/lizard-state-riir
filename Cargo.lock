@@ -508,6 +508,7 @@ version = "0.1.0"
 name = "lizstate-tiling"
 version = "0.1.0"
 dependencies = [
+ "lizstate-sequence-enumeration",
  "petgraph",
  "thiserror",
 ]
