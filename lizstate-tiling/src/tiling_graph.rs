@@ -68,10 +68,11 @@ pub trait IsTilingGraph: IsASpace {
     fn step(&self, tile: &Self::Tile, dir: Direction) -> Result<Self::Tile, StepError>;
 }
 
-/// Trait for converting paths to tiles efficiently.
-/// This should always be implementable.
+/// Trait for **efficiently** converting paths to tiles.
 ///
-/// Default implementations are linear time. Feel free to overwrite them.
+/// This should always be implementable.
+/// Default implementations are linear time.
+/// Feel free to overwrite them if a better one exists.
 ///
 /// Also a desirable trait of the place you live. /j
 pub trait IsWalkable: IsTilingGraph {
@@ -104,7 +105,7 @@ pub trait IsWalkable: IsTilingGraph {
 
 // pub struct Path(Walk);
 
-/// Trait for converting tiles to paths efficiently.
+/// Trait for **efficiently** converting tiles to paths.
 ///
 /// Returned paths are not shortest, they just need to be connected.
 ///

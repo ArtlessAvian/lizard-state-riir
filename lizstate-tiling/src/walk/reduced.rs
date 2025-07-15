@@ -9,13 +9,13 @@ pub type ReducedWalk = Reduced<WalkEnum>;
 
 // Const impl, as needed
 impl ReducedWalk {
-    #[must_use]
     pub const fn new_empty() -> Self {
         Reduced(WalkEnum::new_empty())
     }
 }
 
 // "Reduced" like a "word" from group theory.
+#[must_use]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Reduced<Walk: IsAWalkRaw>(Walk);
 

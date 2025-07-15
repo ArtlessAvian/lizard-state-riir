@@ -8,6 +8,7 @@ use crate::tiling_graph::SpaceError;
 use crate::tiling_graph::StepError;
 use crate::tiling_graph::TileError;
 use crate::walk::reduced::Reduced;
+use crate::walk::reduced::ReducedWalk;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkRaw;
 
@@ -17,7 +18,7 @@ impl IsTilingGraph for CustomSpace {
     type Tile = CustomSpaceTile;
 
     fn get_origin(&self) -> Self::Tile {
-        Self::THE_ORIGIN_TILE
+        CustomSpaceTile(ReducedWalk::new_empty())
     }
 
     fn step(
@@ -26,18 +27,18 @@ impl IsTilingGraph for CustomSpace {
         dir: crate::direction::Direction,
     ) -> Result<Self::Tile, StepError> {
         let rep = self
-            .try_path_into_rep(&tile.0)
+            .tile_to_rep(tile)
             .map_err(|SpaceError::NotInSpace| StepError::ArgumentNotInSpace)?;
 
         let neighbor = rep
-            .step(dir)
+            .step_into_neighbor(dir)
             .map_err(|TileError::Unrepresentable| StepError::DestinationUnrepresentable)?;
 
         let step_rep = neighbor
-            .try_rep(self)
+            .try_into_rep()
             .map_err(|SpaceError::NotInSpace| StepError::DestinationNotInSpace)?;
 
-        Ok(CustomSpaceTile(step_rep.0))
+        Ok(CustomSpaceTile(step_rep.unwrap()))
     }
 }
 

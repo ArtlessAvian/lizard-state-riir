@@ -9,58 +9,56 @@ use std::collections::HashSet;
 use crate::custom_space::typestate::Representative;
 use crate::tiling_graph::IsATile;
 use crate::tiling_graph::SpaceError;
-use crate::tiling_graph::TileError;
 use crate::walk::reduced::ReducedWalk;
-use crate::walk::traits::IsAWalkPartial;
 
 pub mod builder;
 pub mod shared;
 pub mod tiling_graph;
+/// Typestates, holding references to the `CustomSpace` to ensure validity.
 pub mod typestate;
 
+/// A nonconstructive tile, at the end of a path.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CustomSpaceTile(ReducedWalk);
 impl IsATile for CustomSpaceTile {}
 
-/// Data supporting extra connections in the free group.
+/// Data supporting a subset of the free group elements, and extra connections between elements.
+///
+/// We define a "representative" as a path to an element, usually a shortest path, but not necessarily.
 #[derive(Default)]
 #[must_use]
 pub struct CustomSpace {
-    /// The representative paths for all valid locations.
-    /// There are multiple paths to the same location,
-    /// so this set chooses one for each.
+    /// The representative paths for all valid tile.
+    /// There are multiple paths to the same tile, so this set chooses one for each.
     /// (Multiple? More like, infinitely many)
+    ///
+    /// Invariants:
+    /// Every valid tile has exactly one representative.
+    /// The origin's representative is the empty path.
     contained_reps: HashSet<ReducedWalk>,
+
     /// A map from (non-representative path, one longer than a representative) to (a representative).
-    /// Paths two longer than a representative are not stored.
-    /// Ideally, the value is shorter than the key.
+    /// The key's destination tile is the same as the value's destination tile.
+    ///
+    /// Invariants:
+    /// No key is a representative.
+    /// All values are representatives.
+    ///
+    /// Shortest Path Invariants:
+    /// Keys and their values differ in length by at most one.
     equivalent_rep: HashMap<ReducedWalk, ReducedWalk>,
 }
 
 impl CustomSpace {
-    const EMPTY_PATH: ReducedWalk = ReducedWalk::new_empty();
-    const THE_ORIGIN_REP: Representative = Representative(Self::EMPTY_PATH);
-    const THE_ORIGIN_TILE: CustomSpaceTile = CustomSpaceTile(Self::EMPTY_PATH);
-
-    /// Checks if the tile at the destination has a representative.
-    fn try_path_into_rep(&self, path: &ReducedWalk) -> Result<Representative, SpaceError> {
-        if *path == Self::EMPTY_PATH || self.contained_reps.contains(path) {
-            Ok(Representative(*path))
-        } else {
-            let (prefix, popped) = path
-                .pop_copy()
-                .expect("tile does not eq the origin, which means its not empty");
-
-            let prefix_rep = self.try_path_into_rep(&prefix)?;
-
-            let neighbor = prefix_rep
-                .step(popped)
-                .map_err(|TileError::Unrepresentable| SpaceError::NotInSpace)?;
-            // Even if `path` is representable, the path cannot be in the space.
-
-            let rep = neighbor.try_rep(self)?;
-
-            Ok(rep)
-        }
+    /// Wraps a tile with a `Representative` typestate for easy manipulation.
+    /// If you are unsure if a path leads to a tile, prefer using `IsWalkable::walk_from_origin.`
+    /// # Errors
+    /// Space does not contain a tile at the end of the path.
+    /// (This should usually not happen.)
+    pub fn tile_to_rep<'a>(
+        &'a self,
+        tile: &CustomSpaceTile,
+    ) -> Result<Representative<'a>, SpaceError> {
+        Representative::try_new_recursive(self, &tile.0)
     }
 }
