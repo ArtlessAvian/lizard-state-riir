@@ -501,6 +501,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "lizstate-sequence-enumeration"
+version = "0.1.0"
+
+[[package]]
 name = "lizstate-tiling"
 version = "0.1.0"
 dependencies = [
