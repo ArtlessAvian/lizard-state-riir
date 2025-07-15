@@ -41,10 +41,6 @@ impl IsAWalkPartial for WalkVec {
     fn pop_mut(&mut self) -> Result<Direction, WalkIsEmpty> {
         self.vec.pop().ok_or(WalkIsEmpty)
     }
-
-    fn prefix_mut(&mut self) {
-        _ = self.vec.pop();
-    }
 }
 
 impl IntoIterator for WalkVec {

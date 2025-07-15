@@ -10,6 +10,7 @@ use lizstate_sequence_enumeration::SequenceOf;
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 use crate::walk::WalkIsFull;
+use crate::walk::generic_iter::GenericWalkIterator;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
 use crate::walk::traits::IsAWalkRaw;
@@ -43,35 +44,14 @@ impl IsAWalkPartial for WalkEnum {
     fn pop_mut(&mut self) -> Result<Direction, WalkIsEmpty> {
         self.0.pop().map_err(|SequenceEmpty| WalkIsEmpty)
     }
-
-    fn prefix_mut(&mut self) {
-        _ = self.0.pop();
-    }
 }
 
 impl IntoIterator for WalkEnum {
     type Item = Direction;
-    type IntoIter = WalkEnumIterator;
+    type IntoIter = GenericWalkIterator<Self>;
 
     fn into_iter(self) -> Self::IntoIter {
-        // HACK: We want a queue, but we have a stack interface.
-        // Inverting both reverses the sequence and inverts each direction.
-        // We'll need to revert the directions later.
-        let mut inverse = self;
-        inverse.inverse_mut();
-        WalkEnumIterator { inverse }
-    }
-}
-
-pub struct WalkEnumIterator {
-    inverse: WalkEnum,
-}
-
-impl Iterator for WalkEnumIterator {
-    type Item = Direction;
-    fn next(&mut self) -> Option<Self::Item> {
-        // HACK: We can pop directions the inverse of our path. We can revert individual directions now.
-        self.inverse.pop_mut().ok().map(Direction::inverse)
+        GenericWalkIterator::new(self)
     }
 }
 

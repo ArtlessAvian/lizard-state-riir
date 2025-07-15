@@ -40,11 +40,11 @@ fn unary_representation() {
 
 #[test]
 fn max_representation() {
-    let mut unary = SequenceOf::<Unary>::from_value(u64::MAX);
+    let mut unary = SequenceOf::<Unary>::from_value(SequenceOf::<Unary>::LARGEST);
     assert!(unary.is_full());
 
     _ = unary.pop();
     assert!(!unary.is_full());
 
-    assert_eq!(unary.as_value(), u64::MAX - 1);
+    assert_eq!(unary.as_value(), 63);
 }

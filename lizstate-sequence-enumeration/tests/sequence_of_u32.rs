@@ -18,6 +18,8 @@ impl IsSequenceable for MyNonMaxU32 {
 
 #[test]
 fn fits_two() {
+    assert_eq!(SequenceOf::<MyNonMaxU32>::LARGEST_LEN, 2);
+
     let mut sequence = SequenceOf::<MyNonMaxU32>::new_empty();
     sequence.push(MyNonMaxU32).unwrap();
     sequence.push(MyNonMaxU32).unwrap();

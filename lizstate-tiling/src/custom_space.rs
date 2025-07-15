@@ -9,7 +9,7 @@ use std::collections::HashSet;
 use crate::custom_space::typestate::Representative;
 use crate::tiling_graph::IsATile;
 use crate::tiling_graph::SpaceError;
-use crate::walk::reduced::ReducedWalk;
+use crate::walk::rotation_sequence::ReducedWalkEnum;
 
 pub mod builder;
 pub mod shared;
@@ -20,7 +20,7 @@ pub mod typestate;
 /// A nonconstructive tile, at the end of a path.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
-pub struct CustomSpaceTile(ReducedWalk);
+pub struct CustomSpaceTile(ReducedWalkEnum);
 impl IsATile for CustomSpaceTile {}
 
 /// Data supporting a subset of the free group elements, and extra connections between elements.
@@ -36,7 +36,7 @@ pub struct CustomSpace {
     /// Invariants:
     /// Every valid tile has exactly one representative.
     /// The origin's representative is the empty path.
-    contained_reps: HashSet<ReducedWalk>,
+    contained_reps: HashSet<ReducedWalkEnum>,
 
     /// A map from (non-representative path, one longer than a representative) to (a representative).
     /// The key's destination tile is the same as the value's destination tile.
@@ -47,7 +47,7 @@ pub struct CustomSpace {
     ///
     /// Shortest Path Invariants:
     /// Keys are exactly as long as their values, OR keys are one longer than their value.
-    equivalent_rep: HashMap<ReducedWalk, ReducedWalk>,
+    equivalent_rep: HashMap<ReducedWalkEnum, ReducedWalkEnum>,
 }
 
 impl CustomSpace {

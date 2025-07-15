@@ -1,18 +1,8 @@
 use super::WalkIsEmpty;
 use crate::direction::Direction;
-use crate::walk::direction_sequence::WalkEnum;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
 use crate::walk::traits::IsAWalkRaw;
-
-pub type ReducedWalk = Reduced<WalkEnum>;
-
-// Const impl, as needed
-impl ReducedWalk {
-    pub fn new_empty() -> Self {
-        Reduced(WalkEnum::new_empty())
-    }
-}
 
 // "Reduced" like a "word" from group theory.
 #[must_use]
@@ -49,10 +39,6 @@ impl<Walk: IsAWalkRaw> IsAWalkPartial for Reduced<Walk> {
 
     fn pop_mut(&mut self) -> Result<Direction, WalkIsEmpty> {
         self.0.pop_mut()
-    }
-
-    fn prefix_mut(&mut self) {
-        self.0.prefix_mut();
     }
 }
 

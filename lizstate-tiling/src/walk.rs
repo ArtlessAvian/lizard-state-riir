@@ -13,11 +13,12 @@ pub struct WalkIsEmpty;
 pub struct WalkIsFull;
 
 // Yeah
+pub mod generic_iter;
 pub mod traits;
 
 // Implementations
 pub mod direction_sequence;
-pub mod reduced_enum;
+pub mod rotation_sequence;
 #[cfg(feature = "std")]
 pub mod vec;
 
@@ -62,11 +63,19 @@ mod tests {
     // }
 
     #[test]
-    fn walkenumnew_suite() {
+    fn walk_enum_suite() {
         use crate::walk::direction_sequence::WalkEnum;
 
         pop_empty_err::<WalkEnum>();
         push_mut_eq_push_copy::<WalkEnum>();
+    }
+
+    #[test]
+    fn reduced_walk_enum_suite() {
+        use crate::walk::rotation_sequence::ReducedWalkEnum;
+
+        pop_empty_err::<ReducedWalkEnum>();
+        push_mut_eq_push_copy::<ReducedWalkEnum>();
     }
 
     #[test]

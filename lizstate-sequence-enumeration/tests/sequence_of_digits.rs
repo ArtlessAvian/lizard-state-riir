@@ -43,6 +43,10 @@ impl IsSequenceable for Digit {
 
 #[test]
 fn decimal_representation() {
+    assert_eq!(SequenceOf::<Digit>::LARGEST_LEN, 19);
+    assert_eq!(SequenceOf::<Digit>::LARGEST, 11111111111111111110);
+    // This seems like a weird number, before you remember that you can't push 0, but you can push 10.
+
     let mut number = 1337u64;
     let mut representation_backwards = SequenceOf::<Digit>::new_empty();
     while number > 0 {

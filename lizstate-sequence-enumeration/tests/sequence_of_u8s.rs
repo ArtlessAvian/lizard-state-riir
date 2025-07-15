@@ -18,6 +18,8 @@ impl IsSequenceable for MyNonMaxU8 {
 
 #[test]
 fn fits_eight() {
+    assert_eq!(SequenceOf::<MyNonMaxU8>::LARGEST_LEN, 8);
+
     let mut sequence = SequenceOf::<MyNonMaxU8>::new_empty();
     for i in 0..8 {
         assert_eq!(sequence.len(), i);

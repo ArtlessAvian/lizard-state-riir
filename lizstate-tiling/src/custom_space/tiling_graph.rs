@@ -7,7 +7,7 @@ use crate::tiling_graph::IsWalkable;
 use crate::tiling_graph::SpaceError;
 use crate::tiling_graph::StepError;
 use crate::walk::reduced::Reduced;
-use crate::walk::reduced::ReducedWalk;
+use crate::walk::rotation_sequence::ReducedWalkEnum;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkRaw;
 
@@ -17,7 +17,7 @@ impl IsTilingGraph for CustomSpace {
     type Tile = CustomSpaceTile;
 
     fn get_origin(&self) -> Self::Tile {
-        CustomSpaceTile(ReducedWalk::new_empty())
+        CustomSpaceTile(ReducedWalkEnum::new_empty())
     }
 
     fn step(

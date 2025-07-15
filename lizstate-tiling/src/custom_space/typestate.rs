@@ -4,20 +4,20 @@ use crate::direction::Direction;
 use crate::tiling_graph::SpaceError;
 use crate::tiling_graph::TileError;
 use crate::walk::WalkIsFull;
-use crate::walk::reduced::ReducedWalk;
+use crate::walk::rotation_sequence::ReducedWalkEnum;
 use crate::walk::traits::IsAWalkPartial;
 
 /// A known representative of a custom space.
 /// The space becomes readonly.
 #[must_use]
-pub struct Representative<'a>(&'a CustomSpace, ReducedWalk);
+pub struct Representative<'a>(&'a CustomSpace, ReducedWalkEnum);
 impl<'a> Representative<'a> {
     fn new_origin(space: &'a CustomSpace) -> Self {
-        Self(space, ReducedWalk::new_empty())
+        Self(space, ReducedWalkEnum::new_empty())
     }
 
-    fn try_new_direct(space: &'a CustomSpace, path: &ReducedWalk) -> Option<Self> {
-        if *path == ReducedWalk::new_empty() || space.contained_reps.contains(path) {
+    fn try_new_direct(space: &'a CustomSpace, path: &ReducedWalkEnum) -> Option<Self> {
+        if *path == ReducedWalkEnum::new_empty() || space.contained_reps.contains(path) {
             Some(Self(space, *path))
         } else {
             None
@@ -31,7 +31,7 @@ impl<'a> Representative<'a> {
     /// Space is in invalid state, value is not a representative.
     pub fn try_new_recursive(
         space: &'a CustomSpace,
-        path: &ReducedWalk,
+        path: &ReducedWalkEnum,
     ) -> Result<Representative<'a>, SpaceError> {
         if let Some(rep) = Representative::try_new_direct(space, path) {
             Ok(rep)
@@ -71,7 +71,7 @@ impl<'a> Representative<'a> {
         let (prefix, _) = self
             .1
             .pop_copy()
-            .unwrap_or((ReducedWalk::new_empty(), Direction::Up));
+            .unwrap_or((ReducedWalkEnum::new_empty(), Direction::Up));
         Self(self.0, prefix)
     }
 
@@ -81,10 +81,10 @@ impl<'a> Representative<'a> {
 }
 
 #[must_use]
-pub struct MutRepresentative<'a>(&'a mut CustomSpace, ReducedWalk);
+pub struct MutRepresentative<'a>(&'a mut CustomSpace, ReducedWalkEnum);
 impl<'a> MutRepresentative<'a> {
     fn new_origin(space: &'a mut CustomSpace) -> Self {
-        Self(space, ReducedWalk::new_empty())
+        Self(space, ReducedWalkEnum::new_empty())
     }
 
     /// Adds tiles along the path. Returns the representative of the end of the path.
@@ -92,7 +92,7 @@ impl<'a> MutRepresentative<'a> {
     /// `CustomSpace` cannot represent the tile at the end.
     pub fn insert_path_from_origin(
         space: &'a mut CustomSpace,
-        path: ReducedWalk,
+        path: ReducedWalkEnum,
     ) -> Result<MutRepresentative<'a>, TileError> {
         let mut current = Self::new_origin(space);
         for dir in path {
@@ -123,7 +123,7 @@ impl<'a> MutRepresentative<'a> {
         let (prefix, _) = self
             .1
             .pop_copy()
-            .unwrap_or((ReducedWalk::new_empty(), Direction::Up));
+            .unwrap_or((ReducedWalkEnum::new_empty(), Direction::Up));
         Self(self.0, prefix)
     }
 

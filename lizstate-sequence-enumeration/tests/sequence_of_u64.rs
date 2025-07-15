@@ -18,6 +18,8 @@ impl IsSequenceable for MyNonMaxU64 {
 
 #[test]
 fn fits_one() {
+    assert_eq!(SequenceOf::<MyNonMaxU64>::LARGEST_LEN, 1);
+
     let mut sequence = SequenceOf::<MyNonMaxU64>::new_empty();
     sequence.push(MyNonMaxU64).unwrap();
     sequence.push(MyNonMaxU64).unwrap_err();

@@ -7,7 +7,7 @@ use crate::tiling_graph::IsTilingGraph;
 use crate::tiling_graph::IsWalkable;
 use crate::tiling_graph::StepError;
 use crate::walk::reduced::Reduced;
-use crate::walk::reduced::ReducedWalk;
+use crate::walk::rotation_sequence::ReducedWalkEnum;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
 use crate::walk::traits::IsAWalkRaw;
@@ -18,7 +18,7 @@ use crate::walk::traits::IsAWalkRaw;
 /// Notably, elements of the free group are 1-1 with reduced words.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[must_use]
-pub struct FreeGroupWord(ReducedWalk);
+pub struct FreeGroupWord(ReducedWalkEnum);
 
 impl IsATile for FreeGroupWord {}
 
@@ -34,7 +34,7 @@ impl IsTilingGraph for TheFreeGroup {
     type Tile = FreeGroupWord;
 
     fn get_origin(&self) -> Self::Tile {
-        FreeGroupWord(ReducedWalk::new_empty())
+        FreeGroupWord(ReducedWalkEnum::new_empty())
     }
 
     fn step(

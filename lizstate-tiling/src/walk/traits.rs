@@ -36,7 +36,9 @@ pub trait IsAWalkPartial {
     fn pop_mut(&mut self) -> Result<Direction, WalkIsEmpty>;
 
     /// Removes one element from the list, or does nothing.
-    fn prefix_mut(&mut self);
+    fn prefix_mut(&mut self) {
+        _ = self.pop_mut();
+    }
 
     /// Removes half the elements and puts them in a new Walk.
     /// `self` contains the first half.

@@ -23,16 +23,11 @@ impl IsSequenceable for MyU63 {
 }
 
 #[test]
-fn fits_after_min() {
+fn doesnt_fit_after_min() {
+    assert_eq!(SequenceOf::<MyU63>::LARGEST_LEN, 1);
+
     let mut sequence = SequenceOf::<MyU63>::new_empty();
     sequence.push(MyU63::Min).unwrap();
-    sequence.push(MyU63::Max).unwrap();
     sequence.push(MyU63::Min).unwrap_err();
-}
-
-#[test]
-fn doesnt_fit_after_max() {
-    let mut sequence = SequenceOf::<MyU63>::new_empty();
-    sequence.push(MyU63::Max).unwrap();
-    sequence.push(MyU63::Min).unwrap_err();
+    // We *can* represent this value within a u64, but we want to keep sequence capacity constant.
 }
