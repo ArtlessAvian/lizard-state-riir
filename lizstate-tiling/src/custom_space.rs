@@ -6,17 +6,17 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use crate::direction::Direction;
+use crate::custom_space::typestate::Representative;
 use crate::tiling_graph::IsATile;
 use crate::tiling_graph::SpaceError;
 use crate::tiling_graph::TileError;
-use crate::walk::WalkIsFull;
 use crate::walk::reduced::ReducedWalk;
 use crate::walk::traits::IsAWalkPartial;
 
 pub mod builder;
 pub mod shared;
 pub mod tiling_graph;
+pub mod typestate;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CustomSpaceTile(ReducedWalk);
@@ -35,31 +35,6 @@ pub struct CustomSpace {
     /// Paths two longer than a representative are not stored.
     /// Ideally, the value is shorter than the key.
     equivalent_rep: HashMap<ReducedWalk, ReducedWalk>,
-}
-
-/// Typestate to help reasoning.
-struct Representative(ReducedWalk);
-impl Representative {
-    fn step(self, dir: Direction) -> Result<RepNeighbor, TileError> {
-        match self.0.push_copy(dir) {
-            Ok(stepped) => Ok(RepNeighbor(stepped)),
-            Err(WalkIsFull) => Err(TileError::Unrepresentable),
-        }
-    }
-}
-
-/// Typestate to help reasoning.
-struct RepNeighbor(ReducedWalk);
-impl RepNeighbor {
-    fn try_rep(self, space: &CustomSpace) -> Result<Representative, SpaceError> {
-        if space.contained_reps.contains(&self.0) {
-            Ok(Representative(self.0))
-        } else if let Some(rep) = space.equivalent_rep.get(&self.0).copied() {
-            Ok(Representative(rep))
-        } else {
-            Err(SpaceError::NotInSpace)
-        }
-    }
 }
 
 impl CustomSpace {
