@@ -16,7 +16,7 @@ pub struct WalkIsFull;
 pub mod traits;
 
 // Implementations
-pub mod enumeration;
+pub mod direction_sequence;
 pub mod reduced_enum;
 #[cfg(feature = "std")]
 pub mod vec;
@@ -53,9 +53,17 @@ mod tests {
         }
     }
 
+    // #[test]
+    // fn walkenum_suite() {
+    //     use crate::walk::enumeration::WalkEnum;
+
+    //     pop_empty_err::<WalkEnum>();
+    //     push_mut_eq_push_copy::<WalkEnum>();
+    // }
+
     #[test]
-    fn walkenum_suite() {
-        use crate::walk::enumeration::WalkEnum;
+    fn walkenumnew_suite() {
+        use crate::walk::direction_sequence::WalkEnum;
 
         pop_empty_err::<WalkEnum>();
         push_mut_eq_push_copy::<WalkEnum>();

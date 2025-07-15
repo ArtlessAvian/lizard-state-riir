@@ -80,16 +80,25 @@ impl<Element: IsSequenceable> SequenceOf<Element> {
         }
     }
 
-    pub fn pop(&mut self) -> Result<Element, SequenceEmpty> {
+    pub fn peek(&self) -> Result<Element, SequenceEmpty> {
         if self.is_empty() {
             Err(SequenceEmpty)
         } else {
             // self.0 is in the form `n * MAX_EXCLUSIVE + r, where r in 1..=MAX_EXCLUSIVE`
-            let n = (self.0 - 1) / Element::MAX_EXCLUSIVE;
             let r = (self.0 - 1) % Element::MAX_EXCLUSIVE;
-
-            self.0 = n;
             Ok(Element::from_value(r))
+        }
+    }
+
+    pub fn pop(&mut self) -> Result<Element, SequenceEmpty> {
+        if self.is_empty() {
+            Err(SequenceEmpty)
+        } else {
+            let peek = self.peek();
+            // self.0 is in the form `n * MAX_EXCLUSIVE + r, where r in 1..=MAX_EXCLUSIVE`
+            let n = (self.0 - 1) / Element::MAX_EXCLUSIVE;
+            self.0 = n;
+            peek
         }
     }
 

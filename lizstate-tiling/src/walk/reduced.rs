@@ -1,6 +1,6 @@
 use super::WalkIsEmpty;
 use crate::direction::Direction;
-use crate::walk::enumeration::WalkEnum;
+use crate::walk::direction_sequence::WalkEnum;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
 use crate::walk::traits::IsAWalkRaw;
@@ -9,7 +9,7 @@ pub type ReducedWalk = Reduced<WalkEnum>;
 
 // Const impl, as needed
 impl ReducedWalk {
-    pub const fn new_empty() -> Self {
+    pub fn new_empty() -> Self {
         Reduced(WalkEnum::new_empty())
     }
 }
