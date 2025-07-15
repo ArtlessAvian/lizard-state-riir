@@ -19,6 +19,7 @@ pub mod typestate;
 
 /// A nonconstructive tile, at the end of a path.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[must_use]
 pub struct CustomSpaceTile(ReducedWalk);
 impl IsATile for CustomSpaceTile {}
 

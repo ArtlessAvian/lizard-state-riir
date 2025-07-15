@@ -6,7 +6,6 @@ use crate::tiling_graph::IsTilingGraph;
 use crate::tiling_graph::IsWalkable;
 use crate::tiling_graph::SpaceError;
 use crate::tiling_graph::StepError;
-use crate::tiling_graph::TileError;
 use crate::walk::reduced::Reduced;
 use crate::walk::reduced::ReducedWalk;
 use crate::walk::traits::IsAWalk;
@@ -30,15 +29,11 @@ impl IsTilingGraph for CustomSpace {
             .tile_to_rep(tile)
             .map_err(|SpaceError::NotInSpace| StepError::ArgumentNotInSpace)?;
 
-        let neighbor = rep
-            .step_into_neighbor(dir)
-            .map_err(|TileError::Unrepresentable| StepError::DestinationUnrepresentable)?;
-
-        let step_rep = neighbor
-            .try_into_rep()
+        let step_rep = rep
+            .try_step(dir)
             .map_err(|SpaceError::NotInSpace| StepError::DestinationNotInSpace)?;
 
-        Ok(CustomSpaceTile(step_rep.unwrap()))
+        Ok(CustomSpaceTile(step_rep.unwrap_path()))
     }
 }
 
