@@ -143,12 +143,20 @@ impl IsAWalkPartial for WalkEnum {
 
     fn pop_mut(&mut self) -> Result<Direction, WalkIsEmpty> {
         if let Ok(popped) = self.peek() {
-            // We want to map 4k+1 through 4k+4 to k.
-            self.0 -= 1; // 4k+0 through 4k+3
-            self.0 /= 4; // k
+            self.prefix_mut();
             Ok(popped)
         } else {
             Err(WalkIsEmpty)
+        }
+    }
+
+    fn prefix_mut(&mut self) {
+        if self.is_empty() {
+            // self.0 = 0;
+        } else {
+            // We want to map 4k+1 through 4k+4 to k.
+            self.0 -= 1; // 4k+0 through 4k+3
+            self.0 /= 4; // k
         }
     }
 }

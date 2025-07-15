@@ -35,6 +35,26 @@ pub trait IsAWalkPartial {
     /// Nothing to pop from walk.
     fn pop_mut(&mut self) -> Result<Direction, WalkIsEmpty>;
 
+    /// Removes one element from the list, or does nothing.
+    fn prefix_mut(&mut self);
+
+    /// Removes half the elements and puts them in a new Walk.
+    /// `self` contains the first half.
+    #[must_use]
+    fn split_mut(&mut self) -> Self
+    where
+        Self: Sized,
+    {
+        let out_len = self.len() / 2;
+        let mut out = Self::new_empty();
+        for _ in 0..out_len {
+            let popped = self.pop_mut().expect("we can pop out_len elements");
+            out.push_mut(popped).expect("we can push out_len elements");
+        }
+        out.inverse_mut();
+        out
+    }
+
     /// Replaces self with the walk in the opposite direction.
     /// # Panics
     /// Self should be able to store all walks of length `self.len()`
@@ -75,6 +95,27 @@ pub trait IsAWalkPartial {
         let mut copy = *self;
         let result = copy.pop_mut();
         result.map(|dir| (copy, dir))
+    }
+
+    /// Returns a new list without the top element, or an empty list.
+    #[must_use]
+    fn prefix_copy(&self) -> Self
+    where
+        Self: Copy,
+    {
+        let mut copy = *self;
+        copy.prefix_mut();
+        copy
+    }
+
+    #[must_use]
+    fn split_copy(&self) -> (Self, Self)
+    where
+        Self: Copy,
+    {
+        let mut copy = *self;
+        let second = copy.split_mut();
+        (copy, second)
     }
 
     /// Replaces self with the walk in the opposite direction.

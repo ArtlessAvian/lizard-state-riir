@@ -50,6 +50,10 @@ impl<Walk: IsAWalkRaw> IsAWalkPartial for Reduced<Walk> {
     fn pop_mut(&mut self) -> Result<Direction, WalkIsEmpty> {
         self.0.pop_mut()
     }
+
+    fn prefix_mut(&mut self) {
+        self.0.prefix_mut();
+    }
 }
 
 impl<Walk> IntoIterator for Reduced<Walk>
