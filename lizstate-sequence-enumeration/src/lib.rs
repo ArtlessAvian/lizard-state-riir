@@ -42,6 +42,8 @@ pub struct SequenceEmpty;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SequenceOf<Element: IsSequenceable>(u64, PhantomData<Element>);
 
+// TODO: Create SequenceOf<Element, N: usize> to limit capacity.
+
 impl<Element: IsSequenceable> SequenceOf<Element> {
     // Values lesser or equal are valid.
     pub const LARGEST: u64 = {

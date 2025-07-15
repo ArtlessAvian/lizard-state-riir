@@ -28,6 +28,8 @@ impl ReducedWalkEnum {
     }
 }
 
+// TODO: Pack initial direction and sequence into the same u64.
+// Manual length management will be necessary.
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Nonempty(Direction, SequenceOf<Nonbackwards>);
