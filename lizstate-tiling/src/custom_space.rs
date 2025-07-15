@@ -46,7 +46,7 @@ pub struct CustomSpace {
     /// All values are representatives.
     ///
     /// Shortest Path Invariants:
-    /// Keys and their values differ in length by at most one.
+    /// Keys are exactly as long as their values, OR keys are one longer than their value.
     equivalent_rep: HashMap<ReducedWalk, ReducedWalk>,
 }
 

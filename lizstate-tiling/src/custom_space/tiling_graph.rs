@@ -33,7 +33,7 @@ impl IsTilingGraph for CustomSpace {
             .try_step(dir)
             .map_err(|SpaceError::NotInSpace| StepError::DestinationNotInSpace)?;
 
-        Ok(CustomSpaceTile(step_rep.unwrap_path()))
+        Ok(step_rep.consume())
     }
 }
 
