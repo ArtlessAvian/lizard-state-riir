@@ -248,7 +248,8 @@ impl<Element: IsSequenceable> ShiftSequenceOf<Element> {
         bits as u8
     };
 
-    pub const CAPACITY: u8 = { 64 / Self::BITS_PER_EL };
+    // We refuse to overwrite the sign bit.
+    pub const CAPACITY: u8 = { 63 / Self::BITS_PER_EL };
 
     const LOW_ORDER_MASK: i64 = {
         let mask_plus_one = 1 << Self::BITS_PER_EL;

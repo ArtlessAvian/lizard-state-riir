@@ -1,5 +1,6 @@
 use lizstate_sequence_enumeration::IsSequenceable;
 use lizstate_sequence_enumeration::SequenceOf;
+use lizstate_sequence_enumeration::ShiftSequenceOf;
 
 // Please do not actually do this.
 // This library won't stop you though.
@@ -47,4 +48,20 @@ fn max_representation() {
     assert!(!unary.is_full());
 
     assert_eq!(unary.as_value(), 63);
+}
+
+#[test]
+fn shift_fits_a_lot() {
+    assert_eq!(ShiftSequenceOf::<Unary>::CAPACITY, 63);
+
+    let mut sequence = ShiftSequenceOf::<Unary>::new_empty();
+    for i in 0..63 {
+        assert_eq!(sequence.len(), i);
+        sequence.push_front(Unary).unwrap();
+    }
+    assert_eq!(sequence.len(), 63);
+    dbg!(&sequence);
+
+    sequence.push_front(Unary).unwrap_err();
+    sequence.push_back(Unary).unwrap_err();
 }

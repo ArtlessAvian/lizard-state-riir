@@ -33,15 +33,15 @@ fn fits_eight() {
 }
 
 #[test]
-fn shift_fits_eight() {
-    assert_eq!(ShiftSequenceOf::<MyNonMaxU8>::CAPACITY, 8);
+fn shift_fits_seven() {
+    assert_eq!(ShiftSequenceOf::<MyNonMaxU8>::CAPACITY, 7);
 
     let mut sequence = ShiftSequenceOf::<MyNonMaxU8>::new_empty();
-    for i in 0..8 {
+    for i in 0..7 {
         assert_eq!(sequence.len(), i);
         sequence.push_front(MyNonMaxU8).unwrap();
     }
-    assert_eq!(sequence.len(), 8);
+    assert_eq!(sequence.len(), 7);
     dbg!(&sequence);
 
     sequence.push_front(MyNonMaxU8).unwrap_err();
