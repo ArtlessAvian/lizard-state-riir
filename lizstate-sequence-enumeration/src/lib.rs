@@ -1,10 +1,61 @@
 //! Efficiently stores a sequence of elements with very small representations.
 //!
-//! This uses enumeration in the math sense. Every natural number represents a unique sequence.
+//! This uses enumeration in the math sense. Every unique sequence is mapped to a natural number.
+//! However, we are still bounded by the size of representations.
 //!
-//! Storage is hardcoded to u64.
+//! Since the sequence type represent collections, functions take mut references.
+//! The provided types are `Copy` and their functions can be pure,
+//! but you are unlikely to hold onto old collections.
+//! Explicitly `Copy` if you do want that.
+//!
+//! # Possible extensions
+//! This crate is very purpose made, otherwise I would be nerd sniping myself forever.
+//!
+//! ## Storage in other than u64.
 //! It is possible to make this configurable to u32, u128, arrays of u64s, etc.
-//! Eh.
+//! As long as it can represent a BigInt.
+//!
+//! You can already store 10+ digits of 4-ary in a u64, so more is not super necessary.
+//!
+//! ## Sequence of natural numbers (no trait).
+//! It would be nice to store natural numbers for const fns and no traits.
+//! A wrapper can then map of those natural numbers with the impl Trait.
+//! YAGNI tho.
+//!
+//! ## Genericize Recurrence
+//! There also exists a generic recurrence. This is not implemented seriously, YAGNI.
+//! We want some injective function from sequences to natural numbers (or integers).
+//! It does not need to be a bijection.
+//!
+//! For constants EMPTY, OFFSET, and BASE,
+//! f(empty) = EMPTY and f([head] + tail) = head + OFFSET + BASE * f(tail)
+//!
+//! This recurrence is chosen so we can recover the head and tail quickly.
+//! (f([head] + tail) - OFFSET) % BASE == head.
+//! (f([head] + tail) - OFFSET) / BASE == f(tail)
+//!
+//! EMPTY != 0 || OFFSET != 0. Otherwise f(empty) == EMPTY == 0, and f(0) == 0 + OFFSET + BASE * f(empty) == 0.
+//! So, f is not injective.
+//!
+//! ### Specific examples
+//!
+//! When EMPTY = 0, OFFSET = 1, you get `SequenceOf`.
+//! * f is a bijection!
+//! * Stack interface is fast
+//! * Indexing is linear time. :(
+//!
+//! When OFFSET = 0, EMPTY = 1, you get `ShiftSequenceOf`.
+//! * Image of f is strictly positive numbers
+//! * Deque interface is fast
+//! * Indexing is fast
+//! * Prefixing is fast
+//! * You *must* ignore an element.
+//!
+//! When OFFSET = 0, EMPTY = -1, you get a different `ShiftSequenceOf`.
+//! * Image of f is strictly negative numbers
+//! * Deque interface is fast
+//! * Indexing is fast and obvious
+//! * Prefixing is slow. :(
 
 #![no_std]
 
@@ -37,29 +88,7 @@ pub struct SequenceEmpty;
 /// All sequences are represented with a unique natural number.
 /// Given a shorter and longer sequence, the shorter's index is less than the longer's index.
 /// All sequences of the same length are contiguous.
-///
-/// # Usage
-/// Mutable interface acts like a stack with a maximum size.
-/// While the type is `Copy`, the methods take `&mut self`
-/// so you have to explicitly copy your sequence/collection.
-///
-/// # Internal Functionality
-/// This is like how $n$-ary trees are represented contiguously in an array.
-/// The children of a parent node $k$ is given through $nk + 1$ through $nk + n$.
-/// Sequences also form a prefix tree! And since each element of the sequence is from the same set of n elements,
-/// we get an $n$-ary tree.
-///
-/// If you're familiar with binary trees in arrays, they have nicer properties that we can't take advantage of.
-/// Notably:
-/// $$
-///     \sum_{n=0}^N 2^n = 2^{N + 1} - 1
-/// $$
-/// TODO: This does generalize! For base b,
-/// $$
-///     \sum_{n=0}^N b^n = (1/(b-1)) * (b^{N + 1} - 1).
-/// $$
-/// While there is a division, this is a summation of integers, so the result must be an integer!
-///
+/// Has a constant time stack interface.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SequenceOf<Element: IsSequenceable>(u64, PhantomData<Element>);
 
@@ -184,51 +213,10 @@ impl<Element: IsSequenceable> SequenceOf<Element> {
 /// All sequences are represented with at least one natural number.
 /// (Multiple natural numbers can represent the same sequence.)
 /// Not all natural numbers represent valid sequences.
-///
-/// # Usage
-/// Mutable interface acts like a `VecDeque` with a max size.
-/// While the type is `Copy`, the methods take `&mut self`,
-/// so you have to explicitly copy your sequence/collection.
-///
-/// # Internal Methodology.
-/// TL;DR, this is an array of Option<Element>.
-///
-/// We have 64 bits. We want to take chunks of $B$ bits and interpret them as `Option<Element>`s.
-/// $B$ bits represents values from $0..2**B$.
-/// There are MAX_EXCLUSIVE values from 0..MAX_EXCLUSIVE that are like `Some`.
-/// So, MAX_EXCLUSIVE..2**B values are like `None`.
-///
-/// An empty list should be all `None`s, but there's no obvious "nice" value.
-/// `u64::MAX` to represent `0b11..1` works, but we could also use `-1i64`.
-/// The bit patterns are the same, and multiplication and addition are the same, just "overflowing" at different times.
-/// They both are equivalent to the ring of 2^64 elements, labeled differently.
-///
-/// Represent the empty sequence with -1.
-/// $$ f([]) = -1 $$
-/// Also, let $f(init + [last]) = f(init) * 2**B + last$.
-/// The elements of the sequence are integers in 0..MAX_EXCLUSIVE.
-/// Then,
-/// $$
-///     f([last]) = f([]) * 2**B + last
-///               = -1 * 2**B + last
-///     f([first, second]) = f([first]) * 2**B + second
-///                        = (f([]) * 2**B + first) * 2**B + second
-///                        = -1 * 2**2B + first * 2**B + second
-/// $$
-/// We see that elements are represented as powers of 2**B. And we can restore the values with div and mod.
-/// Since 2**B is a power of 2, div and mod are just shifts and masking.
-///
-/// Note that shifting left always shifts 0s. Without overflow, this always represents multiplication by a power of two.
-/// Shifting left overflows when the result's sign does not match the original.
-/// If we encounter this, the storage is about full anyways.
-///
-/// There are multiple shifts right for signed and unsigned (nonnegative) types.
-/// Signed types do aritmetic shifts. New bits match the sign bit. This is flooring division by a power of two.
-/// Unsigned types do logical shifts. New bits are 0. This also is a flooring division for nonnegative numbers.
-/// We want a flooring division for negative numbers, assuming positive numbers don't exist.
-/// We can just OR 1's over the end. This is, ok, I guess. Just remember to do it!
+/// Has a constant time Deque interface.
+/// Has a constant time index function.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ShiftSequenceOf<Element: IsSequenceable>(i64, PhantomData<Element>);
+pub struct ShiftSequenceOf<Element: IsSequenceable>(u64, PhantomData<Element>);
 
 const fn ceil_ilog2(x: u64) -> u32 {
     if x == 0 {
@@ -248,20 +236,19 @@ impl<Element: IsSequenceable> ShiftSequenceOf<Element> {
         bits as u8
     };
 
-    // We refuse to overwrite the sign bit.
     pub const CAPACITY: u8 = { 63 / Self::BITS_PER_EL };
 
-    const LOW_ORDER_MASK: i64 = {
+    const LOW_ORDER_MASK: u64 = {
         let mask_plus_one = 1 << Self::BITS_PER_EL;
         mask_plus_one - 1
     };
 
     pub const fn new_empty() -> Self {
-        Self(-1, PhantomData)
+        Self(1, PhantomData)
     }
 
     pub const fn is_empty(&self) -> bool {
-        self.0 & Self::LOW_ORDER_MASK >= Element::MAX_EXCLUSIVE as i64
+        self.0 >> Self::BITS_PER_EL == 0
     }
 
     pub const fn is_full(&self) -> bool {
@@ -269,12 +256,12 @@ impl<Element: IsSequenceable> ShiftSequenceOf<Element> {
     }
 
     pub const fn len(&self) -> u8 {
+        // TODO: ilog2 or something.
         let mut len = 0;
         while len < Self::CAPACITY {
-            let shifted = self.0 >> (Self::BITS_PER_EL * len);
-            let masked = shifted & Self::LOW_ORDER_MASK;
-            let masked = masked as u64;
-            if masked >= Element::MAX_EXCLUSIVE {
+            let shift = self.0 >> (Self::BITS_PER_EL * len);
+            let shift_past = shift >> Self::BITS_PER_EL;
+            if shift_past == 0 {
                 return len;
             }
             len += 1;
@@ -283,13 +270,12 @@ impl<Element: IsSequenceable> ShiftSequenceOf<Element> {
     }
 
     pub fn index(&self, i: u8) -> Option<Element> {
-        if i < Self::CAPACITY {
+        if i >= self.len() {
+            None
+        } else {
             let shifted = self.0 >> (Self::BITS_PER_EL * i);
             let masked = shifted & Self::LOW_ORDER_MASK;
-            let masked = masked as u64;
             Self::try_element_from_value(masked)
-        } else {
-            None
         }
     }
 
@@ -297,8 +283,8 @@ impl<Element: IsSequenceable> ShiftSequenceOf<Element> {
         if self.is_full() {
             Err(SequenceFull)
         } else {
-            self.0 = self.0.unbounded_shl(Self::BITS_PER_EL.into());
-            self.0 += el.to_value() as i64;
+            self.0 <<= Self::BITS_PER_EL;
+            self.0 += el.to_value();
             Ok(())
         }
     }
@@ -309,8 +295,7 @@ impl<Element: IsSequenceable> ShiftSequenceOf<Element> {
 
     pub fn pop_front(&mut self) -> Result<Element, SequenceEmpty> {
         let peeked = self.peek_front()?;
-        self.0 = self.0.unbounded_shr(Self::BITS_PER_EL as u32);
-        self.0 |= Self::LOW_ORDER_MASK << (64 - Self::BITS_PER_EL);
+        self.0 >>= Self::BITS_PER_EL;
         Ok(peeked)
     }
 
@@ -323,9 +308,9 @@ impl<Element: IsSequenceable> ShiftSequenceOf<Element> {
             // Whatever junk is at the back, overwrite them with 0s.
             self.0 &= mask;
             // Since `self.0` has 0s where we want to write our value, we can use or instead of add.
-            self.0 |= (el.to_value() as i64) << (self.len() * Self::BITS_PER_EL);
+            self.0 |= el.to_value() << (self.len() * Self::BITS_PER_EL);
             Ok(())
-            // If you want to assume that the sequence properly has all 1s,
+            // If you want to assume that the sequence properly ends in 0b000001,
             // you could probably do some xor shenanigans instead.
         }
     }
@@ -342,8 +327,13 @@ impl<Element: IsSequenceable> ShiftSequenceOf<Element> {
 
     pub fn pop_back(&mut self) -> Result<Element, SequenceEmpty> {
         let peeked = self.peek_back()?;
-        let write_ones = Self::LOW_ORDER_MASK << ((self.len() - 1) * Self::BITS_PER_EL);
-        self.0 |= write_ones;
+
+        let len = self.len();
+        let mask_out = Self::LOW_ORDER_MASK << ((len - 1) * Self::BITS_PER_EL);
+        let mask = !mask_out;
+        self.0 &= mask;
+        self.0 |= 1 << ((len - 1) * Self::BITS_PER_EL);
+
         Ok(peeked)
     }
 
