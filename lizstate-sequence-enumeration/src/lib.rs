@@ -17,50 +17,21 @@
 //!
 //! You can already store 10+ digits of 4-ary in a u64, so more is not super necessary.
 //!
-//! ## Sequence of natural numbers (no trait).
-//! It would be nice to store natural numbers for const fns and no traits.
-//! A wrapper can then map of those natural numbers with the impl Trait.
-//! YAGNI tho.
-//!
-//! ## Genericize Recurrence
-//! There also exists a generic recurrence. This is not implemented seriously, YAGNI.
-//! We want some injective function from sequences to natural numbers (or integers).
-//! It does not need to be a bijection.
-//!
-//! For constants EMPTY, OFFSET, and BASE,
-//! f(empty) = EMPTY and f([head] + tail) = head + OFFSET + BASE * f(tail)
-//!
-//! This recurrence is chosen so we can recover the head and tail quickly.
-//! (f([head] + tail) - OFFSET) % BASE == head.
-//! (f([head] + tail) - OFFSET) / BASE == f(tail)
-//!
-//! EMPTY != 0 || OFFSET != 0. Otherwise f(empty) == EMPTY == 0, and f(0) == 0 + OFFSET + BASE * f(empty) == 0.
-//! So, f is not injective.
-//!
-//! ### Specific examples
-//!
-//! When EMPTY = 0, OFFSET = 1, you get `SequenceOf`.
-//! * f is a bijection!
-//! * Stack interface is fast
-//! * Indexing is linear time. :(
-//!
-//! When OFFSET = 0, EMPTY = 1, you get `ShiftSequenceOf`.
-//! * Image of f is strictly positive numbers
-//! * Deque interface is fast
-//! * Indexing is fast
-//! * Prefixing is fast
-//! * You *must* ignore an element.
-//!
-//! When OFFSET = 0, EMPTY = -1, you get a different `ShiftSequenceOf`.
-//! * Image of f is strictly negative numbers
-//! * Deque interface is fast
-//! * Indexing is fast and obvious
-//! * Prefixing is slow. :(
+//! ## Bijective function
+//! A bijection between natural numbers and sequences exists, and can be described easily.
+//! However, this isn't very useful.
 
 #![no_std]
 
 use core::hash::Hash;
 use core::marker::PhantomData;
+
+pub mod digit;
+
+mod digit_deque;
+mod digit_sequence;
+
+pub mod element_deque;
 
 /// Allows Sequence<Self> to be made.
 pub trait IsSequenceable: Sized {

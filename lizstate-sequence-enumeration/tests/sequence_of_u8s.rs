@@ -1,6 +1,9 @@
 use lizstate_sequence_enumeration::IsSequenceable;
 use lizstate_sequence_enumeration::SequenceOf;
 use lizstate_sequence_enumeration::ShiftSequenceOf;
+use lizstate_sequence_enumeration::digit::Digit;
+use lizstate_sequence_enumeration::digit::IsSmallEnum;
+use lizstate_sequence_enumeration::element_deque::DequeOf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct MyNonMaxU8;
@@ -13,6 +16,18 @@ impl IsSequenceable for MyNonMaxU8 {
     }
 
     fn from_value(_value: u64) -> Self {
+        MyNonMaxU8
+    }
+}
+
+impl IsSmallEnum for MyNonMaxU8 {
+    type Digit = Digit<{ u8::MAX as u64 }>;
+
+    fn to_digit(&self) -> Self::Digit {
+        Digit::MAX
+    }
+
+    fn from_digit(_digit: Self::Digit) -> Self {
         MyNonMaxU8
     }
 }
@@ -46,4 +61,17 @@ fn shift_fits_seven() {
 
     sequence.push_front(MyNonMaxU8).unwrap_err();
     sequence.push_back(MyNonMaxU8).unwrap_err();
+}
+
+#[test]
+fn deque() {
+    let mut yea = DequeOf::<MyNonMaxU8, { u8::MAX as u64 }, 7>::new_empty();
+    yea.push_low(MyNonMaxU8).unwrap();
+    yea.push_low(MyNonMaxU8).unwrap();
+    yea.push_low(MyNonMaxU8).unwrap();
+    yea.push_low(MyNonMaxU8).unwrap();
+    yea.push_low(MyNonMaxU8).unwrap();
+    yea.push_low(MyNonMaxU8).unwrap();
+    yea.push_low(MyNonMaxU8).unwrap();
+    yea.push_low(MyNonMaxU8).unwrap_err();
 }
