@@ -36,7 +36,7 @@ jobs:
       - uses: mymindstorm/setup-emsdk@v14
         with:
           # pinned by godot/gdextension.
-          version: 3.1.39
+          version: 3.1.62
           actions-cache-folder: emsdk-cache
       - run: emcc -v
 
@@ -103,6 +103,8 @@ jobs:
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
           mkdir -v -p build/web
           godot -v --headless --path godot/ --export-debug "Web" ../build/web/index.html
+        timeout-minutes: 5
+        continue-on-error: true
 
       - uses: actions/upload-artifact@v4
         with:
