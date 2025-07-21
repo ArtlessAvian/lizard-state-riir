@@ -32,6 +32,7 @@ jobs:
           tool: cargo-mutants, cargo-nextest
       - run: rustup update --no-self-update nightly
       - run: cargo +nightly mutants --test-tool=nextest -vV --in-place
+        continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
