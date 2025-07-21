@@ -77,6 +77,12 @@ jobs:
     container:
       image: barichello/godot-ci:4.4.1
     steps:
+      - name: Install Additional Dependencies
+        run: apt-get install blender
+
+      # Blender is required for godot to work well with .blend files.
+      # Otherwise, it just hangs.
+
       - uses: actions/checkout@v4
         with:
           lfs: true
@@ -84,17 +90,21 @@ jobs:
         run: |
           git config --global --add safe.directory "*"
           git log -1 --format=reference > godot/ci-version.txt
-      - uses: actions/download-artifact@v4
+
+      - name: Download WASM library
+        uses: actions/download-artifact@v4
         with:
           name: glue-library-wasm
           path: target
-      - uses: actions/download-artifact@v4
+      - name: Download Shared Library For Running Machine
+        uses: actions/download-artifact@v4
         with:
           name: glue-library-linux
           path: target
       - run: ls -R target
 
-      - run: bash ./.github/preprocess-gdscript.sh
+      - name: Adjust Tool Scripts For Export
+        run: bash ./.github/preprocess-gdscript.sh
         working-directory: .
 
       - name: Prepare Directory
