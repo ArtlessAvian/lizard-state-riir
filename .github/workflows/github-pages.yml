@@ -97,14 +97,15 @@ jobs:
       - run: bash ./.github/preprocess-gdscript.sh
         working-directory: .
 
-      - name: Godot Web Export
+      - name: Prepare Directory
         run: |
           mkdir -v -p ~/.local/share/godot/export_templates/
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
           mkdir -v -p build/web
-          godot -v --headless --path godot/ --export-debug "Web" ../build/web/index.html
-        timeout-minutes: 5
-        continue-on-error: true
+
+      - name: Godot Web Export
+        run: godot -v --headless --path godot/ --export-debug "Web" ../build/web/index.html
+        timeout-minutes: 20
 
       - uses: actions/upload-artifact@v4
         with:

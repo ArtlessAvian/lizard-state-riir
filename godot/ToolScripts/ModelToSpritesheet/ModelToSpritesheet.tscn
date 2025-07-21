@@ -5,7 +5,7 @@
 [ext_resource type="Shader" uid="uid://cvcalt2hb4sup" path="res://ToolScripts/ModelToSpritesheet/Outline.gdshader" id="2_rwe7t"]
 [ext_resource type="Shader" uid="uid://crbuf7sf332p7" path="res://Crawler/FloorView/grid.gdshader" id="3_mtsjs"]
 [ext_resource type="Texture2D" uid="uid://b5310fstal4ot" path="res://Crawler/FloorView/Entity/tegu/tegu.png" id="5_pulid"]
-[ext_resource type="PackedScene" uid="uid://cb57epcji0e7l" path="res://ToolScripts/ModelToSpritesheet/model_from_stuff_1.tscn" id="5_rwe7t"]
+[ext_resource type="PackedScene" uid="uid://lkill6x3utl7" path="res://ToolScripts/ModelToSpritesheet/model_from_stuff_2.tscn" id="6_eelwn"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_eelwn"]
 shader = ExtResource("2_rwe7t")
@@ -38,8 +38,7 @@ skeleton = NodePath("../AngledCameras/SubViewport")
 
 [node name="Subject" type="Node3D" parent="."]
 
-[node name="model from stuff1" parent="Subject" instance=ExtResource("5_rwe7t")]
-transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)
+[node name="model from stuff2" parent="Subject" instance=ExtResource("6_eelwn")]
 
 [node name="AngledCameras" type="Node" parent="."]
 
