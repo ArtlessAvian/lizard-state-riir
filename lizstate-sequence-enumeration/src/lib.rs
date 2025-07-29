@@ -1,25 +1,9 @@
 //! Efficiently stores a sequence of elements with very small representations.
 //!
 //! This uses enumeration in the math sense. Every unique sequence is mapped to a natural number.
-//! However, we are still bounded by the size of representations.
+//! However, we are still bounded by the number of representable numbers.
 //!
-//! Since the sequence type represent collections, functions take mut references.
-//! The provided types are `Copy` and their functions can be pure,
-//! but you are unlikely to hold onto old collections.
-//! Explicitly `Copy` if you do want that.
-//!
-//! # Possible extensions
-//! This crate is very purpose made, otherwise I would be nerd sniping myself forever.
-//!
-//! ## Storage in other than u64.
-//! It is possible to make this configurable to u32, u128, arrays of u64s, etc.
-//! As long as it can represent a BigInt.
-//!
-//! You can already store 10+ digits of 4-ary in a u64, so more is not super necessary.
-//!
-//! ## Bijective function
-//! A bijection between natural numbers and sequences exists, and can be described easily.
-//! However, this isn't very useful.
+//! This crate is named terribly, and so are its members.
 
 #![no_std]
 

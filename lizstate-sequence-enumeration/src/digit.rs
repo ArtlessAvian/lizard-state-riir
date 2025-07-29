@@ -22,7 +22,7 @@ impl<const BASE: u64> Digit<BASE> {
         }
     }
 
-    pub const fn from_last_nary_digit(value: u64) -> Self {
+    pub const fn from_modulo(value: u64) -> Self {
         Self(value % BASE)
     }
 
@@ -31,6 +31,11 @@ impl<const BASE: u64> Digit<BASE> {
     }
 }
 
+/// For enums with few unique values.
+///
+/// If you implement this, you are probably also `Copy`.
+///
+/// There are other crates like Ordinalize or whatever.
 pub trait IsSmallEnum {
     type Digit: Sized;
 

@@ -59,7 +59,7 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
         if self.is_empty() {
             Err(SequenceEmpty)
         } else {
-            Ok(Digit::from_last_nary_digit(self.0 - 1))
+            Ok(Digit::from_modulo(self.0 - 1))
         }
     }
 
@@ -94,7 +94,7 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
             while copy > BASE {
                 copy /= BASE;
             }
-            Ok(Digit::from_last_nary_digit(copy - 1))
+            Ok(Digit::from_modulo(copy - 1))
         }
     }
 

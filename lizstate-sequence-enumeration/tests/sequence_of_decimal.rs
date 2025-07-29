@@ -1,6 +1,6 @@
 use lizstate_sequence_enumeration::digit::Digit;
 use lizstate_sequence_enumeration::digit::IsSmallEnum;
-use lizstate_sequence_enumeration::element_deque::DequeOf;
+use lizstate_sequence_enumeration::element_deque::PackedDeque;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DecimalDigits {
@@ -21,16 +21,16 @@ impl IsSmallEnum for DecimalDigits {
 
     fn to_digit(&self) -> Self::Digit {
         match self {
-            DecimalDigits::Zero => Digit::from_last_nary_digit(0),
-            DecimalDigits::One => Digit::from_last_nary_digit(1),
-            DecimalDigits::Two => Digit::from_last_nary_digit(2),
-            DecimalDigits::Three => Digit::from_last_nary_digit(3),
-            DecimalDigits::Four => Digit::from_last_nary_digit(4),
-            DecimalDigits::Five => Digit::from_last_nary_digit(5),
-            DecimalDigits::Six => Digit::from_last_nary_digit(6),
-            DecimalDigits::Seven => Digit::from_last_nary_digit(7),
-            DecimalDigits::Eight => Digit::from_last_nary_digit(8),
-            DecimalDigits::Nine => Digit::from_last_nary_digit(9),
+            DecimalDigits::Zero => Digit::from_modulo(0),
+            DecimalDigits::One => Digit::from_modulo(1),
+            DecimalDigits::Two => Digit::from_modulo(2),
+            DecimalDigits::Three => Digit::from_modulo(3),
+            DecimalDigits::Four => Digit::from_modulo(4),
+            DecimalDigits::Five => Digit::from_modulo(5),
+            DecimalDigits::Six => Digit::from_modulo(6),
+            DecimalDigits::Seven => Digit::from_modulo(7),
+            DecimalDigits::Eight => Digit::from_modulo(8),
+            DecimalDigits::Nine => Digit::from_modulo(9),
         }
     }
 
@@ -55,7 +55,7 @@ impl IsSmallEnum for DecimalDigits {
 
 #[test]
 fn decimal_representation() {
-    let mut deque = DequeOf::<DecimalDigits, 10, 20>::new_empty();
+    let mut deque = PackedDeque::<DecimalDigits, 10, 20>::new_empty();
 
     deque.push_low(DecimalDigits::One).unwrap();
     deque.push_low(DecimalDigits::Three).unwrap();

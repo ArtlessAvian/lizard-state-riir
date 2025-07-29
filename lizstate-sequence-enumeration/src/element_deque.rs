@@ -8,13 +8,15 @@ use crate::digit::IsSmallEnum;
 use crate::digit_deque::DigitDeque;
 use crate::digit_deque::LowToHighIter;
 
-/// Mapping a sequence of digits to a sequence of Elements and back.
-pub struct DequeOf<Element, const BASE: u64, const CAPACITY: u8>(
+/// A deque of small enums, fitting inside 64 bits.
+///
+/// From an internal POV, this maps a sequence of digits to a sequence of Elements and back.
+pub struct PackedDeque<Element, const BASE: u64, const CAPACITY: u8>(
     DigitDeque<BASE, CAPACITY>,
     PhantomData<Element>,
 );
 
-impl<Element, const BASE: u64, const CAPACITY: u8> DequeOf<Element, BASE, CAPACITY>
+impl<Element, const BASE: u64, const CAPACITY: u8> PackedDeque<Element, BASE, CAPACITY>
 where
     Element: IsSmallEnum<Digit = Digit<BASE>>,
 {
@@ -59,7 +61,8 @@ where
     }
 }
 
-impl<Element, const BASE: u64, const CAPACITY: u8> IntoIterator for DequeOf<Element, BASE, CAPACITY>
+impl<Element, const BASE: u64, const CAPACITY: u8> IntoIterator
+    for PackedDeque<Element, BASE, CAPACITY>
 where
     Element: IsSmallEnum<Digit = Digit<BASE>>,
 {
