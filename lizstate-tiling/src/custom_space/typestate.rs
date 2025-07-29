@@ -4,7 +4,7 @@ use crate::direction::Direction;
 use crate::tiling_graph::SpaceError;
 use crate::tiling_graph::TileError;
 use crate::walk::WalkIsFull;
-use crate::walk::rotation_sequence::ReducedWalkEnum;
+use crate::walk::reduced::ReducedWalkEnum;
 use crate::walk::traits::IsAWalkPartial;
 
 /// A known representative of a custom space.

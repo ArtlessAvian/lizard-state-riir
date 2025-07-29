@@ -1,5 +1,6 @@
 use super::WalkIsEmpty;
 use crate::direction::Direction;
+use crate::walk::direction_sequence::WalkEnum;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
 use crate::walk::traits::IsAWalkRaw;
@@ -56,3 +57,5 @@ where
 }
 
 impl<Walk: IsAWalkRaw> IsAWalk for Reduced<Walk> {}
+
+pub type ReducedWalkEnum = Reduced<WalkEnum>;

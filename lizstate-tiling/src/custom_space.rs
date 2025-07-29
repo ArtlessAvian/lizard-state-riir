@@ -9,7 +9,7 @@ use std::collections::HashSet;
 use crate::custom_space::typestate::Representative;
 use crate::tiling_graph::IsATile;
 use crate::tiling_graph::SpaceError;
-use crate::walk::rotation_sequence::ReducedWalkEnum;
+use crate::walk::reduced::ReducedWalkEnum;
 
 pub mod builder;
 pub mod shared;

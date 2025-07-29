@@ -18,7 +18,6 @@ pub mod traits;
 
 // Implementations
 pub mod direction_sequence;
-pub mod rotation_sequence;
 #[cfg(feature = "std")]
 pub mod vec;
 
@@ -72,7 +71,7 @@ mod tests {
 
     #[test]
     fn reduced_walk_enum_suite() {
-        use crate::walk::rotation_sequence::ReducedWalkEnum;
+        use crate::walk::reduced::ReducedWalkEnum;
 
         pop_empty_err::<ReducedWalkEnum>();
         push_mut_eq_push_copy::<ReducedWalkEnum>();
