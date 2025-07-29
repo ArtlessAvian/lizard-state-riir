@@ -28,8 +28,6 @@ use core::marker::PhantomData;
 
 pub mod digit;
 
-mod nary_wrappers;
-
 mod digit_deque;
 
 pub mod element_deque;

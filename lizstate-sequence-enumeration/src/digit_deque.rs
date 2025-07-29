@@ -1,49 +1,75 @@
 use crate::SequenceEmpty;
 use crate::SequenceFull;
 use crate::digit::Digit;
-use crate::nary_wrappers::LeadingOne;
 
-/// An injection between sequences of Digits and the natural numbers.
+/// A bijection between digit sequences and the natural numbers.
+/// The empty sequence is mapped to zero.
 ///
-/// The leading one is ignored, and the rest of the digits are used as the sequence.
-///
-/// This has a reasonable capacity, but is not as dense as possible.
-/// We can sacrifice speed for density.
-/// We can also sacrifice density for speed.
+/// TODO: Explain the recurrence and how digits are extracted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
-pub struct DigitDeque<const BASE: u64, const CAPACITY: u8>(LeadingOne<BASE, CAPACITY>);
+pub struct DigitDeque<const BASE: u64, const CAPACITY: u8>(u64);
 
 impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
+    // Conveniently, this overflows when CAPACITY is too high.
+    const _MAX: Self = {
+        let mut min = 0;
+        let mut i = 0;
+        while i < CAPACITY {
+            min = min * BASE + BASE;
+            i += 1;
+        }
+        Self(min)
+    };
+
+    pub const MIN_AT_CAPACITY: Self = {
+        let mut min = 0;
+        let mut i = 0;
+        while i < CAPACITY {
+            min = min * BASE + 1;
+            i += 1;
+        }
+        Self(min)
+    };
+
     pub const fn new_empty() -> Self {
-        Self(LeadingOne::ONE)
+        Self(0)
+    }
+
+    pub const fn is_empty(&self) -> bool {
+        self.0 == 0
+    }
+
+    pub const fn is_full(&self) -> bool {
+        self.0 >= Self::MIN_AT_CAPACITY.0
     }
 
     pub const fn push_low(&mut self, digit: Digit<BASE>) -> Result<(), SequenceFull> {
-        if let Some(some) = self.0.mul_base_add(digit) {
-            self.0 = some;
-            Ok(())
-        } else {
+        if self.is_full() {
             Err(SequenceFull)
+        } else {
+            self.0 *= BASE;
+            self.0 += digit.get();
+            self.0 += 1;
+            Ok(())
         }
     }
 
     pub const fn peek_low(&self) -> Result<Digit<BASE>, SequenceEmpty> {
-        if self.0.get() >= BASE {
-            Ok(self.0.mod_base())
-        } else {
+        if self.is_empty() {
             Err(SequenceEmpty)
+        } else {
+            Ok(Digit::from_last_nary_digit(self.0 - 1))
         }
     }
 
     pub const fn pop_low(&mut self) -> Result<(), SequenceEmpty> {
         if self.is_empty() {
             Err(SequenceEmpty)
-        } else if let Some(some) = self.0.div_base() {
-            self.0 = some;
-            Ok(())
         } else {
-            Err(SequenceEmpty)
+            self.0 -= 1;
+            self.0 /= BASE;
+            Ok(())
         }
     }
 
@@ -51,13 +77,11 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
         if self.is_full() {
             Err(SequenceFull)
         } else {
-            let len = self.len();
-            let power = BASE.pow(len as u32);
-
-            let lower_powers = self.0.get() % power;
-            let new_higher_power = digit.get() * power;
-
-            self.0 = LeadingOne::new_from_sum(new_higher_power + lower_powers, len + 1).unwrap();
+            let mut yeah = digit.get();
+            yeah += 1;
+            yeah *= BASE.pow(self.len() as u32);
+            yeah += self.0;
+            self.0 = yeah;
             Ok(())
         }
     }
@@ -65,10 +89,12 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
     pub const fn peek_high(&self) -> Result<Digit<BASE>, SequenceEmpty> {
         if self.is_empty() {
             Err(SequenceEmpty)
-        } else if self.0.get() <= BASE {
-            unreachable!()
         } else {
-            Ok(self.0.get_place(self.len() - 1))
+            let mut copy = self.0;
+            while copy > BASE {
+                copy /= BASE;
+            }
+            Ok(Digit::from_last_nary_digit(copy - 1))
         }
     }
 
@@ -76,34 +102,24 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
         if self.is_empty() {
             Err(SequenceEmpty)
         } else {
-            let len = self.len();
-            let power = BASE.pow((len - 1) as u32);
-            let lower_powers = self.0.get() % power;
-
-            self.0 = LeadingOne::new_from_sum(lower_powers, len - 1).unwrap();
+            let mut power = 1;
+            while self.0 > power * BASE {
+                power *= BASE
+            }
+            self.0 %= power;
             Ok(())
         }
     }
 
-    /// The number of `Digit`s in the deque.
-    ///
-    /// Alternatively, the power of the leading 1.
     pub const fn len(&self) -> u8 {
-        self.0.get_digit_count() - 1
-    }
-
-    pub const fn is_empty(&self) -> bool {
-        if self.0.get() == 1 {
-            true
-        } else if self.0.get() < BASE {
-            unreachable!()
-        } else {
-            false
+        let mut out = 0;
+        let mut copy = self.0;
+        while copy > 0 {
+            copy -= 1;
+            copy /= BASE;
+            out += 1;
         }
-    }
-
-    pub const fn is_full(&self) -> bool {
-        self.0.get() >= LeadingOne::<BASE, CAPACITY>::MIN_WITH_MSD.get()
+        out
     }
 }
 
@@ -140,6 +156,17 @@ impl<const BASE: u64, const CAPACITY: u8> DoubleEndedIterator for LowToHighIter<
 mod tests {
     use crate::digit::Digit;
     use crate::digit_deque::DigitDeque;
+
+    #[test]
+    fn consts() {
+        assert_eq!(DigitDeque::<10, 4>::_MAX.0, 11110);
+        assert_eq!(DigitDeque::<10, 3>::_MAX.0, 1110);
+        assert_eq!(DigitDeque::<16, 4>::_MAX.0, 0x1_1110);
+
+        assert_eq!(DigitDeque::<10, 4>::MIN_AT_CAPACITY.0, 1111);
+        assert_eq!(DigitDeque::<10, 3>::MIN_AT_CAPACITY.0, 111);
+        assert_eq!(DigitDeque::<16, 4>::MIN_AT_CAPACITY.0, 0x1111);
+    }
 
     #[test]
     fn push_pop_low() {
@@ -226,6 +253,44 @@ mod tests {
         }
 
         deque.peek_low().unwrap_err();
+        deque.pop_low().unwrap_err();
+    }
+
+    #[test]
+    fn nines() {
+        let mut deque = DigitDeque::<10, 4>::new_empty();
+
+        deque.push_high(Digit::MAX).unwrap();
+        deque.push_low(Digit::MAX).unwrap();
+        deque.push_high(Digit::MAX).unwrap();
+        deque.push_low(Digit::MAX).unwrap();
+        deque.push_high(Digit::MAX).unwrap_err();
+        deque.push_low(Digit::MAX).unwrap_err();
+
+        deque.pop_high().unwrap();
+        deque.pop_low().unwrap();
+        deque.pop_high().unwrap();
+        deque.pop_low().unwrap();
+        deque.pop_high().unwrap_err();
+        deque.pop_low().unwrap_err();
+    }
+
+    #[test]
+    fn zeroes() {
+        let mut deque = DigitDeque::<10, 4>::new_empty();
+
+        deque.push_high(Digit::ZERO).unwrap();
+        deque.push_low(Digit::ZERO).unwrap();
+        deque.push_high(Digit::ZERO).unwrap();
+        deque.push_low(Digit::ZERO).unwrap();
+        deque.push_high(Digit::ZERO).unwrap_err();
+        deque.push_low(Digit::ZERO).unwrap_err();
+
+        deque.pop_high().unwrap();
+        deque.pop_low().unwrap();
+        deque.pop_high().unwrap();
+        deque.pop_low().unwrap();
+        deque.pop_high().unwrap_err();
         deque.pop_low().unwrap_err();
     }
 }
