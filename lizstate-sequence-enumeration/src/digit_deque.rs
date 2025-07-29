@@ -121,6 +121,10 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
         }
         out
     }
+
+    pub const fn get(&self) -> u64 {
+        self.0
+    }
 }
 
 pub struct LowToHighIter<const BASE: u64, const CAPACITY: u8>(DigitDeque<BASE, CAPACITY>);

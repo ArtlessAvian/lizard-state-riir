@@ -53,6 +53,10 @@ where
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+
+    pub fn get(&self) -> u64 {
+        self.0.get()
+    }
 }
 
 impl<Element, const BASE: u64, const CAPACITY: u8> IntoIterator for DequeOf<Element, BASE, CAPACITY>
