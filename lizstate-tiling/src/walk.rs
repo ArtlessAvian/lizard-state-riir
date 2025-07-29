@@ -13,7 +13,6 @@ pub struct WalkIsEmpty;
 pub struct WalkIsFull;
 
 // Yeah
-pub mod generic_iter;
 pub mod traits;
 
 // Implementations

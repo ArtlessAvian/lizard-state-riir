@@ -10,7 +10,6 @@ use lizstate_sequence_enumeration::element_deque::PackedDeque;
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 use crate::walk::WalkIsFull;
-use crate::walk::generic_iter::GenericWalkIterator;
 use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkPartial;
 use crate::walk::traits::IsAWalkRaw;
@@ -53,10 +52,23 @@ impl IsAWalkPartial for WalkEnum {
 
 impl IntoIterator for WalkEnum {
     type Item = Direction;
-    type IntoIter = GenericWalkIterator<Self>;
+    type IntoIter = WalkEnumIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        GenericWalkIterator::new(self)
+        WalkEnumIter(self)
+    }
+}
+
+pub struct WalkEnumIter(WalkEnum);
+
+impl Iterator for WalkEnumIter {
+    type Item = Direction;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // HACK: why did i think seperating peek and pop was a good idea.
+        let peek = self.0.0.peek_high().ok()?;
+        _ = self.0.0.pop_high();
+        Some(peek)
     }
 }
 
