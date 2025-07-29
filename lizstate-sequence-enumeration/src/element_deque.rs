@@ -11,6 +11,8 @@ use crate::digit_deque::LowToHighIter;
 /// A deque of small enums, fitting inside 64 bits.
 ///
 /// From an internal POV, this maps a sequence of digits to a sequence of Elements and back.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[must_use]
 pub struct PackedDeque<Element, const BASE: u64, const CAPACITY: u8>(
     DigitDeque<BASE, CAPACITY>,
     PhantomData<Element>,

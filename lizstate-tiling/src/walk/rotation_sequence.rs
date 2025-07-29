@@ -1,5 +1,5 @@
 use lizstate_sequence_enumeration::SequenceFull;
-use lizstate_sequence_enumeration::SequenceOf;
+use lizstate_sequence_enumeration::element_deque::PackedDeque;
 
 use crate::direction::Direction;
 use crate::direction::Nonbackwards;
@@ -32,23 +32,24 @@ impl ReducedWalkEnum {
 // Manual length management will be necessary.
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Nonempty(Direction, SequenceOf<Nonbackwards>);
+pub struct Nonempty(Direction, PackedDeque<Nonbackwards, 3, 30>);
 
 impl Nonempty {
     fn new_with_initial(dir: Direction) -> Self {
-        Self(dir, SequenceOf::new_empty())
+        Self(dir, PackedDeque::new_empty())
     }
 
     fn len(&self) -> usize {
-        1 + self.1.len()
+        1 + self.1.len() as usize
     }
 
     fn peek(&self) -> Direction {
         let mut out = self.0;
         let mut copy = self.1;
         // Rotation application is commutative. We can just pop off the back.
-        while let Ok(popped) = copy.pop() {
-            out = Rotation::apply_to_direction(popped.into(), out);
+        while let Ok(peeked) = copy.peek_low() {
+            copy.pop_low().unwrap();
+            out = Rotation::apply_to_direction(peeked.into(), out);
         }
         out
     }
@@ -86,7 +87,7 @@ impl IsAWalkPartial for ReducedWalkEnum {
                 if let Ok(nonbackwards) = Nonbackwards::try_from(rotation) {
                     nonempty
                         .1
-                        .push(nonbackwards)
+                        .push_low(nonbackwards)
                         .map_err(|SequenceFull| WalkIsFull)?;
                 } else {
                     self.prefix_mut();
@@ -106,7 +107,7 @@ impl IsAWalkPartial for ReducedWalkEnum {
                 if nonempty.1.is_empty() {
                     *self = ReducedWalkEnum::Empty;
                 } else {
-                    _ = nonempty.1.pop();
+                    _ = nonempty.1.pop_low();
                 }
                 Ok(out)
             }

@@ -1,4 +1,5 @@
-use lizstate_sequence_enumeration::IsSequenceable;
+use lizstate_sequence_enumeration::digit::Digit;
+use lizstate_sequence_enumeration::digit::IsSmallEnum;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
@@ -31,25 +32,25 @@ impl Direction {
     }
 }
 
-impl IsSequenceable for Direction {
-    const MAX_EXCLUSIVE: u64 = 4;
+impl IsSmallEnum for Direction {
+    type Digit = Digit<4>;
 
-    fn to_value(self) -> u64 {
+    fn to_digit(&self) -> Self::Digit {
         match self {
-            Direction::Up => 0,
-            Direction::Down => 1,
-            Direction::Right => 2,
-            Direction::Left => 3,
+            Direction::Up => Digit::from_modulo(0),
+            Direction::Down => Digit::from_modulo(1),
+            Direction::Right => Digit::from_modulo(2),
+            Direction::Left => Digit::from_modulo(3),
         }
     }
 
-    fn from_value(value: u64) -> Self {
-        match value {
+    fn from_digit(digit: Self::Digit) -> Self {
+        match digit.get() {
             0 => Direction::Up,
             1 => Direction::Down,
             2 => Direction::Right,
             3 => Direction::Left,
-            Self::MAX_EXCLUSIVE.. => panic!(),
+            4.. => unreachable!(),
         }
     }
 }
@@ -138,19 +139,19 @@ impl TryFrom<Rotation> for Nonbackwards {
     }
 }
 
-impl IsSequenceable for Nonbackwards {
-    const MAX_EXCLUSIVE: u64 = 3;
+impl IsSmallEnum for Nonbackwards {
+    type Digit = Digit<3>;
 
-    fn to_value(self) -> u64 {
+    fn to_digit(&self) -> Self::Digit {
         match self {
-            Nonbackwards::TurnLeft => 0,
-            Nonbackwards::GoStraight => 1,
-            Nonbackwards::TurnRight => 2,
+            Nonbackwards::TurnLeft => Digit::from_modulo(0),
+            Nonbackwards::GoStraight => Digit::from_modulo(1),
+            Nonbackwards::TurnRight => Digit::from_modulo(2),
         }
     }
 
-    fn from_value(value: u64) -> Self {
-        match value {
+    fn from_digit(digit: Self::Digit) -> Self {
+        match digit.get() {
             0 => Nonbackwards::TurnLeft,
             1 => Nonbackwards::GoStraight,
             2 => Nonbackwards::TurnRight,
