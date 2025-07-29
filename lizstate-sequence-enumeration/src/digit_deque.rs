@@ -1,7 +1,7 @@
 use crate::SequenceEmpty;
 use crate::SequenceFull;
 use crate::digit::Digit;
-use crate::digit_sequence::LeadingOne;
+use crate::nary_wrappers::LeadingOne;
 
 /// An injection between sequences of Digits and the natural numbers.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

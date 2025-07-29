@@ -99,8 +99,8 @@ impl<const BASE: u64, const DIGITS: u8> LeadingOne<BASE, DIGITS> {
 
 #[cfg(test)]
 mod tests {
-    use crate::digit_sequence::Digit;
-    use crate::digit_sequence::LeadingOne;
+    use crate::nary_wrappers::Digit;
+    use crate::nary_wrappers::LeadingOne;
 
     #[test]
     fn consts() {

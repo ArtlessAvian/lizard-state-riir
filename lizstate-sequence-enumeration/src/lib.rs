@@ -28,8 +28,9 @@ use core::marker::PhantomData;
 
 pub mod digit;
 
+mod nary_wrappers;
+
 mod digit_deque;
-mod digit_sequence;
 
 pub mod element_deque;
 
