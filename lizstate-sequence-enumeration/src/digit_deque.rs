@@ -12,7 +12,7 @@ pub struct DigitDeque<const BASE: u64, const CAPACITY: u8>(u64);
 
 impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
     // Conveniently, this overflows when CAPACITY is too high.
-    const _MAX: Self = {
+    const MAX: Self = {
         let mut min = 0;
         let mut i = 0;
         while i < CAPACITY {
@@ -23,13 +23,8 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
     };
 
     pub const MIN_AT_CAPACITY: Self = {
-        let mut min = 0;
-        let mut i = 0;
-        while i < CAPACITY {
-            min = min * BASE + 1;
-            i += 1;
-        }
-        Self(min)
+        let pop_max = (Self::MAX.0 - 1) / BASE;
+        Self(pop_max + 1)
     };
 
     pub const fn new_empty() -> Self {
@@ -163,9 +158,9 @@ mod tests {
 
     #[test]
     fn consts() {
-        assert_eq!(DigitDeque::<10, 4>::_MAX.0, 11110);
-        assert_eq!(DigitDeque::<10, 3>::_MAX.0, 1110);
-        assert_eq!(DigitDeque::<16, 4>::_MAX.0, 0x1_1110);
+        assert_eq!(DigitDeque::<10, 4>::MAX.0, 11110);
+        assert_eq!(DigitDeque::<10, 3>::MAX.0, 1110);
+        assert_eq!(DigitDeque::<16, 4>::MAX.0, 0x1_1110);
 
         assert_eq!(DigitDeque::<10, 4>::MIN_AT_CAPACITY.0, 1111);
         assert_eq!(DigitDeque::<10, 3>::MIN_AT_CAPACITY.0, 111);

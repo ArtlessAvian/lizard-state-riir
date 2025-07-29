@@ -17,7 +17,7 @@ use crate::walk::traits::IsAWalkRaw;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
-pub struct WalkEnum(PackedDeque<Direction, 4, 10>);
+pub struct WalkEnum(PackedDeque<Direction, 4, 31>);
 
 impl IsAWalkPartial for WalkEnum {
     type PushError = WalkIsFull;

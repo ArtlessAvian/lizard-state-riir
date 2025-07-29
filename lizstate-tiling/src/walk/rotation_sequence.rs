@@ -28,11 +28,10 @@ impl ReducedWalkEnum {
     }
 }
 
-// TODO: Pack initial direction and sequence into the same u64.
-// Manual length management will be necessary.
+/// This is less space efficient than packing 64 directions into 128 bits lmao.
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Nonempty(Direction, PackedDeque<Nonbackwards, 3, 30>);
+pub struct Nonempty(Direction, PackedDeque<Nonbackwards, 3, 40>);
 
 impl Nonempty {
     fn new_with_initial(dir: Direction) -> Self {

@@ -73,7 +73,7 @@ impl IsSmallEnum for HexDigit {
 
 #[test]
 fn hex_representation() {
-    let mut deque = PackedDeque::<HexDigit, 16, 16>::new_empty();
+    let mut deque = PackedDeque::<HexDigit, 16, 15>::new_empty();
 
     deque.push_low(HexDigit::One).unwrap();
     deque.push_low(HexDigit::Three).unwrap();
@@ -81,4 +81,15 @@ fn hex_representation() {
     deque.push_low(HexDigit::Seven).unwrap();
 
     assert_eq!(deque.get(), 0x1337 + 0x1111);
+}
+
+#[test]
+fn fits_exactly_fifteen() {
+    let mut deque = PackedDeque::<HexDigit, 16, 15>::new_empty();
+
+    for _ in 0..15 {
+        deque.push_low(HexDigit::F).unwrap();
+    }
+
+    assert_eq!(deque.get(), 0x0FFF_FFFF_FFFF_FFFF + 0x0111_1111_1111_1111);
 }

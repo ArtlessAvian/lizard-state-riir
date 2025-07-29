@@ -55,7 +55,7 @@ impl IsSmallEnum for DecimalDigits {
 
 #[test]
 fn decimal_representation() {
-    let mut deque = PackedDeque::<DecimalDigits, 10, 20>::new_empty();
+    let mut deque = PackedDeque::<DecimalDigits, 10, 19>::new_empty();
 
     deque.push_low(DecimalDigits::One).unwrap();
     deque.push_low(DecimalDigits::Three).unwrap();
