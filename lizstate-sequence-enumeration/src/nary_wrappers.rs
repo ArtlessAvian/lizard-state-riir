@@ -1,17 +1,10 @@
 use crate::digit::Digit;
 
-/// An nary number leading with a 1 and then DIGITS other digits.
+/// An nary number leading with a 1 and then `DIGITS` other digits.
 ///
-/// The value `\sum_i=0^{DIGITS} (a_i * b.pow(i))`, for digits a_n in base b.
-///
-/// Explicitly, thats:
-/// a_0 * b.pow(0)
-///     + a_1 * b.pow(1)
-///     + a_2 * b.pow(2)
-///     + a_3 * b.pow(3)
-///     ...
-///
-/// TODO: Check if power of two BASE uses shifts and masks in MIR output.
+/// TODO: Check if power of two `BASE` uses shifts and masks in MIR output.
+/// TODO: Consider `NonZeroNary` if leading one is too annoying to enforce.
+///       This will necessitate manual `Eq` impl for `DigitDeque`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
 pub struct LeadingOne<const BASE: u64, const DIGITS: u8>(u64);
@@ -39,24 +32,13 @@ impl<const BASE: u64, const DIGITS: u8> LeadingOne<BASE, DIGITS> {
         Self(min)
     };
 
-    pub const fn has_leading_one(value: u64) -> bool {
-        let mut copy = value;
-        loop {
-            if copy == 1 {
-                return true;
-            }
-            if copy < BASE {
-                return false;
-            }
-            copy /= BASE;
-        }
-    }
+    pub const fn new_from_sum(value: u64, exponent: u8) -> Option<Self> {
+        let power = BASE.pow(exponent as u32);
 
-    pub const fn try_from_value(value: u64) -> Option<Self> {
-        if value <= Self::MAX.0 && Self::has_leading_one(value) {
-            Some(Self(value))
-        } else {
+        if value >= power || value >= Self::MIN_WITH_MSD.0 || power > Self::MAX.0 {
             None
+        } else {
+            Some(Self(power + value))
         }
     }
 
@@ -83,13 +65,18 @@ impl<const BASE: u64, const DIGITS: u8> LeadingOne<BASE, DIGITS> {
         Digit::from_last_nary_digit(self.0)
     }
 
-    pub const fn get_digit(self, mut i: u8) -> Digit<BASE> {
+    pub const fn get_place(self, place: u8) -> Digit<BASE> {
+        Digit::from_last_nary_digit(self.0 / BASE.pow(place as u32))
+    }
+
+    pub const fn get_digit_count(self) -> u8 {
+        let mut out = 0;
         let mut copy = self.0;
-        while i > 0 {
+        while copy > 0 {
             copy /= BASE;
-            i -= 1;
+            out += 1;
         }
-        Digit::from_last_nary_digit(copy)
+        out
     }
 
     pub const fn get(self) -> u64 {
@@ -145,7 +132,7 @@ mod tests {
 
     #[test]
     fn divmod() {
-        let mut leet = LeadingOne::<10, 3>::try_from_value(1337).unwrap();
+        let mut leet = LeadingOne::<10, 3>::new_from_sum(337, 3).unwrap();
 
         assert_eq!(leet.mod_base().get(), 7);
         leet = leet.div_base().unwrap();

@@ -4,6 +4,12 @@ use crate::digit::Digit;
 use crate::nary_wrappers::LeadingOne;
 
 /// An injection between sequences of Digits and the natural numbers.
+///
+/// The leading one is ignored, and the rest of the digits are used as the sequence.
+///
+/// This has a reasonable capacity, but is not as dense as possible.
+/// We can sacrifice speed for density.
+/// We can also sacrifice density for speed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
 pub struct DigitDeque<const BASE: u64, const CAPACITY: u8>(LeadingOne<BASE, CAPACITY>);
@@ -45,12 +51,13 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
         if self.is_full() {
             Err(SequenceFull)
         } else {
-            let power = BASE.pow(self.len() as u32);
+            let len = self.len();
+            let power = BASE.pow(len as u32);
 
-            let move_leading_one = self.0.get() - power + power * BASE;
-            let set = move_leading_one + digit.get() * power;
-            self.0 = LeadingOne::try_from_value(set).unwrap();
+            let lower_powers = self.0.get() % power;
+            let new_higher_power = digit.get() * power;
 
+            self.0 = LeadingOne::new_from_sum(new_higher_power + lower_powers, len + 1).unwrap();
             Ok(())
         }
     }
@@ -61,7 +68,7 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
         } else if self.0.get() <= BASE {
             unreachable!()
         } else {
-            Ok(self.0.get_digit(self.len() - 1))
+            Ok(self.0.get_place(self.len() - 1))
         }
     }
 
@@ -70,13 +77,10 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
             Err(SequenceEmpty)
         } else {
             let len = self.len();
-            let old = self.0.get_digit(len - 1);
             let power = BASE.pow((len - 1) as u32);
+            let lower_powers = self.0.get() % power;
 
-            let zero_digit = self.0.get() - old.get() * power;
-            let move_leading = zero_digit - power * BASE + power;
-
-            self.0 = LeadingOne::try_from_value(move_leading).unwrap();
+            self.0 = LeadingOne::new_from_sum(lower_powers, len - 1).unwrap();
             Ok(())
         }
     }
@@ -85,11 +89,7 @@ impl<const BASE: u64, const CAPACITY: u8> DigitDeque<BASE, CAPACITY> {
     ///
     /// Alternatively, the power of the leading 1.
     pub const fn len(&self) -> u8 {
-        let mut copy = *self;
-        match copy.pop_low() {
-            Ok(()) => 1 + copy.len(),
-            Err(SequenceEmpty) => 0,
-        }
+        self.0.get_digit_count() - 1
     }
 
     pub const fn is_empty(&self) -> bool {
