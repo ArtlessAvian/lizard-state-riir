@@ -61,10 +61,14 @@ impl CanFindArbitraryPath for TheEuclideanPlane {
 
 #[cfg(test)]
 mod tests {
+    use crate::coords::CartesianCoords;
     use crate::direction::Direction;
     use crate::euclidean_plane::TheEuclideanPlane;
+    use crate::tiling_graph::CanFindArbitraryPath;
     use crate::tiling_graph::IsTilingGraph;
     use crate::tiling_graph::IsWalkable;
+    use crate::walk::reduced::ReducedWalkEnum;
+    use crate::walk::traits::IsAWalkPartial;
 
     #[test]
     fn space_traversal() {
@@ -78,5 +82,38 @@ mod tests {
         ]);
 
         assert_eq!(up_right_down_left.unwrap(), origin);
+    }
+
+    #[test]
+    fn find_arbitrary_path() {
+        let empty: ReducedWalkEnum = TheEuclideanPlane
+            .path_between_tiles(&CartesianCoords::new(3, 3), &CartesianCoords::new(3, 3))
+            .unwrap();
+
+        assert!(empty.is_empty());
+
+        let right_up: ReducedWalkEnum = TheEuclideanPlane
+            .path_from_origin(&CartesianCoords::new(1, 2))
+            .unwrap();
+
+        for (actual, expected) in
+            right_up
+                .into_iter()
+                .zip([Direction::Right, Direction::Up, Direction::Up])
+        {
+            assert_eq!(actual, expected);
+        }
+
+        let left_down: ReducedWalkEnum = TheEuclideanPlane
+            .path_from_origin(&CartesianCoords::new(-1, -2))
+            .unwrap();
+
+        for (actual, expected) in
+            left_down
+                .into_iter()
+                .zip([Direction::Left, Direction::Down, Direction::Down])
+        {
+            assert_eq!(actual, expected);
+        }
     }
 }
