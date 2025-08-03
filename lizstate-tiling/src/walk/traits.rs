@@ -4,14 +4,11 @@ use core::hash::Hash;
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 
-#[must_use]
-pub trait IsAWalkMut
+pub trait IsAWalk
 where
     Self: Clone + PartialEq + Eq + Hash,
     Self: IntoIterator<Item = Direction>,
 {
-    type PushError: Error;
-
     fn new_empty() -> Self
     where
         Self: Sized;
@@ -28,8 +25,15 @@ where
     /// # Errors
     /// Nothing to peek at.
     fn peek(&self) -> Result<Direction, WalkIsEmpty>;
+}
 
-    // *************** Mutable Interface ***************
+// TODO: Should pop return a value?
+#[must_use]
+pub trait IsAWalkMut
+where
+    Self: IsAWalk,
+{
+    type PushError: Error;
 
     /// # Errors
     /// Implementor cannot represent the extended walk.

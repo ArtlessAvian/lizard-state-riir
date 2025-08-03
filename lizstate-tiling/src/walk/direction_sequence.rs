@@ -10,6 +10,7 @@ use lizstate_sequence_enumeration::element_deque::PackedDeque;
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 use crate::walk::WalkIsFull;
+use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
@@ -17,9 +18,7 @@ use crate::walk::traits::IsAWalkRaw;
 #[must_use]
 pub struct WalkEnum(PackedDeque<Direction, 4, 31>);
 
-impl IsAWalkMut for WalkEnum {
-    type PushError = WalkIsFull;
-
+impl IsAWalk for WalkEnum {
     fn new_empty() -> Self
     where
         Self: Sized,
@@ -34,6 +33,10 @@ impl IsAWalkMut for WalkEnum {
     fn peek(&self) -> Result<Direction, WalkIsEmpty> {
         self.0.peek_low().map_err(|SequenceEmpty| WalkIsEmpty)
     }
+}
+
+impl IsAWalkMut for WalkEnum {
+    type PushError = WalkIsFull;
 
     fn push_mut(&mut self, dir: Direction) -> Result<(), Self::PushError> {
         self.0.push_low(dir).map_err(|SequenceFull| WalkIsFull)

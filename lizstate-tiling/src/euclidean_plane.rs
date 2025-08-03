@@ -9,6 +9,7 @@ use crate::tiling_graph::IsTilingGraph;
 use crate::tiling_graph::IsWalkable;
 use crate::tiling_graph::StepError;
 use crate::walk::reduced::Reduced;
+use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
@@ -67,7 +68,7 @@ mod tests {
     use crate::tiling_graph::IsTilingGraph;
     use crate::tiling_graph::IsWalkable;
     use crate::walk::reduced::ReducedWalkEnum;
-    use crate::walk::traits::IsAWalkMut;
+    use crate::walk::traits::IsAWalk;
 
     #[test]
     fn space_traversal() {

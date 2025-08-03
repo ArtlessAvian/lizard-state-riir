@@ -5,6 +5,7 @@ use crate::tiling_graph::SpaceError;
 use crate::tiling_graph::TileError;
 use crate::walk::WalkIsFull;
 use crate::walk::reduced::ReducedWalkEnum;
+use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkMut;
 
 /// A known representative of a custom space.

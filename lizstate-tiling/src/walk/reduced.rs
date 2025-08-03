@@ -1,6 +1,7 @@
 use super::WalkIsEmpty;
 use crate::direction::Direction;
 use crate::walk::direction_sequence::WalkEnum;
+use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
@@ -9,9 +10,7 @@ use crate::walk::traits::IsAWalkRaw;
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Reduced<Walk: IsAWalkRaw>(Walk);
 
-impl<Walk: IsAWalkRaw> IsAWalkMut for Reduced<Walk> {
-    type PushError = Walk::PushError;
-
+impl<Walk: IsAWalkRaw> IsAWalk for Reduced<Walk> {
     fn new_empty() -> Self {
         Reduced(Walk::new_empty())
     }
@@ -23,6 +22,10 @@ impl<Walk: IsAWalkRaw> IsAWalkMut for Reduced<Walk> {
     fn peek(&self) -> Result<Direction, WalkIsEmpty> {
         self.0.peek()
     }
+}
+
+impl<Walk: IsAWalkRaw> IsAWalkMut for Reduced<Walk> {
+    type PushError = Walk::PushError;
 
     fn push_mut(&mut self, dir: Direction) -> Result<(), Self::PushError> {
         if self
@@ -60,6 +63,7 @@ pub type ReducedWalkEnum = Reduced<WalkEnum>;
 mod tests {
     use crate::direction::Direction;
     use crate::walk::reduced::ReducedWalkEnum;
+    use crate::walk::traits::IsAWalk;
     use crate::walk::traits::IsAWalkMut;
 
     #[test]

@@ -5,6 +5,7 @@ use thiserror::Error;
 
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
+use crate::walk::traits::IsAWalk;
 use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
@@ -17,9 +18,7 @@ pub struct WalkVec {
     vec: Vec<Direction>,
 }
 
-impl IsAWalkMut for WalkVec {
-    type PushError = Never;
-
+impl IsAWalk for WalkVec {
     fn new_empty() -> Self {
         Self { vec: Vec::new() }
     }
@@ -31,6 +30,10 @@ impl IsAWalkMut for WalkVec {
     fn peek(&self) -> Result<Direction, WalkIsEmpty> {
         self.vec.last().copied().ok_or(WalkIsEmpty)
     }
+}
+
+impl IsAWalkMut for WalkVec {
+    type PushError = Never;
 
     fn push_mut(&mut self, dir: Direction) -> Result<(), Self::PushError> {
         self.vec.push(dir);
