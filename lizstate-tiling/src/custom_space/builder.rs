@@ -1,7 +1,7 @@
 use crate::custom_space::CustomSpace;
 use crate::custom_space::Representative;
 use crate::walk::reduced::Reduced;
-use crate::walk::traits::IsAWalk;
+use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
 struct CustomSpaceBuilder {
@@ -12,7 +12,7 @@ impl CustomSpaceBuilder {
     /// Adds tiles to create a dead end.
     ///
     /// Existing tiles will be reused.
-    fn add_dead_end<Walk: IsAWalk>(&mut self, _from: Representative, _walk: Walk) {
+    fn add_dead_end<Walk: IsAWalkMut>(&mut self, _from: Representative, _walk: Walk) {
         // Trivially, all new tiles along the path will be the shortest path.
         todo!()
     }

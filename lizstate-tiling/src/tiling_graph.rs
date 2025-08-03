@@ -2,8 +2,7 @@ use thiserror::Error;
 
 use crate::direction::Direction;
 use crate::walk::reduced::Reduced;
-use crate::walk::traits::IsAWalk;
-use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
 /// Marker trait for tile/vertex types.

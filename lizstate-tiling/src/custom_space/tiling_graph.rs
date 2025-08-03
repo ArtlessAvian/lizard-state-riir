@@ -8,8 +8,7 @@ use crate::tiling_graph::SpaceError;
 use crate::tiling_graph::StepError;
 use crate::walk::reduced::Reduced;
 use crate::walk::reduced::ReducedWalkEnum;
-use crate::walk::traits::IsAWalk;
-use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
 impl IsASpace for CustomSpace {}

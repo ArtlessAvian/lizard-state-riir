@@ -29,16 +29,16 @@ mod tests {
 
     use crate::direction::Direction;
     use crate::walk::WalkIsEmpty;
-    use crate::walk::traits::IsAWalk;
+    use crate::walk::traits::IsAWalkMut;
 
-    fn pop_empty_err<Walk: IsAWalk>() {
+    fn pop_empty_err<Walk: IsAWalkMut>() {
         let mut walk = Walk::new_empty();
         assert_eq!(walk.pop_mut().unwrap_err(), WalkIsEmpty);
     }
 
     fn push_mut_eq_push_copy<Walk>()
     where
-        Walk: IsAWalk + Copy + Debug,
+        Walk: IsAWalkMut + Copy + Debug,
     {
         let mut walk = Walk::new_empty();
         for _ in 0..10 {

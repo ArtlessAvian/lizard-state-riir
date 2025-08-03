@@ -5,7 +5,11 @@ use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 
 #[must_use]
-pub trait IsAWalkPartial {
+pub trait IsAWalkMut
+where
+    Self: Clone + PartialEq + Eq + Hash,
+    Self: IntoIterator<Item = Direction>,
+{
     type PushError: Error;
 
     fn new_empty() -> Self
@@ -132,16 +136,7 @@ pub trait IsAWalkPartial {
         copy.inverse_mut();
         copy
     }
-}
 
-/// Very narrow subtrait. All of these should be easily implementable.
-#[must_use]
-pub trait IsAWalk
-where
-    Self: IsAWalkPartial,
-    Self: Clone + PartialEq + Eq + Hash,
-    Self: IntoIterator<Item = Direction>,
-{
     /// Creates a new Self from an iterator.
     /// # Errors
     /// Self cannot represent path with combined length.
@@ -189,4 +184,4 @@ where
 /// Marker trait for *NOT WRAPPERS*
 ///
 /// Similar to nalgebra's storage stuff.
-pub trait IsAWalkRaw: IsAWalk {}
+pub trait IsAWalkRaw: IsAWalkMut {}

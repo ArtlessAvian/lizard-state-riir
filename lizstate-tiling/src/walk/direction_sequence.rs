@@ -10,15 +10,14 @@ use lizstate_sequence_enumeration::element_deque::PackedDeque;
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
 use crate::walk::WalkIsFull;
-use crate::walk::traits::IsAWalk;
-use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[must_use]
 pub struct WalkEnum(PackedDeque<Direction, 4, 31>);
 
-impl IsAWalkPartial for WalkEnum {
+impl IsAWalkMut for WalkEnum {
     type PushError = WalkIsFull;
 
     fn new_empty() -> Self
@@ -71,7 +70,5 @@ impl Iterator for WalkEnumIter {
         Some(peek)
     }
 }
-
-impl IsAWalk for WalkEnum {}
 
 impl IsAWalkRaw for WalkEnum {}

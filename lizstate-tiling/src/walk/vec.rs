@@ -5,8 +5,7 @@ use thiserror::Error;
 
 use crate::direction::Direction;
 use crate::walk::WalkIsEmpty;
-use crate::walk::traits::IsAWalk;
-use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
 #[derive(Debug, Error)]
@@ -18,7 +17,7 @@ pub struct WalkVec {
     vec: Vec<Direction>,
 }
 
-impl IsAWalkPartial for WalkVec {
+impl IsAWalkMut for WalkVec {
     type PushError = Never;
 
     fn new_empty() -> Self {
@@ -51,7 +50,5 @@ impl IntoIterator for WalkVec {
         self.vec.into_iter()
     }
 }
-
-impl IsAWalk for WalkVec {}
 
 impl IsAWalkRaw for WalkVec {}

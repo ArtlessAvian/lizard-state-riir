@@ -1,8 +1,7 @@
 use super::WalkIsEmpty;
 use crate::direction::Direction;
 use crate::walk::direction_sequence::WalkEnum;
-use crate::walk::traits::IsAWalk;
-use crate::walk::traits::IsAWalkPartial;
+use crate::walk::traits::IsAWalkMut;
 use crate::walk::traits::IsAWalkRaw;
 
 // "Reduced" like a "word" from group theory.
@@ -10,7 +9,7 @@ use crate::walk::traits::IsAWalkRaw;
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Reduced<Walk: IsAWalkRaw>(Walk);
 
-impl<Walk: IsAWalkRaw> IsAWalkPartial for Reduced<Walk> {
+impl<Walk: IsAWalkRaw> IsAWalkMut for Reduced<Walk> {
     type PushError = Walk::PushError;
 
     fn new_empty() -> Self {
@@ -55,15 +54,13 @@ where
     }
 }
 
-impl<Walk: IsAWalkRaw> IsAWalk for Reduced<Walk> {}
-
 pub type ReducedWalkEnum = Reduced<WalkEnum>;
 
 #[cfg(test)]
 mod tests {
     use crate::direction::Direction;
     use crate::walk::reduced::ReducedWalkEnum;
-    use crate::walk::traits::IsAWalkPartial;
+    use crate::walk::traits::IsAWalkMut;
 
     #[test]
     fn string_append() {
