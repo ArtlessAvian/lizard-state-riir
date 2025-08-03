@@ -17,13 +17,12 @@ pub mod traits;
 
 // Implementations
 pub mod direction_sequence;
-#[cfg(feature = "std")]
-pub mod vec;
+pub mod slice;
 
 // Wrappers
 pub mod reduced;
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(test)]
 mod tests {
     use std::fmt::Debug;
 
@@ -74,12 +73,5 @@ mod tests {
 
         pop_empty_err::<ReducedWalkEnum>();
         push_mut_eq_push_copy::<ReducedWalkEnum>();
-    }
-
-    #[test]
-    fn walkvec_suite() {
-        use crate::walk::vec::WalkVec;
-
-        pop_empty_err::<WalkVec>();
     }
 }

@@ -48,7 +48,7 @@ where
         _ = self.pop_mut();
     }
 
-    /// Removes half the elements and puts them in a new Walk.
+    /// Removes half the elements and puts them in a new Walk of the same type.
     /// `self` contains the first half.
     #[must_use]
     fn split_mut(&mut self) -> Self
@@ -59,6 +59,7 @@ where
         let mut out = Self::new_empty();
         for _ in 0..out_len {
             let popped = self.pop_mut().expect("we can pop out_len elements");
+            // TODO: This is not true for all Walks!
             out.push_mut(popped).expect("we can push out_len elements");
         }
         out.inverse_mut();
