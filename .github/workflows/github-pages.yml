@@ -116,7 +116,7 @@ jobs:
 
       - name: Godot Web Export
         run: |
-          mkdir -v -p build/linux
+          mkdir -v -p build/web
           godot -v --headless --path godot/ --export-debug "Web" ../build/web/index.html
         timeout-minutes: 20
 
