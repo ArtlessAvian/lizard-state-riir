@@ -1,11 +1,13 @@
 # References from 2shady4u/godot-cpp-ci
 # Also uses witchpixels/godot4-3d-omnibuilder
 
+# TODO: Use the same container/job for the entire build process?
+
 name: "Github Pages"
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "ci-cd"]
 
 env:
   CARGO_TERM_COLOR: always
