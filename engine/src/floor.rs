@@ -4,10 +4,6 @@ pub(crate) mod occupiers;
 
 use std::borrow::Cow;
 
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-
 use crate::actions::CommandTrait;
 use crate::actions::InfallibleActionTrait;
 use crate::actions::UnaimedActionTrait;
@@ -67,7 +63,7 @@ pub type CowFloorUpdate<'a> = Writer<Cow<'a, Floor>, FloorEvent>;
 //     ) -> Writer<Self, FloorEvent>;
 // }
 
-#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct Floor {
     // Rc is shared between Floor generations.
     // Prefer to use indices since serializing Rcs does not preserve identity.

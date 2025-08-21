@@ -1,10 +1,6 @@
 use std::borrow::Cow;
 use std::num::NonZero;
 
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-
 use super::super::CommandTrait;
 use crate::actions::ActionError;
 use crate::actions::Never;
@@ -20,7 +16,7 @@ use crate::floor::Floor;
 use crate::floor::FloorUpdate;
 use crate::positional::AbsolutePosition;
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct EnterSmiteStanceAction;
 
 impl UnaimedTrait for EnterSmiteStanceAction {
@@ -69,7 +65,7 @@ impl CommandTrait for EnterSmiteStanceCommand<'_> {
     }
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct StanceSmiteAction {
     tile: AbsolutePosition,
 }

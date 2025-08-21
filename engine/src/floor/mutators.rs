@@ -1,7 +1,3 @@
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-
 use crate::actions::events::FloorEvent;
 use crate::actions::events::GetDownedEvent;
 use crate::actions::events::MissionFailedEvent;
@@ -16,7 +12,7 @@ use crate::writer::Writer;
 // Both can be stored in the Floor if they need to save their own data.
 // All of the may panic currently. Yippee.
 // (Maybe accelerants purely manage data and do not log. Eg a sorter for fast range queries. slice on x, then filter on y.)
-#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct DownedStateMutator;
 
 impl DownedStateMutator {

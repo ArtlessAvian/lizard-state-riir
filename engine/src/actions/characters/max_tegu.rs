@@ -1,9 +1,5 @@
 use std::borrow::Cow;
 
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-
 use super::super::CommandTrait;
 use super::super::FloorEvent;
 use super::super::events::AttackHitEvent;
@@ -30,7 +26,7 @@ use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
 // Steps forward and sweeps at the start of next turn.
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct ForwardHeavyAction;
 
 impl UnaimedTrait for ForwardHeavyAction {
@@ -94,7 +90,7 @@ impl CommandTrait for ForwardHeavyCommand<'_> {
     }
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct ForwardHeavyFollowupAction {
     dir: RelativePosition,
 }
@@ -177,7 +173,7 @@ impl CommandTrait for ForwardHeavyFollowup<'_> {
 }
 
 // Steps forward and sweeps at the start of next turn.
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TrackingAction;
 
 impl UnaimedTrait for TrackingAction {
@@ -226,7 +222,7 @@ impl From<TrackingAction> for KnownUnaimedAction {
     }
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TrackingFollowupAction {
     tracking_id: EntityId,
 }

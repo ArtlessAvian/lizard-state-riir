@@ -1,16 +1,12 @@
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-
 use crate::entity::BatchEntityUpdate;
 use crate::entity::Entity;
 use crate::entity::EntityId;
 use crate::positional::AbsolutePosition;
 
-#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct Occupiers(HashMap<AbsolutePosition, EntityId>);
 
 impl Occupiers {

@@ -2,19 +2,11 @@ use std::borrow::Cow;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-
 use super::ActionError;
 use super::ActionTrait;
 use super::BoxedCommand;
 use super::DirectionActionTrait;
 use super::InfallibleActionTrait;
-use super::SerializeActionTrait;
-use super::SerializeDirectionActionTrait;
-use super::SerializeInfallibleActionTrait;
-use super::SerializeTileActionTrait;
 use super::TileActionTrait;
 use super::UnaimedAction;
 use super::characters::axolotl_nano::EnterSmiteStanceAction;
@@ -28,13 +20,12 @@ use super::example::DoubleHitFollowupAction;
 use super::example::EnterStanceAction;
 use super::example::ExitStanceAction;
 use super::public::GoingAction;
-use super::serializable_wrapper::SerializableAction;
 use crate::entity::EntityId;
 use crate::floor::Floor;
 use crate::positional::AbsolutePosition;
 use crate::positional::RelativePosition;
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub enum KnownUnaimedAction {
     None(KnownAction),
     Tile(KnownTileAction),
@@ -54,29 +45,40 @@ impl From<KnownUnaimedAction> for UnaimedAction {
     }
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[enum_delegate::implement(ActionTrait)]
 pub enum KnownAction {
-    External(SerializableAction<dyn SerializeActionTrait>),
+    Dingus(NoopAction),
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+/// This is temporary.
+#[derive(Debug, Clone)]
+pub struct NoopAction;
+impl ActionTrait for NoopAction {
+    fn verify_and_box<'a>(
+        &self,
+        _floor: &Cow<'a, Floor>,
+        _subject_id: EntityId,
+    ) -> Result<BoxedCommand<'a>, ActionError> {
+        Err(ActionError::InvalidState)
+    }
+}
+
+#[derive(Debug, Clone)]
 #[enum_delegate::implement(TileActionTrait)]
 pub enum KnownTileAction {
     Tracking(TrackingAction),
     EnterSmiteStance(EnterSmiteStanceAction),
-    External(SerializableAction<dyn SerializeTileActionTrait>),
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[enum_delegate::implement(DirectionActionTrait)]
 pub enum KnownDirectionAction {
     DoubleHit(DoubleHitAction),
     ForwardHeavy(ForwardHeavyAction),
-    External(SerializableAction<dyn SerializeDirectionActionTrait>),
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[enum_delegate::implement(InfallibleActionTrait)]
 pub enum KnownInfallibleAction {
     EnterStance(EnterStanceAction),
@@ -86,5 +88,4 @@ pub enum KnownInfallibleAction {
     ForwardHeavyFollowupAction(ForwardHeavyFollowupAction),
     TrackingFollowupAction(TrackingFollowupAction),
     GoingAction(GoingAction),
-    External(SerializableAction<dyn SerializeInfallibleActionTrait>),
 }

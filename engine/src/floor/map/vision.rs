@@ -2,9 +2,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
 use tracing::instrument;
 
 use crate::actions::events::FloorEvent;
@@ -20,7 +17,7 @@ use crate::writer::Writer;
 
 static STRICT_FOV: OnceLock<StrictFOV> = OnceLock::new();
 
-#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct FloorMapVision {
     entity_last_at: HashMap<EntityId, AbsolutePosition>,
     map_vision: HashMap<EntityId, HashMap<AbsolutePosition, FloorTile>>,

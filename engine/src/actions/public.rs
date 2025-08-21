@@ -1,10 +1,6 @@
 use std::borrow::Cow;
 use std::num::NonZero;
 
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-
 use super::ActionError;
 use super::BoxedCommand;
 use super::CommandTrait;
@@ -315,7 +311,7 @@ impl UnaimedActionTrait for GotoAction {
     }
 }
 
-#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct GoingAction {
     tile: AbsolutePosition,
 }

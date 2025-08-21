@@ -173,10 +173,6 @@ version = "0.1.0"
 dependencies = [
  "enum_delegate",
  "lizstate-geom",
- "ptr_meta",
- "rkyv",
- "rkyv_dyn",
- "rkyv_typename",
  "tracing",
 ]
 

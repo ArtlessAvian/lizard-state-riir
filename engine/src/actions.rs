@@ -30,8 +30,6 @@ use std::borrow::Cow;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use rkyv_dyn::archive_dyn;
-
 use self::events::FloorEvent;
 use crate::entity::EntityId;
 use crate::floor::Floor;
@@ -139,7 +137,6 @@ impl<T: UnaimedActionTrait> UnaimedMacroTrait for T {
 /// Dyn compatible version of `UnaimedMacroTrait`. Target type is `()` and Command is type erased.
 ///
 /// See `UnaimedActionTrait`!
-#[archive_dyn(deserialize)]
 #[enum_delegate::register]
 pub trait ActionTrait {
     fn verify_and_box<'a>(
@@ -165,7 +162,6 @@ where
 /// Dyn compatible version of `UnaimedActionTrait`. Target type is `AbsolutePosition` and Command is type erased.
 ///
 /// See `UnaimedActionTrait`!
-#[archive_dyn(deserialize)]
 #[enum_delegate::register]
 pub trait TileActionTrait {
     fn verify_and_box<'a>(
@@ -193,7 +189,6 @@ where
 /// Dyn compatible version of `UnaimedActionTrait`. Target type is `RelativePosition` and Command is type erased.
 ///
 /// See `UnaimedActionTrait`!
-#[archive_dyn(deserialize)]
 #[enum_delegate::register]
 pub trait DirectionActionTrait {
     fn verify_and_box<'a>(
@@ -225,7 +220,6 @@ pub enum Never {}
 /// See `UnaimedActionTrait`!
 ///
 /// No chat, I am not writing all permutations.
-#[archive_dyn(deserialize)]
 #[enum_delegate::register]
 pub trait InfallibleActionTrait {
     fn verify_and_box<'a>(&self, floor: &Cow<'a, Floor>, subject_id: EntityId) -> BoxedCommand<'a>;

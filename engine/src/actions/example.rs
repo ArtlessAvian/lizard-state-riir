@@ -1,9 +1,5 @@
 use std::borrow::Cow;
 
-use rkyv::Archive;
-use rkyv::Deserialize;
-use rkyv::Serialize;
-
 use super::ActionError;
 use super::CommandTrait;
 use super::FloorEvent;
@@ -26,7 +22,7 @@ use crate::floor::FloorUpdate;
 use crate::positional::RelativePosition;
 
 // Hits once, then queues another.
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct DoubleHitAction;
 
 impl UnaimedTrait for DoubleHitAction {
@@ -119,7 +115,7 @@ impl CommandTrait for DoubleHitCommand<'_> {
     }
 }
 
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct DoubleHitFollowupAction {
     dir: RelativePosition,
 }
@@ -194,7 +190,7 @@ impl CommandTrait for DoubleHitFollowup<'_> {
 }
 
 // Waits a turn, then lets the user do a big attack or exit stance.
-#[derive(Debug, Clone, Archive, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct EnterStanceAction;
 
 impl UnaimedTrait for EnterStanceAction {
@@ -243,7 +239,7 @@ impl CommandTrait for EnterStanceCommand<'_> {
     }
 }
 
-#[derive(Clone, Debug, Archive, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct ExitStanceAction;
 
 impl UnaimedTrait for ExitStanceAction {
