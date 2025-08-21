@@ -1,5 +1,8 @@
 //! 2D spaces (plural!) formed by joining square tiles.
 //!
+//! There are plans to transition to using this thing instead of
+//! `AbsolutePosition` and `RelativePosition`. However, this is far from available.
+//!
 //! # Usage
 //! All Copy + Eq traits are intended to be implemented on references or unit types.
 //! All Clone + Eq traits are intended to be implemented on references, unit types, or smart pointers.
