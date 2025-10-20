@@ -1,0 +1,21 @@
+name: Smoke Testing
+
+on: push
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  precommit:
+    runs-on: ubuntu-latest
+    container:
+      image: witchpixels/godot4-omnibuilder3d:latest-4.5.1-vanilla
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          lfs: true
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Fix paths for Github
+        run: setup_github_paths.sh
+
+      - run: bash ./tools/precommit/precommit.sh

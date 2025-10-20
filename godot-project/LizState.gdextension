@@ -1,0 +1,16 @@
+[configuration]
+entry_symbol = "gdext_rust_init"
+compatibility_minimum = 4.1
+reloadable = true
+
+[libraries]
+linux.debug.x86_64 =     "res://../rust-workspace/target/debug/liblizstate_godot_glue.so"
+linux.release.x86_64 =   "res://../rust-workspace/target/release/liblizstate_godot_glue.so"
+windows.debug.x86_64 =   "res://../rust-workspace/target/debug/lizstate_godot_glue.dll"
+windows.release.x86_64 = "res://../rust-workspace/target/release/lizstate_godot_glue.dll"
+macos.debug =            "res://../rust-workspace/target/debug/liblizstate_godot_glue.dylib"
+macos.release =          "res://../rust-workspace/target/release/liblizstate_godot_glue.dylib"
+macos.debug.arm64 =      "res://../rust-workspace/target/debug/liblizstate_godot_glue.dylib"
+macos.release.arm64 =    "res://../rust-workspace/target/release/liblizstate_godot_glue.dylib"
+web.debug.wasm32 =       "res://../rust-workspace/target/wasm32-unknown-emscripten/debug/lizstate_godot_glue.wasm"
+web.release.wasm32 =     "res://../rust-workspace/target/wasm32-unknown-emscripten/release/lizstate_godot_glue.wasm"
