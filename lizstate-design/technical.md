@@ -1,6 +1,6 @@
 # Technical
 
-Lizard State is a roguelike engine written in Rust. The user of the engine can define actions as a tree of subactions, and provide them to the player. The player can submit these actions and receive a tree of events. The game is displayed and animated in Godot.
+Lizard State is a roguelike engine written in Rust. The user of the engine can define actions as a tree of combinators, and provide those actions to the player. The player can submit these actions with arguments, and receive a tree of events back. The game is displayed and animated in Godot.
 
 ## Meta
 
