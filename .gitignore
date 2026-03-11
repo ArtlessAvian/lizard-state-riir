@@ -4,3 +4,7 @@
 target/
 
 export/
+
+# idk why i set this up for personal use
+.stfolder/
+.stignore
