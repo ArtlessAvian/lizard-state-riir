@@ -1,0 +1,153 @@
+[gd_scene format=3 uid="uid://bco7080cg2ena"]
+
+[ext_resource type="PackedScene" uid="uid://dbwlj5okvutnj" path="res://temp/model/model from stuff.gltf" id="1_2lcne"]
+[ext_resource type="MeshLibrary" uid="uid://c1le6jb2k5f5m" path="res://temp/old/assets/FloorAndWall.tres" id="2_dpp4c"]
+[ext_resource type="Texture2D" uid="uid://sgqjfsju51ul" path="res://temp/old/assets/tegu.png" id="3_ni4nt"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_dpp4c"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="Compositor" id="Compositor_ni4nt"]
+
+[sub_resource type="Environment" id="Environment_dpp4c"]
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.5
+
+[sub_resource type="GDScript" id="GDScript_ni4nt"]
+script/source = "@tool
+extends Sprite3D
+
+func _process(_delta: float) -> void:
+	var cam_dir = EditorInterface.get_editor_viewport_3d().get_camera_3d().global_basis.z;
+	#var cam_dir = get_viewport().get_camera_3d().basis.z;
+	
+	var cam_dir_drop_y = cam_dir * Vector3(1, 0, 1);
+	
+	var unsigned_angle = cam_dir_drop_y.angle_to(self.global_basis.z);
+	if unsigned_angle < PI/4:
+		self.frame = 0
+	elif unsigned_angle > 3 * PI / 4:
+		self.frame = 8
+	else:
+		self.flip_h = cam_dir_drop_y.dot(self.global_basis.x) > 0
+		self.frame = 4
+"
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_ni4nt"]
+viewport_path = NodePath("SubViewport/root/MapSkew/Sprite3D2/SubViewport")
+
+[node name="3dLayoutTest" type="Node2D" unique_id=2125521965]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1579786769]
+metadata/_edit_lock_ = true
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=262903187]
+texture = SubResource("ViewportTexture_dpp4c")
+metadata/_edit_lock_ = true
+
+[node name="Tegu" type="Sprite2D" parent="." unique_id=1792814203]
+position = Vector2(-72, -15)
+texture = ExtResource("3_ni4nt")
+region_enabled = true
+region_rect = Rect2(0, 0, 40, 40)
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=884557272]
+anisotropic_filtering_level = 0
+size = Vector2i(240, 120)
+
+[node name="CameraPivot" type="Node3D" parent="SubViewport" unique_id=1572578241]
+transform = Transform3D(1, 0, 0, 0, 0.745476, 0.66653246, 0, -0.66653246, 0.745476, 0, 0, 0)
+
+[node name="Ratio" type="Sprite3D" parent="SubViewport/CameraPivot" unique_id=1053395199]
+transform = Transform3D(8, 0, 0, 0, 8, 0, 0, 0, 8, 3, 0, 1)
+pixel_size = 0.0416667
+texture = ExtResource("3_ni4nt")
+region_enabled = true
+region_rect = Rect2(20, 13, 3, 2)
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport/CameraPivot" unique_id=1185122329]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+compositor = SubResource("Compositor_ni4nt")
+projection = 1
+current = true
+size = 5.0
+metadata/_edit_lock_ = true
+
+[node name="root" type="Node3D" parent="SubViewport" unique_id=1958684605]
+rotation_edit_mode = 2
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewport/root" unique_id=1383264422]
+environment = SubResource("Environment_dpp4c")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewport/root/WorldEnvironment" unique_id=103372081]
+transform = Transform3D(0.0049364525, 0.70708954, -0.7071068, 0.0049364963, 0.70708954, 0.7071068, 0.9999756, -0.006981229, -3.0965726e-08, -2.1440456, 2.4907162, 0)
+
+[node name="MapSkew" type="Node3D" parent="SubViewport/root" unique_id=1076967446]
+transform = Transform3D(1, 0, 0, 0, 0.9998925, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="GridMap" type="GridMap" parent="SubViewport/root/MapSkew" unique_id=1519709463]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0, -0.5)
+mesh_library = ExtResource("2_dpp4c")
+cell_size = Vector3(1, 9999, 1)
+cell_center_y = false
+data = {
+"cells": PackedInt32Array(0, 0, 0, 1, 0, 0, 65535, 0, 0, 65535, 1, 0, 0, 1, 0, 1, 1, 0, 1, 65535, 0, 0, 65535, 0, 65535, 65535, 0, 65534, 65535, 0, 65534, 0, 0, 65534, 1, 0, 2, 1, 0, 2, 0, 0, 2, 65535, 0, 65534, 65534, 0, 65535, 65534, 0, 0, 65534, 0, 1, 65534, 0, 2, 65534, 0, 3, 65534, 0, 3, 65535, 0, 3, 0, 0, 3, 1, 0, 65533, 65534, 0, 65533, 65535, 0, 65533, 0, 0, 65533, 1, 0, 65533, 2, 0, 65534, 2, 0, 65535, 2, 0, 0, 2, 0, 1, 2, 0, 2, 2, 0, 3, 2, 0, 65533, 65533, 1, 65534, 65533, 1, 65535, 65533, 1, 0, 65533, 1, 1, 65533, 1, 2, 65533, 1, 3, 65533, 1, 65533, 3, 1, 65534, 3, 1, 65535, 3, 1, 0, 3, 1, 1, 3, 1, 2, 3, 1, 3, 3, 1, 4, 3, 1, 4, 2, 1, 4, 1, 1, 4, 0, 1, 4, 65535, 1, 4, 65534, 1, 4, 65533, 1, 65532, 65533, 1, 65532, 65534, 1, 65532, 65535, 1, 65532, 0, 1, 65532, 1, 1, 65532, 2, 1, 65532, 3, 1)
+}
+
+[node name="Sprite3D" type="Sprite3D" parent="SubViewport/root/MapSkew" unique_id=255617757]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, 1, 0, 0)
+offset = Vector2(0, 15)
+flip_h = true
+pixel_size = 0.0416667
+billboard = 1
+texture_filter = 0
+texture = ExtResource("3_ni4nt")
+hframes = 4
+vframes = 4
+script = SubResource("GDScript_ni4nt")
+
+[node name="model from stuff" parent="SubViewport/root/MapSkew" unique_id=758613085 instance=ExtResource("1_2lcne")]
+transform = Transform3D(1.7, 0, 0, 0, 1.200129, 0, 0, 0, 1.7, 0, 0, 0)
+
+[node name="ARM" parent="SubViewport/root/MapSkew/model from stuff" index="3" unique_id=405503636]
+visible = false
+
+[node name="model from stuff2" parent="SubViewport/root/MapSkew" unique_id=1037109028 instance=ExtResource("1_2lcne")]
+transform = Transform3D(1.7, 0, 0, 0, 1.200129, 0, 0, 0, 1.7, 1, 0, 0)
+
+[node name="ARM" parent="SubViewport/root/MapSkew/model from stuff2" index="3" unique_id=405503636]
+visible = false
+
+[node name="Sprite3D2" type="Sprite3D" parent="SubViewport/root/MapSkew" unique_id=817932498]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+pixel_size = 0.0416667
+billboard = 1
+texture_filter = 0
+texture = SubResource("ViewportTexture_ni4nt")
+
+[node name="RemoteTransform3D" type="RemoteTransform3D" parent="SubViewport/root/MapSkew/Sprite3D2" unique_id=1628047216]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, 0, 0, 0)
+remote_path = NodePath("../SubViewport/model from stuff")
+update_position = false
+update_scale = false
+
+[node name="SubViewport" type="SubViewport" parent="SubViewport/root/MapSkew/Sprite3D2" unique_id=1809933787]
+own_world_3d = true
+transparent_bg = true
+size = Vector2i(80, 80)
+
+[node name="Node3D" type="Node3D" parent="SubViewport/root/MapSkew/Sprite3D2/SubViewport" unique_id=520880767]
+transform = Transform3D(1, 0, 0, 0, 0.745476, 0.66653246, 0, -0.66653246, 0.745476, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport/root/MapSkew/Sprite3D2/SubViewport/Node3D" unique_id=166921001]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+projection = 1
+current = true
+far = 10.0
+
+[node name="model from stuff" parent="SubViewport/root/MapSkew/Sprite3D2/SubViewport" unique_id=42039201 instance=ExtResource("1_2lcne")]
+transform = Transform3D(0.36, 0, 0, 0, 0.36, 0, 0, 0, 0.36, 0, 0, 0)
+
+[editable path="SubViewport/root/MapSkew/model from stuff"]
+[editable path="SubViewport/root/MapSkew/model from stuff2"]

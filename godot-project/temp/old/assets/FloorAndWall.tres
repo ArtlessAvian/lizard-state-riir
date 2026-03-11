@@ -1,0 +1,30 @@
+[gd_resource type="MeshLibrary" format=3 uid="uid://c1le6jb2k5f5m"]
+
+[ext_resource type="Shader" uid="uid://wn6mdqsp8k4i" path="res://temp/old/assets/grid.gdshader" id="1_pl3es"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0i8tf"]
+render_priority = 0
+shader = ExtResource("1_pl3es")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_6bpbg"]
+material = SubResource("ShaderMaterial_0i8tf")
+size = Vector2(1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mceu6"]
+size = Vector3(1, 0.5, 1)
+
+[resource]
+item/0/name = ""
+item/0/mesh = SubResource("PlaneMesh_6bpbg")
+item/0/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/mesh_cast_shadow = 1
+item/0/shapes = []
+item/0/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/0/navigation_layers = 1
+item/1/name = ""
+item/1/mesh = SubResource("BoxMesh_mceu6")
+item/1/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+item/1/mesh_cast_shadow = 1
+item/1/shapes = []
+item/1/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+item/1/navigation_layers = 1

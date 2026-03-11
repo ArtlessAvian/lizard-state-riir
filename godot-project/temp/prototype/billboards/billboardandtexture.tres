@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bybn6hx1w5vy0"]
+
+[ext_resource type="Shader" uid="uid://c3m2iblto66y3" path="res://temp/prototype/billboards/billboardandtexture.gdshader" id="1_mybmo"]
+[ext_resource type="Material" uid="uid://userpr5qc0y3" path="res://temp/prototype/billboards/projection_outline.tres" id="1_rsgy0"]
+[ext_resource type="Texture2D" uid="uid://cn3dp0uwsxhwv" path="res://temp/old/assets/no-text.png" id="3_ne4hg"]
+
+[resource]
+render_priority = 0
+next_pass = ExtResource("1_rsgy0")
+shader = ExtResource("1_mybmo")
+shader_parameter/texture_albedo = ExtResource("3_ne4hg")
