@@ -1,5 +1,11 @@
-build-local:
+build-gdext:
+    cargo +nightly build --package lizstate-gdext
+
+build-all:
     cargo +nightly build
+
+run:
+    cargo run
 
 nextest:
     cargo +nightly nextest r --verbose

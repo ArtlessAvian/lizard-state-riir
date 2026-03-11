@@ -1,10 +1,13 @@
 
 run-godot:
-	just rust-workspace/build-local
+	just rust-workspace/build-gdext
 	just godot-project/run
 
+run-tui:
+	just rust-workspace/run
+
 run-godot-headless:
-	just rust-workspace/build-local
+	just rust-workspace/build-gdext
 	just godot-project/run-headless
 
 export-windows:

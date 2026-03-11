@@ -1,10 +1,10 @@
 
+run:
+	godot
+
 import:
 	godot -v --headless \
 		--import
-
-run:
-	godot
 
 run-headless: import
 	godot -v --headless \
