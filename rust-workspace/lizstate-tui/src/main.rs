@@ -1,3 +1,8 @@
+fn main() {
+    todo!()
+}
+
+/*
 use ratatui::prelude::*;
 
 use crate::app::App;
@@ -30,3 +35,4 @@ fn main_loop<T: Backend>(mut terminal: Terminal<T>, mut app: App) -> std::io::Re
     }
     Ok(())
 }
+*/

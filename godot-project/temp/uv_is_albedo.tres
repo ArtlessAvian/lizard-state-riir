@@ -1,9 +1,7 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://bshfn3j0x1c7v"]
 
-[ext_resource type="Material" uid="uid://userpr5qc0y3" path="res://temp/prototype/billboards/projection_outline.tres" id="1_qv430"]
 [ext_resource type="Shader" uid="uid://bxbi66vcu06h6" path="res://temp/uv_is_albedo.gdshader" id="2_utpni"]
 
 [resource]
 render_priority = 0
-next_pass = ExtResource("1_qv430")
 shader = ExtResource("2_utpni")
