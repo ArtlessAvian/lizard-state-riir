@@ -7,4 +7,5 @@ edition = "2024"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
-godot = { version = "0.4.5", features = ["experimental-wasm"] }
+lizstate-crawler = { path = "../lizstate-crawler" }
+godot = { version = "0.5.1", features = ["experimental-wasm", "api-4-6"] }

@@ -13,8 +13,8 @@ struct MyExtension;
 
 #[gdextension]
 unsafe impl ExtensionLibrary for MyExtension {
-    fn on_level_init(level: InitLevel) {
-        if matches!(level, InitLevel::Scene) {
+    fn on_stage_init(level: InitStage) {
+        if matches!(level, InitStage::Scene) {
             godot_print!("Hello from Lizard State Godot Glue!");
         }
     }
