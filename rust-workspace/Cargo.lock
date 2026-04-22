@@ -309,11 +309,15 @@ name = "lizstate-crawler"
 version = "0.1.0"
 
 [[package]]
+name = "lizstate-dungeon"
+version = "0.1.0"
+
+[[package]]
 name = "lizstate-gdext"
 version = "0.1.0"
 dependencies = [
  "godot",
- "lizstate-crawler",
+ "lizstate-dungeon",
 ]
 
 [[package]]
